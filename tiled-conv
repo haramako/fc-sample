@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+require 'pp'
+require 'json'
+
+def conv( filename )
+  puts "options(bank:2);"
+  data = JSON.parse( File.read(filename) )
+  w = data['width'].to_i
+  h = data['height'].to_i
+  raise if w % 16 != 0 or h % 15 != 0
+  aw = w / 16
+  ah = h / 15
+  # pp aw, ah
+  data = data['layers'][0]['data']
+  outfile = filename[0..-(File.extname(filename)).size] + 'bin'
+  data = data.map{|x| x-1 }
+  ah.times do |ay|
+    aw.times do |ax|
+      d = []
+      15.times do |cy|
+        16.times do |cx|
+          d[cy*16+cx] = data[(ay*15+cy)*w + (ax*16+cx)]
+        end
+      end
+      puts "const _AREA_#{ay*aw+ax}:int[] = #{d};"
+    end
+  end
+  arrays = (0...aw*ah).map{|i|"_AREA_#{i}"}
+  puts "const _Z:int[] = [0];"
+  puts "const MAP:int*[#{arrays.size}+1] = [#{arrays.join(',')},_Z];"
+  puts "const MAP_WIDTH = #{aw};"
+  puts "const MAP_HEIGHT = #{ah};"
+end
+
+if ARGV.empty?
+  puts "Convert Tiled json file to binary."
+  puts "usage: ./tile-conv <mapfile.json>"
+  exit
+end
+
+conv ARGV[0]

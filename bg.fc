@@ -1,0 +1,207 @@
+options(bank:2);
+use mmc3;
+use util;
+use map_data;
+use common;
+
+var bg_buf_idx:int;
+var bg_buf:int[256];
+var bg_pal:int[64];
+
+var bg_on_scroll:void(int,int);
+var bg_cur_area:int;
+
+const PAL:int[] =
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	 1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+function bg_init():void
+{
+	bg_on_scroll = bg_on_scroll_null;
+	bg_cur_area = 0;
+	bg_buf_idx = 0;
+	on_wait_vsync = ->void(){ bg_buf_idx = 0; };
+}
+
+function bg_on_scroll_null(x:int, y:int):void {}
+
+function draw_screen(area:int):void
+{
+	bg_cur_area = area;
+	var ax:int, ay:int;
+	for(ax, 0, 16){
+		for(ay, 0, 15){
+			var cell:int = MAP[bg_cur_area][ay*16+ax];
+			bg_put_in_lock(ax, ay, cell);
+		}
+	}
+}
+
+function scroll_left():void
+{
+	var x = 15;
+	var i:int;
+	bg_cur_area -= 1;
+	MMC3_MIRROR = 1; // horizontal
+	while(1){
+		draw_map_vertical(x);
+
+		for(i, 0, 2){
+			bg_on_scroll(7,0);
+			ppu_scroll1 = x*16+8-i*8;
+			if( i == 1 ){ gr_add( 0x23c0 + x/2, &bg_pal[x/2], 8, PPU_ATTRIBUTE ); }
+			wait_vsync();
+		}
+		
+		if( x == 0 ){ break; }
+		x -= 1;
+	}
+}
+
+function scroll_right():void
+{
+	var x = 0;
+	var i:int;
+	bg_cur_area += 1;
+	MMC3_MIRROR = 1; // horizontal
+	while(1){
+		draw_map_vertical(x);
+
+		for(i, 0, 2){
+			bg_on_scroll(-7,0);
+			ppu_scroll1 = x*16+i*8+8;
+			if( i == 1 ){ gr_add( 0x23c0 + x/2, &bg_pal[x/2], 8, PPU_ATTRIBUTE ); }
+			wait_vsync();
+		}
+		
+		if( x == 15 ){ break; }
+		x += 1;
+	}
+}
+
+function scroll_up():void
+{
+	var y = 14;
+	var i:int;
+	bg_cur_area -= MAP_WIDTH;
+	MMC3_MIRROR = 0; // vertical
+	while(1){
+		draw_map_horizontal(y);
+
+		for(i, 0, 2){
+			bg_on_scroll(0,7);
+			ppu_scroll2 = y*16+8-i*8;
+			if( ppu_scroll2 == 240 ){ ppu_scroll2 = 0; }
+			wait_vsync();
+		}
+		
+		if( y == 0 ){ break; }
+		y -= 1;
+	}
+}
+
+function scroll_down():void
+{
+	var y = 0;
+	var i:int;
+	bg_cur_area += MAP_WIDTH;
+	MMC3_MIRROR = 0; // vertical
+	while(1){
+		draw_map_horizontal(y);
+
+		for(i, 0, 2){
+			bg_on_scroll(0,-7);
+			ppu_scroll2 = y*16+i*8+8;
+			if( ppu_scroll2 == 240 ){ ppu_scroll2 = 0; }
+			wait_vsync();
+		}
+		
+		if( y == 14 ){ break; }
+		y += 1;
+	}
+}
+
+function bg_put_in_lock(x:int, y:int, n:int):void
+{
+	var y16:int16 = y;
+	var addr:int16 = 0x2000 + y16*64 + x*2;
+	var ni = n * 4;
+	bg_buf[0] = ni;
+	bg_buf[1] = ni+2;
+	bg_buf[2] = ni+1;
+	bg_buf[3] = ni+3;
+	ppu_put( addr, bg_buf, 2 );
+	ppu_put( addr+32, &bg_buf[2], 2 );
+
+	var pal_addr = bg_set_pal(x,y,PAL[n]);
+	ppu_put( 0x23c0 + pal_addr, &bg_pal[pal_addr], 1 );
+}
+
+function draw_map_vertical(x:int):void
+{
+	var addr:int16 = 0x2000 + x*2;
+	var y:int;
+	for( y, 0, 15 ){
+		var n = MAP[bg_cur_area][y*16+x];
+		var ni = n * 4;
+		var idx = bg_buf_idx+y*2;
+		bg_buf[idx] = ni;
+		bg_buf[idx+1] = ni+1;
+		bg_buf[idx+30] = ni+2;
+		bg_buf[idx+31] = ni+3;
+		bg_set_pal(x,y,PAL[n]);
+	}
+	gr_add( addr, &bg_buf[bg_buf_idx], 30, PPU_VERTICAL);
+	gr_add( addr+1, &bg_buf[bg_buf_idx+30], 30, PPU_VERTICAL);
+	// gr_add( 0x23c0 + x/2, &bg_pal[x/2], 8, PPU_ATTRIBUTE ); // 間に合わないので外に出す
+	bg_buf_idx += 60;
+}
+
+function draw_map_horizontal(y:int):void
+{
+	var y16:int16 = y;
+	var addr:int16 = 0x2000 + y16*64;
+	var x:int;
+	for( x, 0, 16 ){
+		var n = MAP[bg_cur_area][y*16+x];
+		var ni = n * 4;
+		var idx = bg_buf_idx+x*2;
+		bg_buf[idx] = ni;
+		bg_buf[idx+1] = ni+2;
+		bg_buf[idx+32] = ni+1;
+		bg_buf[idx+33] = ni+3;
+		bg_set_pal(x,y,PAL[n]);
+	}
+	gr_add( addr, &bg_buf[bg_buf_idx], 64, PPU_HORIZONTAL);
+	var pal_addr = (y/2)*8;
+	gr_add( 0x23c0 + pal_addr, &bg_pal[pal_addr], 8, PPU_HORIZONTAL );
+	bg_buf_idx += 64;
+}
+
+function bg_set_pal(x:int, y:int, pal:int):int
+{
+	var pal_addr:int8 = (y/2)*8 + x/2;
+	var pos = (((y%2)*2) | (x%2))*2;
+	var mask:int = (0b00000011 << pos) ^ 0xff;
+	bg_pal[pal_addr] = (bg_pal[pal_addr] & mask) | (pal << pos);
+	return pal_addr;
+}
+
+function bg_put(x:int, y:int, n:int, pal:int):void
+{
+	var y16:int16 = y;
+	var addr:int16 = 0x2000 + y16*64 + x*2;
+	var ni = n * 4;
+	bg_buf[bg_buf_idx+0] = ni;
+	bg_buf[bg_buf_idx+1] = ni+2;
+	bg_buf[bg_buf_idx+2] = ni+1;
+	bg_buf[bg_buf_idx+3] = ni+3;
+	gr_add( addr, &bg_buf[bg_buf_idx], 2, 0 );
+	gr_add( addr+32, &bg_buf[bg_buf_idx+2], 2, 0 );
+	bg_buf_idx += 4;
+	
+	var pal_addr = bg_set_pal(x,y,pal);
+	gr_add( 0x23c0 + pal_addr, &bg_pal[pal_addr], 1, 0 );
+}
