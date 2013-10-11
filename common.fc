@@ -1,1 +1,3 @@
 options(bank:-1);
+
+var debug:int16[8] options(address:0xe0);

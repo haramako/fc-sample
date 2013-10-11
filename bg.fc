@@ -1,14 +1,19 @@
-options(bank:2);
+options(bank:0);
 use mmc3;
 use util;
 use map_data;
 use common;
+use memory;
+use rle;
+
+var bg_data:int[256] options(address:0x6000);
+
+var bg_on_scroll:void(int,int);
 
 var bg_buf_idx:int;
 var bg_buf:int[256];
 var bg_pal:int[64];
 
-var bg_on_scroll:void(int,int);
 var bg_cur_area:int;
 
 const PAL:int[] =
@@ -33,10 +38,16 @@ function draw_screen(area:int):void
 	var ax:int, ay:int;
 	for(ax, 0, 16){
 		for(ay, 0, 15){
-			var cell:int = MAP[bg_cur_area][ay*16+ax];
+			var cell:int = bg_data[ay*16+ax];
 			bg_put_in_lock(ax, ay, cell);
 		}
 	}
+}
+
+function bg_fetch_area(area:int):void
+{
+	var len = rle_unpack( bg_data, MAP[area] );
+	if( len != 16*15 ){ asm( ".db 255" ); } // length check
 }
 
 function scroll_left():void
@@ -44,6 +55,7 @@ function scroll_left():void
 	var x = 15;
 	var i:int;
 	bg_cur_area -= 1;
+	bg_fetch_area(bg_cur_area);
 	MMC3_MIRROR = 1; // horizontal
 	while(1){
 		draw_map_vertical(x);
@@ -65,6 +77,7 @@ function scroll_right():void
 	var x = 0;
 	var i:int;
 	bg_cur_area += 1;
+	bg_fetch_area(bg_cur_area);
 	MMC3_MIRROR = 1; // horizontal
 	while(1){
 		draw_map_vertical(x);
@@ -86,6 +99,7 @@ function scroll_up():void
 	var y = 14;
 	var i:int;
 	bg_cur_area -= MAP_WIDTH;
+	bg_fetch_area(bg_cur_area);
 	MMC3_MIRROR = 0; // vertical
 	while(1){
 		draw_map_horizontal(y);
@@ -107,6 +121,7 @@ function scroll_down():void
 	var y = 0;
 	var i:int;
 	bg_cur_area += MAP_WIDTH;
+	bg_fetch_area(bg_cur_area);
 	MMC3_MIRROR = 0; // vertical
 	while(1){
 		draw_map_horizontal(y);
@@ -144,7 +159,7 @@ function draw_map_vertical(x:int):void
 	var addr:int16 = 0x2000 + x*2;
 	var y:int;
 	for( y, 0, 15 ){
-		var n = MAP[bg_cur_area][y*16+x];
+		var n = bg_data[y*16+x];
 		var ni = n * 4;
 		var idx = bg_buf_idx+y*2;
 		bg_buf[idx] = ni;
@@ -165,7 +180,7 @@ function draw_map_horizontal(y:int):void
 	var addr:int16 = 0x2000 + y16*64;
 	var x:int;
 	for( x, 0, 16 ){
-		var n = MAP[bg_cur_area][y*16+x];
+		var n = bg_data[y*16+x];
 		var ni = n * 4;
 		var idx = bg_buf_idx+x*2;
 		bg_buf[idx] = ni;

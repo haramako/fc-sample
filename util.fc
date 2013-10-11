@@ -41,6 +41,7 @@ function ppu_init():void
 
 function wait_vsync():void
 {
+	// PPU_CTRL2 = 0b00010110; // for debug (profiling)
 	while( gr_sprite_idx < 255 ){
 		gr_sprite_buf[gr_sprite_idx] = 0;
 		gr_sprite_idx += 1;
@@ -63,6 +64,8 @@ function ppu_unlock():void
 }
 
 function ppu_put( to:int16, from:int*, size:int ):void;
+
+function ppu_fill(addr:int16, size:int16, n:int):void;
 
 function gr_add( to:int16, from:int*, size:int, flag:int ):void
 {

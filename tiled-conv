@@ -2,6 +2,7 @@
 
 require 'pp'
 require 'json'
+require_relative 'rle'
 
 def conv( filename )
   puts "options(bank:2);"
@@ -23,12 +24,14 @@ def conv( filename )
           d[cy*16+cx] = data[(ay*15+cy)*w + (ax*16+cx)]
         end
       end
+      if true
+        d = rle_compress( d )
+      end
       puts "const _AREA_#{ay*aw+ax}:int[] = #{d};"
     end
   end
   arrays = (0...aw*ah).map{|i|"_AREA_#{i}"}
-  puts "const _Z:int[] = [0];"
-  puts "const MAP:int*[#{arrays.size}+1] = [#{arrays.join(',')},_Z];"
+  puts "const MAP:int*[] = [#{arrays.join(',')}];"
   puts "const MAP_WIDTH = #{aw};"
   puts "const MAP_HEIGHT = #{ah};"
 end

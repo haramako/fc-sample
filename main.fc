@@ -33,7 +33,7 @@ const MY_STATE_JUMP = 2;
 function get_cell(x:int, y:int):int
 {
 	if( y > 240 ){ return 0; }
-	return MAP[bg_cur_area][(y/16)*16 + x/16];
+	return bg_data[(y/16)*16 + x/16];
 }
 
 function my_process():void
@@ -140,7 +140,6 @@ function my_on_scroll(x:int, y:int):void
 	my_draw();
 }
 
-function ppu_fill(addr:int16, size:int16, n:int):void;
 
 function main(): void
 {
@@ -150,6 +149,7 @@ function main(): void
 
 	APU_INTERRUPT = 0x40; // disable APU IRQ
 	MMC3_MIRROR = 1; // horizontal
+	MMC3_RAM_PROTECT = 0b10000000;
 	
 	ppu_ctrl1_bak = 0b10100000;
 	ppu_ctrl2_bak = 0b00011110;
@@ -160,6 +160,7 @@ function main(): void
 	// パレットの初期化
 	ppu_put( 0x3f00, PALLET, 32 );
 
+	bg_fetch_area(0);
 	draw_screen(0);
 	bg_on_scroll = my_on_scroll;
 
@@ -186,7 +187,7 @@ function main(): void
 			scroll_right();
 		}elsif( my_y >= 240 ){
 			scroll_down();
-		}elsif( my_y < 8 ){
+		}elsif( my_y < 16 ){
 			scroll_up();
 		}
 	}
