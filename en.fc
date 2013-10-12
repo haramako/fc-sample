@@ -1,0 +1,103 @@
+options(bank:1);
+
+options ( bank: 1 );
+use math;
+use util;
+use common;
+use bg;
+use en_types;
+
+/*********************************************
+ * 敵関係のルーチン
+ *********************************************/
+
+/** 初期化する */
+function en_init():void
+{
+}
+
+function en_clear():void
+{
+	var i:int;
+	for( i, 0, EN_MAX ){
+		en_type[i] = 0;
+	}
+}
+
+function en_process():void
+{
+	var i:int;
+	for( i, 0, EN_MAX ){
+		EN_PROCESS[en_type[i]](i);
+	}
+}
+
+function en_new():int
+{
+	var i:int;
+	for( i, 0, EN_MAX ){
+		if( !en_type[i] ){ return i; }
+	}
+	return 255;
+}
+
+function en_new_by_type(type:int):int
+{
+	return EN_NEW_FUNC[type]();
+}
+
+function en_check_hit(i:int):int
+{
+	return (en_x[i] + 12 - my_x < 24) && (en_y[i] + 6 - my_y < 12 );
+}
+
+/*********************************************
+ * ダミー
+ *********************************************/
+function en_none_new():int { return 255; }
+function en_none_process(i:int):void {}
+
+/*********************************************
+ * 敵１
+ *********************************************/
+
+function slime_new():int
+{
+	var i = en_new();
+	if( i == 255 ){ return i; }
+	en_type[i] = EN_TYPE_SLIME;
+	en_p1[i] = 1;
+	return i;
+}
+
+function slime_process(i:int):void
+{
+	var x:uint = en_x[i];
+	var y = en_y[i];
+	var dir:sint = en_p1[i];
+	if( bg_cell_type(x,y) & BG_TYPE_WALL ){
+		var nx:uint = x+dir*8;
+		if( nx < 8 || nx > 248 || bg_cell_type(nx,y-8) & BG_TYPE_WALL ){
+			dir = -dir;
+		}else{
+			if( giff >= 8 ){ x += dir; }
+		}
+	}else{
+		y = y + 1;
+	}
+
+	var flip:uint = (1-dir)/2;
+	gr_sprite2( x, y-8, 129+(anim/16)%2*4, 64*flip | 1);
+
+	en_x[i] = x;
+	en_y[i] = y;
+	en_p1[i] = dir;
+	
+	if( en_check_hit(i) ){
+		wait(100);
+	}
+
+}
+
+const EN_PROCESS: void(int)[] = [en_none_process, slime_process];
+const EN_NEW_FUNC: int()[] = [en_none_new, slime_new];

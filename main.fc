@@ -10,22 +10,15 @@ use pad;
 use bg;
 use common;
 use menu;
+use en;
 
 include('character.chr');
 
-const PALLET:int[32] = [0x0f,0x27,0x38,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13,
-                        0x19,0x0b,0x2b,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13];
+const PALLET:int[] = incbin("character.chr.dat");
+/* const PALLET:int[32] = [0x0f,0x27,0x38,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13, */
+/*                         0x19,0x0b,0x2b,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13]; */
 
 use map_data;
-
-var my_x:int, my_y:int;
-var my_anim:int;
-var vy:sint, vx:sint;
-var my_dir:int;
-var my_state:int;
-var on_ground:int;
-var old_pad_a:int;
-var jump_pow:int;
 
 const MY_STATE_STAND = 0;
 const MY_STATE_WALK = 1;
@@ -115,17 +108,6 @@ function my_process():void
 
 }
 
-function gr_sprite2(x:int, y:int, pat:int, flag:int):void
-{
-	if( flag & (1<<6) ){
-		gr_sprite( x, y-8, pat, flag );
-		gr_sprite( x-8, y-8, pat+2, flag );
-	}else{
-		gr_sprite( x, y-8, pat+2, flag );
-		gr_sprite( x-8, y-8, pat, flag );
-	}
-}
-
 function my_draw():void
 {
 	switch( my_state ){
@@ -155,12 +137,27 @@ function my_on_scroll(x:int, y:int):void
 	my_draw();
 }
 
+function init_area_enemy():void
+{
+	en_clear();
+	
+	var n = 0;
+	for( n, 0, bg_enemy_num ){
+		var idx = n*4;
+		var i = en_new_by_type(bg_enemy[idx]);
+		en_x[i] = bg_enemy[idx+1] * 16;
+		en_y[i] = bg_enemy[idx+2] * 16;
+		en_p1[i] = bg_enemy[idx+3];
+	}
+}
+
 
 function main(): void
 {
 	ppu_lock();
 	ppu_init();
 	bg_init();
+	en_init();
 
 	APU_INTERRUPT = 0x40; // disable APU IRQ
 	MMC3_MIRROR = 1; // horizontal
@@ -177,6 +174,7 @@ function main(): void
 
 	bg_cur_area = 4*MAP_WIDTH+4;
 	bg_fetch_area(bg_cur_area);
+	init_area_enemy();
 	draw_screen(bg_cur_area);
 	bg_on_scroll = my_on_scroll;
 
@@ -184,6 +182,7 @@ function main(): void
 	
 	asm( "cli" );
 
+	anim = 0;
 	my_x = 128;
 	my_y = 128;
 	my_dir = 0;
@@ -193,9 +192,13 @@ function main(): void
 	old_pad_a = 0;
 
 	while( 1 ){
+		anim += 1;
+		giff = GIFF_TABLE[anim%16];
+		
 		pad_update();
 		my_process();
 		my_draw();
+		en_process();
 		wait_vsync();
 
 		// 死亡
@@ -210,7 +213,8 @@ function main(): void
 			draw_screen(bg_cur_area);
 			ppu_unlock();
 		}
-		
+
+		var scrolled = 1;
 		if( my_x < 16 ){
 			scroll_left();
 		}elsif( my_x >= 248 ){
@@ -219,6 +223,11 @@ function main(): void
 			scroll_down();
 		}elsif( my_y < 16 ){
 			scroll_up();
+		}else{
+			scrolled = 0;
+		}
+		if( scrolled ){
+			init_area_enemy();
 		}
 
 		// メニュー

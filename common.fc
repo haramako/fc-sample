@@ -1,3 +1,42 @@
 options(bank:-1);
 
-var debug:int16[8] options(address:0xe0);
+use util;
+
+const GIFF_TABLE = [0,8,4,12, 2,10,6,14, 1,9,5,13, 3,11,7,15];
+var anim:int;
+var giff:int;
+
+var debug:int[8] options(address:0xe0);
+
+var my_x:int, my_y:int;
+var my_anim:int;
+var vy:sint, vx:sint;
+var my_dir:int;
+var my_state:int;
+var on_ground:int;
+var old_pad_a:int;
+var jump_pow:int;
+
+const EN_MAX = 16;
+var en_type:int[EN_MAX];
+var en_x:int[EN_MAX];
+var en_y:int[EN_MAX];
+var en_p1:int[EN_MAX];
+var en_p2:int[EN_MAX];
+var en_p3:int[EN_MAX];
+var en_p4:int[EN_MAX];
+var en_wait:int;
+var en_now:int;
+
+
+function gr_sprite2(x:int, y:int, pat:int, flag:int):void
+{
+	if( flag & (1<<6) ){
+		gr_sprite( x, y-8, pat, flag );
+		gr_sprite( x-8, y-8, pat+2, flag );
+	}else{
+		gr_sprite( x, y-8, pat+2, flag );
+		gr_sprite( x-8, y-8, pat, flag );
+	}
+}
+

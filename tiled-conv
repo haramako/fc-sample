@@ -37,20 +37,25 @@ AREA_WIDTH = 16
 AREA_HEIGHT = 15
 
 def px2area( x, y )
-  (y.to_i/16/AREA_HEIGHT)*$world_width + x.to_i/16/AREA_WIDTH
+  area = (y.to_i/16/AREA_HEIGHT)*$world_width + x.to_i/16/AREA_WIDTH
+  cx = (x/16)%AREA_WIDTH
+  cy = (y/16)%AREA_HEIGHT
+  [area, cx, cy]
 end
 
 def conv_item( data )
   objs = data['layers'].find{|x| x['name'] == 'objects'}
   checkpoints = []
+  enemy = Array.new($world_width*$world_height){[]}
   objs['objects'].each do |obj|
     prop = obj['properties']
     case obj['type']
     when 'checkpoint'
-      area = px2area( obj['x'], obj['y'] )
-      x = (obj['x']/16)%AREA_WIDTH
-      y = (obj['y']/16)%AREA_HEIGHT
+      area, x, y = px2area( obj['x'], obj['y'] )
       checkpoints[prop['id'].to_i] = {name:obj['name'], area:area, x:x*16, y:y*16}
+    when 'enemy'
+      area, x, y = px2area( obj['x'], obj['y'] )
+      enemy[area] << {type:prop['type'], x:x, y:y, p1:prop['p1'].to_i}
     end
   end
 
@@ -66,10 +71,21 @@ def conv_item( data )
   puts out_name.join("\n")
   puts "const MAP_CHECKPOINT_NAME:int*[] = [#{out_name_array.join(',')}];"
   puts "const MAP_CHECKPOINT:int[] = [#{out_data.join(', ')}];"
+
+
+  en_array = []
+  enemy.each.with_index do |area,i|
+    d = [area.size] + area.map { |en| ['EN_TYPE_'+en[:type].upcase, en[:x], en[:y], en[:p1] % 256] }
+    puts "const _MAP_EN#{i}:uint[] = [#{d.join(',')}];"
+    en_array << "_MAP_EN#{i}"
+  end
+
+  puts "const MAP_ENEMY:int*[] = [#{en_array.join(',')}];"
 end
 
 def conv( filename )
   puts "options(bank:2);"
+  puts "use en_types;"
   data = JSON.parse( File.read(filename) )
 
   w = data['width'].to_i
@@ -78,8 +94,8 @@ def conv( filename )
   $world_width = w / AREA_WIDTH
   $world_height = w / AREA_HEIGHT
 
-  conv_map data
   conv_item data
+  conv_map data
 end
 
 if ARGV.empty?

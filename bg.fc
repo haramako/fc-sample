@@ -7,6 +7,8 @@ use memory;
 use rle;
 
 var bg_data:int[256] options(address:0x6000);
+var bg_enemy:int[256] options(address:0x6100);
+var bg_enemy_num:int;
 
 var bg_on_scroll:void(int,int);
 
@@ -23,7 +25,7 @@ const PAL:int[] =
 	 0,0,0,0,0,0,0,0,
 	 1,1,0,0,0,0,0,0,
 	 0,0,0,0,0,0,0,0,
-	 0,0,0,0,0,0,0,0,
+	 1,1,0,0,0,0,0,0,
 	 0,0,0,0,0,0,0,0];
 
 const BG_TYPE_WALL = 1 << 0;
@@ -54,6 +56,11 @@ function bg_init():void
 	on_wait_vsync = ->void(){ bg_buf_idx = 0; };
 }
 
+function bg_cell_type(x:int, y:int):int
+{
+	return BG_TYPE[bg_data[(y/16)*16 + x/16]];
+}
+
 function bg_on_scroll_null(x:int, y:int):void {}
 
 function draw_screen(area:int):void
@@ -72,6 +79,8 @@ function bg_fetch_area(area:int):void
 {
 	var len = rle_unpack( bg_data, MAP[area] );
 	if( len != 16*15 ){ asm( ".db 255" ); } // length check
+	bg_enemy_num = MAP_ENEMY[area][0];
+	memcpy( &MAP_ENEMY[area][1], bg_enemy, bg_enemy_num*4 );
 }
 
 function scroll_left():void
