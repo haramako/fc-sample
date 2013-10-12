@@ -5,7 +5,6 @@ require 'json'
 require_relative 'rle'
 
 def conv_map( data )
-
   aw = $world_width 
   ah = $world_height
   # pp aw, ah

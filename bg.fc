@@ -30,11 +30,13 @@ const PAL:int[] =
 
 const BG_TYPE_WALL = 1 << 0;
 const BG_TYPE_SPIKE = 1 << 2;
-const BG_TYPE_ENEMY_WALL = 1 << 3 | 1 << 0;
+const BG_TYPE_EWALL = 1 << 3;
+const BG_TYPE_STOP = BG_TYPE_WALL | 1 << 3;
+
 // 1 WALL  : 壁
-// 2 SPIKE : とげ
-// 4
-// 8
+// 2 
+// 4 SPIKE : とげ
+// 8 EWALL : 自分は通れるが、敵が通れない
 // 1
 // 2
 // 4

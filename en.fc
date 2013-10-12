@@ -67,7 +67,7 @@ function slime_process(i:int):void
 	var dir:sint = en_p1[i];
 	if( bg_cell_type(x,y) & BG_TYPE_WALL ){
 		var nx:uint = x+dir*8;
-		if( nx < 8 || nx > 248 || bg_cell_type(nx,y-8) & BG_TYPE_WALL ){
+		if( nx < 8 || nx > 248 || bg_cell_type(nx,y-8) & BG_TYPE_STOP ){
 			dir = -dir;
 		}else{
 			if( giff >= 8 ){ x += dir; }
@@ -106,35 +106,33 @@ function wow_process(i:int):void
 	
 	switch( dir ){
 	case 0: // 上
-		if( bg_cell_type(x,y-16) & BG_TYPE_ENEMY_WALL ){
+		if( bg_cell_type(x,y-16) & BG_TYPE_STOP ){
 			dir = 2;
 		}else{
 			y -= (speed + giff ) / 16;
 		}
 	case 1: // 右
-		if( bg_cell_type(x+8,y-8) & BG_TYPE_ENEMY_WALL ){
+		if( bg_cell_type(x+8,y-8) & BG_TYPE_STOP ){
 			dir = 3;
 		}else{
 			x += (speed + giff ) / 16;
 		}
 	case 2: // 下
-		if( bg_cell_type(x,y) & BG_TYPE_ENEMY_WALL ){
+		if( bg_cell_type(x,y) & BG_TYPE_STOP ){
 			dir = 0;
 		}else{
 			y += (speed + giff ) / 16;
 		}
 	case 3: // 左
-		if( bg_cell_type(x-8,y-8) & BG_TYPE_ENEMY_WALL ){
+		if( bg_cell_type(x-8,y-8) & BG_TYPE_STOP ){
 			dir = 1;
 		}else{
 			x -= (speed + giff ) / 16;
 		}
 	}
 
-	if( x < 8 || x > 248 || y < 8 || y > 248 ){
-		en_type[i] = 0;
-		return;
-	}
+	// 画面端で折り返す
+	if( x < 16 || x > 240 || y < 16 || y > 240 ){ dir = (dir+2) % 4; }
 
 	gr_sprite2( x, y-8, 137+(anim/2)%2*4, 0);
 
