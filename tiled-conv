@@ -55,7 +55,7 @@ def conv_item( data )
       checkpoints[prop['id'].to_i] = {name:obj['name'], area:area, x:x*16, y:y*16}
     when 'enemy'
       area, x, y = px2area( obj['x'], obj['y'] )
-      enemy[area] << {type:prop['type'], x:x, y:y, p1:prop['p1'].to_i}
+      enemy[area] << {type:prop['type'], x:x, y:y, p1:prop['p1'].to_i, p2:prop['p2'].to_i }
     end
   end
 
@@ -75,7 +75,7 @@ def conv_item( data )
 
   en_array = []
   enemy.each.with_index do |area,i|
-    d = [area.size] + area.map { |en| ['EN_TYPE_'+en[:type].upcase, en[:x], en[:y], en[:p1] % 256] }
+    d = [area.size] + area.map { |en| ['EN_TYPE_'+en[:type].upcase, en[:x], en[:y], en[:p1] % 256, en[:p2] % 256] }
     puts "const _MAP_EN#{i}:uint[] = [#{d.join(',')}];"
     en_array << "_MAP_EN#{i}"
   end

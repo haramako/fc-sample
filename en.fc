@@ -41,11 +41,6 @@ function en_new():int
 	return 255;
 }
 
-function en_new_by_type(type:int):int
-{
-	return EN_NEW_FUNC[type]();
-}
-
 function en_check_hit(i:int):int
 {
 	return (en_x[i] + 12 - my_x < 24) && (en_y[i] + 6 - my_y < 12 );
@@ -58,21 +53,16 @@ function en_none_new():int { return 255; }
 function en_none_process(i:int):void {}
 
 /*********************************************
- * 敵１
+ * スライム
  *********************************************/
 
-function slime_new():int
+function slime_new(i:int):void
 {
-	var i = en_new();
-	if( i == 255 ){ return i; }
-	en_type[i] = EN_TYPE_SLIME;
-	en_p1[i] = 1;
-	return i;
 }
 
 function slime_process(i:int):void
 {
-	var x:uint = en_x[i];
+	var x = en_x[i];
 	var y = en_y[i];
 	var dir:sint = en_p1[i];
 	if( bg_cell_type(x,y) & BG_TYPE_WALL ){
@@ -94,10 +84,68 @@ function slime_process(i:int):void
 	en_p1[i] = dir;
 	
 	if( en_check_hit(i) ){
-		wait(100);
+		wait(10);
 	}
 
 }
 
-const EN_PROCESS: void(int)[] = [en_none_process, slime_process];
-const EN_NEW_FUNC: int()[] = [en_none_new, slime_new];
+/*********************************************
+ * ウィルオーウィスプ
+ *********************************************/
+function wow_new(i:int):void
+{
+	en_x[i] += 8;
+}
+
+function wow_process(i:int):void
+{
+	var x = en_x[i];
+	var y = en_y[i];
+	var dir = en_p1[i];
+	var speed = en_p2[i];
+	
+	switch( dir ){
+	case 0: // 上
+		if( bg_cell_type(x,y-16) & BG_TYPE_ENEMY_WALL ){
+			dir = 2;
+		}else{
+			y -= (speed + giff ) / 16;
+		}
+	case 1: // 右
+		if( bg_cell_type(x+8,y-8) & BG_TYPE_ENEMY_WALL ){
+			dir = 3;
+		}else{
+			x += (speed + giff ) / 16;
+		}
+	case 2: // 下
+		if( bg_cell_type(x,y) & BG_TYPE_ENEMY_WALL ){
+			dir = 0;
+		}else{
+			y += (speed + giff ) / 16;
+		}
+	case 3: // 左
+		if( bg_cell_type(x-8,y-8) & BG_TYPE_ENEMY_WALL ){
+			dir = 1;
+		}else{
+			x -= (speed + giff ) / 16;
+		}
+	}
+
+	if( x < 8 || x > 248 || y < 8 || y > 248 ){
+		en_type[i] = 0;
+		return;
+	}
+
+	gr_sprite2( x, y-8, 137+(anim/2)%2*4, 0);
+
+	en_x[i] = x;
+	en_y[i] = y;
+	en_p1[i] = dir;
+	
+	if( en_check_hit(i) ){
+		wait(10);
+	}
+}
+
+const EN_PROCESS: void(int)[] = [en_none_process, slime_process, wow_process];
+const EN_NEW_FUNC: void(int)[] = [en_none_process, slime_new, wow_new];

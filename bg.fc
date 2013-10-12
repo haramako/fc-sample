@@ -26,10 +26,11 @@ const PAL:int[] =
 	 1,1,0,0,0,0,0,0,
 	 0,0,0,0,0,0,0,0,
 	 1,1,0,0,0,0,0,0,
-	 0,0,0,0,0,0,0,0];
+	 0,0,0,0,0,0,0,1];
 
 const BG_TYPE_WALL = 1 << 0;
 const BG_TYPE_SPIKE = 1 << 2;
+const BG_TYPE_ENEMY_WALL = 1 << 3 | 1 << 0;
 // 1 WALL  : 壁
 // 2 SPIKE : とげ
 // 4
@@ -46,7 +47,7 @@ const BG_TYPE:int[] =
 		0,   1,   0,   0,   0,   0,   0,   0,
 		4,   4,   4,   4,   4,   0,   0,   0,
 		0,   0,   0,   0,   0,   0,   0,   0,
-		0,   0,   0,   0,   0,   0,   0,   0];
+		0,   0,   0,   0,   0,   0,   0,   8];
 
 function bg_init():void
 {
@@ -63,9 +64,8 @@ function bg_cell_type(x:int, y:int):int
 
 function bg_on_scroll_null(x:int, y:int):void {}
 
-function draw_screen(area:int):void
+function draw_screen():void
 {
-	bg_cur_area = area;
 	var ax:int, ay:int;
 	for(ax, 0, 16){
 		for(ay, 0, 15){
@@ -77,10 +77,11 @@ function draw_screen(area:int):void
 
 function bg_fetch_area(area:int):void
 {
-	var len = rle_unpack( bg_data, MAP[area] );
+	bg_cur_area = area;
+	var len = rle_unpack( bg_data, MAP[bg_cur_area] );
 	if( len != 16*15 ){ asm( ".db 255" ); } // length check
-	bg_enemy_num = MAP_ENEMY[area][0];
-	memcpy( &MAP_ENEMY[area][1], bg_enemy, bg_enemy_num*4 );
+	bg_enemy_num = MAP_ENEMY[bg_cur_area][0];
+	memcpy( &MAP_ENEMY[bg_cur_area][1], bg_enemy, bg_enemy_num*5 );
 }
 
 function scroll_left():void

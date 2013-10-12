@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container">
+  <div class="row">
+	<div class="span8">
+
+	  <h2>チェックポイント</h2>
+
+	  <ul>
+		<li>種類: "checkpoint" で固定
+		<li>名前: アルファベット大文字で表示名 (例："CHECKPOINT1")
+		<li>プロパティ: id => 0から連番でチェックポイントの数, 
+	  </ul>
+	  
+	  <h2>敵</h2>
+
+	  <ul>
+		<li>種類: "enemy" で固定
+		<li>名前: 使用されない(なんでもいい)
+		<li>プロパティ: 下記で説明。typeは必須
+	  </ul>
+		
+	  <h3>敵の種類ごとのプロパティ</h3>
+
+	  <p>※ p1,p2は、省略すると0が使用される
+		
+	  <table class="table table-bordered">
+		  <tr class="table-header">
+  			<th>名前
+			<th>type
+   			<th>p1
+   			<th>p2
+			<th>説明
+		  </tr>
+		  <tr>
+  			<td>スライム
+			<td>SLIME
+			<td>方向( 1:右向き, -1:左向き )
+			<td>
+			<td>
+		  </tr>
+		  <tr>
+  			<td>ウィルオーウィスプ
+			<td>WOW
+			<td>方向( 0:上, 1:右, 2:下, 3:左 )
+			<td>速度( 1/16[px/sec] )
+			<td>壁で反射する。
+		  </tr>
+		</table>
+	</div>
+  </div>
+</div>
+
