@@ -160,16 +160,17 @@ function main(): void
 	// パレットの初期化
 	ppu_put( 0x3f00, PALLET, 32 );
 
-	bg_fetch_area(0);
-	draw_screen(0);
+	bg_cur_area = 4*MAP_WIDTH+4;
+	bg_fetch_area(bg_cur_area);
+	draw_screen(bg_cur_area);
 	bg_on_scroll = my_on_scroll;
 
 	ppu_unlock();
 	
 	asm( "cli" );
 
-	my_x = 100;
-	my_y = 180;
+	my_x = 128;
+	my_y = 128;
 	my_dir = 0;
 	vx = 0;
 	vy = 0;
