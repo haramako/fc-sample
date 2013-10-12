@@ -5,20 +5,24 @@ require 'json'
 require_relative 'rle'
 
 def conv_map( data )
-  w = data['width'].to_i
-  h = data['height'].to_i
-  raise if w % 16 != 0 or h % 15 != 0
+
   aw = $world_width 
   ah = $world_height
   # pp aw, ah
-  data = data['layers'][0]['data']
-  data = data.map{|x| x-1 }
+  a = Array.new($world_width*$world_height*AREA_WIDTH*AREA_HEIGHT)
+  layers = data['layers'].select{|x| x['type'] == 'tilelayer'}.reverse
+  a.size.times do |i|
+    l = layers.find{|layer| layer['data'][i] != 0 }
+    raise "Invalid map data" unless l
+    a[i] = l['data'][i] - 1
+  end
+
   ah.times do |ay|
     aw.times do |ax|
       d = []
       15.times do |cy|
         16.times do |cx|
-          d[cy*16+cx] = data[(ay*15+cy)*w + (ax*16+cx)]
+          d[cy*16+cx] = a[(ay*15+cy)*AREA_WIDTH*$world_width + (ax*16+cx)]
         end
       end
       if true
@@ -92,7 +96,7 @@ def conv( filename )
   h = data['height'].to_i
   raise if w % AREA_WIDTH != 0 or h % AREA_HEIGHT != 0
   $world_width = w / AREA_WIDTH
-  $world_height = w / AREA_HEIGHT
+  $world_height = h / AREA_HEIGHT
 
   conv_item data
   conv_map data
