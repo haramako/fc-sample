@@ -143,11 +143,14 @@ function init_area_enemy():void
 	
 	var n = 0;
 	for( n, 0, bg_enemy_num ){
-		var idx = n*4;
-		var i = en_new_by_type(bg_enemy[idx]);
+		var idx = n*5;
+		var i = en_new();
+		en_type[i] = bg_enemy[idx];
 		en_x[i] = bg_enemy[idx+1] * 16;
 		en_y[i] = bg_enemy[idx+2] * 16;
 		en_p1[i] = bg_enemy[idx+3];
+		en_p2[i] = bg_enemy[idx+4];
+		EN_NEW_FUNC[en_type[i]](i);
 	}
 }
 
@@ -172,10 +175,12 @@ function main(): void
 	// パレットの初期化
 	ppu_put( 0x3f00, PALLET, 32 );
 
-	bg_cur_area = 4*MAP_WIDTH+4;
-	bg_fetch_area(bg_cur_area);
-	init_area_enemy();
-	draw_screen(bg_cur_area);
+	my_x = MAP_CHECKPOINT[1]+8;
+	my_y = MAP_CHECKPOINT[2];
+	vx = 0;
+	vy = 0;
+	move_area( MAP_CHECKPOINT[0] );
+	set_last();
 	bg_on_scroll = my_on_scroll;
 
 	ppu_unlock();
@@ -183,8 +188,6 @@ function main(): void
 	asm( "cli" );
 
 	anim = 0;
-	my_x = 128;
-	my_y = 128;
 	my_dir = 0;
 	vx = 0;
 	vy = 0;
@@ -203,15 +206,7 @@ function main(): void
 
 		// 死亡
 		if( my_state == MY_STATE_DIE ){
-			my_x = 128;
-			my_y = 128;
-			vx = 0;
-			vy = 0;
-			bg_cur_area = 4*MAP_WIDTH+4;
-			bg_fetch_area(bg_cur_area);
-			ppu_lock();
-			draw_screen(bg_cur_area);
-			ppu_unlock();
+			move_to_last();
 		}
 
 		var scrolled = 1;
@@ -227,6 +222,7 @@ function main(): void
 			scrolled = 0;
 		}
 		if( scrolled ){
+			set_last();
 			init_area_enemy();
 		}
 
@@ -236,6 +232,35 @@ function main(): void
 		}
 	}
   
+}
+
+var last_area:int;
+var last_x:int;
+var last_y:int;
+
+function set_last():void
+{
+	last_area = bg_cur_area;
+	last_x = my_x;
+	last_y = my_y;
+}
+
+function move_to_last():void
+{
+	move_area(last_area);
+	my_x = last_x;
+	my_y = last_y;
+	vx = 0;
+	vy = 0;
+}
+
+function move_area(area:int):void
+{
+	bg_fetch_area(area);
+	init_area_enemy();
+	ppu_lock();
+	draw_screen();
+	ppu_unlock();
 }
 
 function menu_open():void
@@ -279,11 +304,7 @@ function menu_do_flag():int
 	my_y = MAP_CHECKPOINT[n*4+2];
 	vx = 0;
 	vy = 0;
-	bg_cur_area = MAP_CHECKPOINT[n*4];
-	bg_fetch_area(bg_cur_area);
-	ppu_lock();
-	draw_screen(bg_cur_area);
-	ppu_unlock();
+	move_area( MAP_CHECKPOINT[n*4] );
 
 	return 1;
 }
