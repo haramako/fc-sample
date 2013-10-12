@@ -1,4 +1,4 @@
-options(bank:0);
+options(bank:1);
 use mmc3;
 use util;
 use map_data;
