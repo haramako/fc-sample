@@ -9,6 +9,7 @@ use memory;
 use pad;
 use bg;
 use common;
+use menu;
 
 include('character.chr');
 
@@ -44,7 +45,8 @@ function get_cell_type(x:int, y:int):int
 
 function my_process():void
 {
-
+	pad_a = pad_a | pad_up;
+	
 	// 横移動
 	vx = 0;
 	my_anim += 1;
@@ -218,7 +220,61 @@ function main(): void
 		}elsif( my_y < 16 ){
 			scroll_up();
 		}
+
+		// メニュー
+		if( pad_start ){
+			menu_open();
+		}
 	}
   
 }
 
+function menu_open():void
+{
+	while(1){
+		menu_start("MENU");
+		menu_add( "CHECKPOINT" );
+		menu_add( "EXIT" );
+		switch( menu_select() ){
+		case 0:
+			if( menu_do_flag() ){ break; }
+		case 1,-1:
+			break;
+		}
+	}
+	
+	ppu_lock();
+	ppu_ctrl1_bak = 0b10100000;
+	ppu_ctrl2_bak = 0b00011110;
+	ppu_scroll1 = 0;
+	ppu_scroll2 = 0;
+	ppu_unlock();
+	wait_vsync();
+}
+
+var last_checkpoint:int;
+
+function menu_do_flag():int
+{
+	menu_start("SELECT CHECKPOINT");
+	var i:int;
+	for( i, 0, MAP_CHECKPOINT_NUM ){
+		menu_add( MAP_CHECKPOINT_NAME[i] );
+	}
+	menu_cur = last_checkpoint;
+	var n = menu_select();
+	if( n == -1 ){ return 0; }
+
+	last_checkpoint = n;
+	my_x = MAP_CHECKPOINT[n*4+1]+8;
+	my_y = MAP_CHECKPOINT[n*4+2];
+	vx = 0;
+	vy = 0;
+	bg_cur_area = MAP_CHECKPOINT[n*4];
+	bg_fetch_area(bg_cur_area);
+	ppu_lock();
+	draw_screen(bg_cur_area);
+	ppu_unlock();
+
+	return 1;
+}

@@ -172,20 +172,19 @@ _ppu_fill:
 	dey
 	bne .loop1
 .end1:
-	
+
 	;; high loop
 	stx reg+0					; backup x
 	lda S+3,x
 	tay
-	lda S+4,x
 	beq .end2
+	lda S+4,x
 .loop2:
 	ldx #0
 .loop3:
 	sta _PPU_DATA
 	dex
 	bne .loop3
-.end3:
 	dey
 	bne .loop2
 .end2:

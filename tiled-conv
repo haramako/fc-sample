@@ -4,17 +4,14 @@ require 'pp'
 require 'json'
 require_relative 'rle'
 
-def conv( filename )
-  puts "options(bank:2);"
-  data = JSON.parse( File.read(filename) )
+def conv_map( data )
   w = data['width'].to_i
   h = data['height'].to_i
   raise if w % 16 != 0 or h % 15 != 0
-  aw = w / 16
-  ah = h / 15
+  aw = $world_width 
+  ah = $world_height
   # pp aw, ah
   data = data['layers'][0]['data']
-  outfile = filename[0..-(File.extname(filename)).size] + 'bin'
   data = data.map{|x| x-1 }
   ah.times do |ay|
     aw.times do |ax|
@@ -34,6 +31,55 @@ def conv( filename )
   puts "const MAP:int*[] = [#{arrays.join(',')}];"
   puts "const MAP_WIDTH = #{aw};"
   puts "const MAP_HEIGHT = #{ah};"
+end
+
+AREA_WIDTH = 16
+AREA_HEIGHT = 15
+
+def px2area( x, y )
+  (y.to_i/16/AREA_HEIGHT)*$world_width + x.to_i/16/AREA_WIDTH
+end
+
+def conv_item( data )
+  objs = data['layers'].find{|x| x['name'] == 'objects'}
+  checkpoints = []
+  objs['objects'].each do |obj|
+    prop = obj['properties']
+    case obj['type']
+    when 'checkpoint'
+      area = px2area( obj['x'], obj['y'] )
+      x = (obj['x']/16)%AREA_WIDTH
+      y = (obj['y']/16)%AREA_HEIGHT
+      checkpoints[prop['id'].to_i] = {name:obj['name'], area:area, x:x*16, y:y*16}
+    end
+  end
+
+  out_name = []
+  out_name_array = []
+  out_data = []
+  checkpoints.each.with_index do |cp,i|
+    out_name << "const _MAP_CP#{i} = \"#{cp[:name]}\";"
+    out_name_array << "_MAP_CP#{i}"
+    out_data << "#{cp[:area]},#{cp[:x]},#{cp[:y]},0"
+  end
+  puts "const MAP_CHECKPOINT_NUM = #{checkpoints.size};"
+  puts out_name.join("\n")
+  puts "const MAP_CHECKPOINT_NAME:int*[] = [#{out_name_array.join(',')}];"
+  puts "const MAP_CHECKPOINT:int[] = [#{out_data.join(', ')}];"
+end
+
+def conv( filename )
+  puts "options(bank:2);"
+  data = JSON.parse( File.read(filename) )
+
+  w = data['width'].to_i
+  h = data['height'].to_i
+  raise if w % AREA_WIDTH != 0 or h % AREA_HEIGHT != 0
+  $world_width = w / AREA_WIDTH
+  $world_height = w / AREA_HEIGHT
+
+  conv_map data
+  conv_item data
 end
 
 if ARGV.empty?

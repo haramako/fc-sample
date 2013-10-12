@@ -1,0 +1,88 @@
+options(bank:1);
+
+use common;
+use util;
+use mmc3;
+use pad;
+
+const MENU_PALLET:int[32] = [0x0f,0x27,0x38,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13,
+							 0x19,0x0b,0x2b,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13];
+
+var menu_num:int;
+var menu_items:int*[16];
+var menu_cur:int;
+var menu_title:int*;
+
+function menu_init():void
+{
+}
+
+function menu_start(name:int*):void
+{
+	menu_title = name;
+	menu_num = 0;
+	menu_cur = 0;
+}
+
+function menu_add(item:int*):void
+{
+	menu_items[menu_num] = item;
+	menu_num += 1;
+}
+
+function menu_add_items( n:int, items:int** ):void
+{
+	var i:int;
+	for( i, 0, n ){
+		menu_add(items[n]);
+	}
+}
+
+const MENU_VRAM:int16 = 0x2400;
+
+function strlen(str:int*):int
+{
+	var n = 0;
+	while( str[n] ){ n += 1; }
+	return n;
+}
+
+function menu_select():int
+{
+	ppu_lock();
+	MMC3_MIRROR = 0; // vertical
+	ppu_ctrl1_bak = 0b10100001;
+	ppu_ctrl2_bak = 0b00011110;
+	ppu_scroll1 = 0;
+	ppu_scroll2 = 0;
+	ppu_fill( MENU_VRAM, 0x0400, 0 );
+
+	ppu_put( MENU_VRAM + 32*3 + 2, menu_title, strlen(menu_title) );
+	
+	var i:int;
+	for(i, 0, menu_num){
+		ppu_put( MENU_VRAM + 32*(i+5) + 4, menu_items[i], strlen(menu_items[i]) );
+	}
+	ppu_unlock();
+
+	var pad_up_old = 0;
+	var pad_down_old = 0;
+	var pad_a_old = 0;
+	var pad_b_old = 0;
+	while(1){
+		pad_up_old = pad_up;
+		pad_down_old = pad_down;
+		pad_a_old = pad_a;
+		pad_b_old = pad_b;
+		pad_update();
+		
+		if( !pad_up_old && pad_up && menu_cur > 0 ){ menu_cur -= 1; }
+		if( !pad_down_old && pad_down && menu_cur < menu_num-1 ){ menu_cur += 1; }
+		if( !pad_a_old && pad_a ){ return menu_cur; }
+		if( !pad_b_old && pad_b ){ return -1; }
+
+		gr_sprite( 3*8-2, 5*8-1+menu_cur*8, 33, 0);
+		wait_vsync();
+	}
+}
+
