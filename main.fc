@@ -29,11 +29,17 @@ var jump_pow:int;
 const MY_STATE_STAND = 0;
 const MY_STATE_WALK = 1;
 const MY_STATE_JUMP = 2;
+const MY_STATE_DIE = 255;
 
 function get_cell(x:int, y:int):int
 {
 	if( y > 240 ){ return 0; }
-	return bg_data[(y/16)*16 + x/16];
+	return BG_TYPE[bg_data[(y/16)*16 + x/16]] & BG_TYPE_WALL;
+}
+
+function get_cell_type(x:int, y:int):int
+{
+	return BG_TYPE[bg_data[(y/16)*16 + x/16]];
 }
 
 function my_process():void
@@ -96,6 +102,13 @@ function my_process():void
 		}
 	}
 
+	// 刺
+	var c = get_cell_type(my_x,my_y-8);
+	if( c & BG_TYPE_SPIKE ){
+		wait(100);
+		my_state = MY_STATE_DIE;
+	}
+
 	old_pad_a = pad_a;
 
 }
@@ -114,7 +127,7 @@ function gr_sprite2(x:int, y:int, pat:int, flag:int):void
 function my_draw():void
 {
 	switch( my_state ){
-	case MY_STATE_STAND, MY_STATE_WALK:
+	case MY_STATE_STAND, MY_STATE_WALK, MY_STATE_DIE:
 		var anim = ((my_anim/16)%2)*4;
 		if( my_state == MY_STATE_STAND ){ anim = 0; }
 		if( my_dir == 0 ){
@@ -176,12 +189,26 @@ function main(): void
 	vy = 0;
 	on_ground = 0;
 	old_pad_a = 0;
-	
+
 	while( 1 ){
 		pad_update();
 		my_process();
 		my_draw();
 		wait_vsync();
+
+		// 死亡
+		if( my_state == MY_STATE_DIE ){
+			my_x = 128;
+			my_y = 128;
+			vx = 0;
+			vy = 0;
+			bg_cur_area = 4*MAP_WIDTH+4;
+			bg_fetch_area(bg_cur_area);
+			ppu_lock();
+			draw_screen(bg_cur_area);
+			ppu_unlock();
+		}
+		
 		if( my_x < 16 ){
 			scroll_left();
 		}elsif( my_x >= 248 ){
