@@ -1,3 +1,0 @@
-options( bank: 4 );
-
-const a = incbin("md.bin");

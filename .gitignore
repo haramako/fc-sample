@@ -1,4 +1,6 @@
 a.*
 map_data.fc
 hoge.sh
-md.bin
+fs_config.fc
+fs_data*
+

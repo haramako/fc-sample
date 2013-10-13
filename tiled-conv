@@ -8,6 +8,8 @@ require 'erb'
 
 # 8KBごとのバンクに分けられたバッファ
 class BankedBuffer
+  BANK_SIZE = 0x2000
+
   attr_reader :buf, :sizes, :addrs
 
   def initialize
@@ -18,6 +20,12 @@ class BankedBuffer
 
   def add( data )
     data = data.flatten
+
+    # バンクをまたぐなら
+    if ((@buf.size+data.size) / BANK_SIZE) != (@buf.size / BANK_SIZE)
+      @buf.concat Array.new(@buf.size%BANK_SIZE){0}
+    end
+
     @addrs << @buf.size
     @sizes << data.size
     @buf.concat data
@@ -29,6 +37,10 @@ class BankedBuffer
 
   def bin
     @buf.pack('c*')
+  end
+
+  def bank_size
+    (@buf.size.to_f / BANK_SIZE).ceil
   end
 
 end
@@ -55,11 +67,15 @@ class TiledConverter
 
     print ERB.new(DATA.read).result(binding)
 
-    open('md.bin','wb'){|f| f.write @buf.bin }
+    @buf.buf.each_slice( BankedBuffer::BANK_SIZE ).with_index do |bin,i|
+      open("fs_data#{i}.bin",'wb'){|f| f.write bin.pack('c*') }
+      open("fs_data#{i}.fc",'w') do |f|
+        f.puts "options( bank: #{4+i} ); const _fs_data#{i} = incbin('fs_data#{i}.bin');"
+      end
+    end
   end
 
   def conv_tile( data )
-    # pp aw, ah
     a = Array.new(@world_width*@world_height*AREA_WIDTH*AREA_HEIGHT)
     layers = data['layers'].select{|x| x['type'] == 'tilelayer'}.reverse
     a.size.times do |i|
@@ -132,11 +148,16 @@ TiledConverter.new( ARGV[0] )
 
 __END__
 options(bank:-2);
-use en_types;
+
+<% @buf.bank_size.times do |i| %>
+use fs_data<%=i%>;
+<% end %>
+
+const _FS_ADDR = <%=@buf.addrs%>;
+const _FS_SIZE = <%=@buf.sizes%>;
+
 const MAP_WIDTH = <%=@world_width%>;
 const MAP_HEIGHT = <%=@world_height%>;
-const MAP_ADDR = <%=@buf.addrs%>;
-const MAP_SIZE = <%=@buf.sizes%>;
 
 const TILE_BASE = <%=@tile_base%>;
 const ENEMY_BASE = <%=@en_base%>;

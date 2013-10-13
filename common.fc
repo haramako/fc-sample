@@ -6,7 +6,7 @@ const GIFF_TABLE = [0,8,4,12, 2,10,6,14, 1,9,5,13, 3,11,7,15];
 var anim:int;
 var giff:int;
 
-var debug:int[8] options(address:0xe0);
+var debug:int[8] options(address:0x70);
 
 var my_x:int, my_y:int;
 var my_anim:int;
@@ -26,9 +26,6 @@ var en_p3:int[EN_MAX];
 var en_p4:int[EN_MAX];
 var en_wait:int;
 var en_now:int;
-
-const DATA_BASE = 0xa000;
-
 
 function gr_sprite2(x:int, y:int, pat:int, flag:int):void
 {

@@ -24,7 +24,7 @@ var gr_sprite_idx:int;
 var gr_sprite_buf:int[256] options (address:0x0700);
 
 var ppu_put_to:int16;
-var ppu_put_from:int* options (address:0x80);
+var ppu_put_from:int* options (address:0x60);
 var ppu_put_size:int;
 var interrupt_i:int;
 

@@ -1,4 +1,4 @@
-options( bank_count: 8, bank: -1 );
+options( bank_count: 16, bank: -1 );
 use game;
 
 function main():void
