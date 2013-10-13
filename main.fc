@@ -75,6 +75,9 @@ function my_process():void
 		
 		if( pad_up && get_cell_type(my_x,my_y-1) & BG_TYPE_LADDER ){
 			my_state = MY_STATE_LADDER;
+		}elsif( pad_down && get_cell_type(my_x,my_y) & BG_TYPE_LADDER ){
+			my_state = MY_STATE_LADDER;
+			my_y += 8;
 		}else{
 			// 地上にいる
 			if( get_cell(my_x-5,my_y) == 0 && get_cell(my_x+5,my_y) == 0){
