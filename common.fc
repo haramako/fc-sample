@@ -27,6 +27,8 @@ var en_p4:int[EN_MAX];
 var en_wait:int;
 var en_now:int;
 
+const DATA_BASE = 0xc000;
+
 
 function gr_sprite2(x:int, y:int, pat:int, flag:int):void
 {

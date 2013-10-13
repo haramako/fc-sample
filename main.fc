@@ -11,6 +11,7 @@ use bg;
 use common;
 use menu;
 use en;
+use map_tile;
 
 include('character.chr');
 
@@ -231,11 +232,12 @@ function main(): void
 	// パレットの初期化
 	ppu_put( 0x3f00, PALLET, 32 );
 
-	my_x = MAP_CHECKPOINT[1]+8;
-	my_y = MAP_CHECKPOINT[2];
+	var cp = <int*>(DATA_BASE+MAP_CHECKPOINT[0]);
+	my_x = cp[1]+8;
+	my_y = cp[2];
 	vx = 0;
 	vy = 0;
-	move_area( MAP_CHECKPOINT[0] );
+	move_area( cp[0] );
 	set_last();
 	bg_on_scroll = my_on_scroll;
 
@@ -349,18 +351,19 @@ function menu_do_flag():int
 	menu_start("SELECT CHECKPOINT");
 	var i:int;
 	for( i, 0, MAP_CHECKPOINT_NUM ){
-		menu_add( MAP_CHECKPOINT_NAME[i] );
+		menu_add( <int*>(DATA_BASE+MAP_CHECKPOINT[i]+3) );
 	}
 	menu_cur = last_checkpoint;
 	var n = menu_select();
 	if( n == -1 ){ return 0; }
 
 	last_checkpoint = n;
-	my_x = MAP_CHECKPOINT[n*4+1]+8;
-	my_y = MAP_CHECKPOINT[n*4+2];
+	var cp = <int*>(DATA_BASE+MAP_CHECKPOINT[n]);
+	my_x = cp[1];
+	my_y = cp[2];
 	vx = 0;
 	vy = 0;
-	move_area( MAP_CHECKPOINT[n*4] );
+	move_area( cp[0] );
 
 	return 1;
 }

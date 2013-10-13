@@ -82,10 +82,12 @@ function draw_screen():void
 function bg_fetch_area(area:int):void
 {
 	bg_cur_area = area;
-	var len = rle_unpack( bg_data, MAP[bg_cur_area] );
+	var len = rle_unpack( bg_data, <int*>(DATA_BASE+MAP[bg_cur_area]) );
 	if( len != 16*15 ){ asm( ".db 255" ); } // length check
-	bg_enemy_num = MAP_ENEMY[bg_cur_area][0];
-	memcpy( &MAP_ENEMY[bg_cur_area][1], bg_enemy, bg_enemy_num*5 );
+	var data = <int*>(DATA_BASE + MAP_ENEMY[bg_cur_area]);
+	bg_enemy_num = data[0];
+	debug[0] = bg_enemy_num;
+	memcpy( &data[1], bg_enemy, bg_enemy_num*5 );
 }
 
 function scroll_left():void

@@ -1,0 +1,3 @@
+options( bank: 2 );
+
+const a = incbin("md.bin");
