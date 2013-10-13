@@ -1,6 +1,5 @@
-options(bank:1);
+options( bank: 1 );
 
-options ( bank: 1 );
 use math;
 use util;
 use common;

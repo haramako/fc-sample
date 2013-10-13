@@ -28,7 +28,16 @@ const MY_STATE_DIE = 255;
 function get_cell(x:int, y:int):int
 {
 	if( y > 240 ){ return 0; }
-	return BG_TYPE[bg_data[(y/16)*16 + x/16]] & BG_TYPE_WALL;
+	var c = BG_TYPE[bg_data[(y/16)*16 + x/16]];
+	if( c & BG_TYPE_WALL ){
+		if( c & BG_TYPE_FLOOR ){
+			return (y % 16 < 8);
+		}else{
+			return 1;
+		}
+	}else{
+		return 0;
+	}
 }
 
 function get_cell_type(x:int, y:int):int
