@@ -162,6 +162,6 @@ const MAP_HEIGHT = <%=@world_height%>;
 const TILE_BASE = <%=@tile_base%>;
 const ENEMY_BASE = <%=@en_base%>;
 
-const MAP_CHECKPOINT_NUM = <%=@cp_buf.buf.size%>;
+const MAP_CHECKPOINT_NUM = <%=@cp_buf.cur%>;
 const MAP_CHECKPOINT = <%=@cp_buf.addrs%>;
 const MAP_CHECKPOINT_DATA = <%=@cp_buf.buf%>;
