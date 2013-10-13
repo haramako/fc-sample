@@ -303,6 +303,7 @@ function set_last():void
 function move_to_last():void
 {
 	move_area(last_area);
+	my_state = MY_STATE_STAND;
 	my_x = last_x;
 	my_y = last_y;
 	vx = 0;
