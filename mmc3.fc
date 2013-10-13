@@ -13,6 +13,8 @@ var MMC3_IRQ_LATCH  :int options( address: 0xC000 );
 var MMC3_IRQ_RELOAD :int options( address: 0xC001 );
 var MMC3_IRQ_DISABLE:int options( address: 0xE000 );
 var MMC3_IRQ_ENABLE :int options( address: 0xE001 );
+var mmc3_cbank_bak:int[4];
+var mmc3_pbank_bak:int[2];
 
 
 /**
@@ -44,10 +46,13 @@ function mmc3_init():void
  *   5: 0x1C00-0x1FFF ( 1KB )
  * bank: 1KB bank
  */
-function mmc3_set_cbank( pos:int, bank:int ):void
+function mmc3_set_cbank( pos:int, bank:int ):int
 {
+	var old = mmc3_cbank_bak[pos];
 	MMC3_BANK_SELECT = pos;
 	MMC3_BANK_DATA = bank;
+	mmc3_cbank_bak[pos] = bank;
+	return old;
 }
 
 /**
@@ -58,8 +63,11 @@ function mmc3_set_cbank( pos:int, bank:int ):void
  *   1: 0xA000-0xBFFF ( 8KB )
  * bank: 8KB bank
  */
-function mmc3_set_pbank( pos:int, bank:int ):void
+function mmc3_set_pbank( pos:int, bank:int ):int
 {
+	var old = mmc3_pbank_bak[pos];
 	MMC3_BANK_SELECT = pos+6;
 	MMC3_BANK_DATA = bank;
+	mmc3_pbank_bak[pos] = bank;
+	return old;
 }

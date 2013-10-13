@@ -1,4 +1,4 @@
-options(bank:1);
+options(bank:-2);
 use mmc3;
 use util;
 use map_data;
@@ -8,6 +8,7 @@ use rle;
 
 var bg_data:int[256] options(address:0x6000);
 var bg_enemy:int[256] options(address:0x6100);
+var bg_data_buf:int[256] options(address:0x6200);
 var bg_enemy_num:int;
 
 var bg_on_scroll:void(int,int);
@@ -79,15 +80,28 @@ function draw_screen():void
 	}
 }
 
+function data_copy( to:int*, idx:int ):int
+{
+	var old_bank = mmc3_set_pbank(1,4);
+
+	var addr = <int*>(DATA_BASE+MAP_ADDR[idx]);
+	var size = MAP_SIZE[idx];
+	memcpy( addr, to, size );
+	
+	mmc3_set_pbank(1,old_bank);
+	return size;
+}
+
 function bg_fetch_area(area:int):void
 {
 	bg_cur_area = area;
-	var len = rle_unpack( bg_data, <int*>(DATA_BASE+MAP[bg_cur_area]) );
+	data_copy( bg_data_buf, TILE_BASE+area );
+	var len = rle_unpack( bg_data, bg_data_buf );
 	if( len != 16*15 ){ asm( ".db 255" ); } // length check
-	var data = <int*>(DATA_BASE + MAP_ENEMY[bg_cur_area]);
-	bg_enemy_num = data[0];
+
+	len = data_copy( bg_enemy, ENEMY_BASE+area );
+	bg_enemy_num = len/5;
 	debug[0] = bg_enemy_num;
-	memcpy( &data[1], bg_enemy, bg_enemy_num*5 );
 }
 
 function scroll_left():void

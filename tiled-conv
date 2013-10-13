@@ -8,15 +8,23 @@ require 'erb'
 
 # 8KBごとのバンクに分けられたバッファ
 class BankedBuffer
+  attr_reader :buf, :sizes, :addrs
 
   def initialize
     @buf = []
+    @sizes = []
+    @addrs = []
   end
 
   def add( data )
-    cur = @buf.size
-    @buf.concat data.flatten
-    cur
+    data = data.flatten
+    @addrs << @buf.size
+    @sizes << data.size
+    @buf.concat data
+  end
+
+  def cur
+    @addrs.size
   end
 
   def bin
@@ -42,7 +50,7 @@ class TiledConverter
     @world_width = w / AREA_WIDTH
     @world_height = h / AREA_HEIGHT
 
-    conv_map( data )
+    conv_tile( data )
     conv_item( data )
 
     print ERB.new(DATA.read).result(binding)
@@ -50,9 +58,7 @@ class TiledConverter
     open('md.bin','wb'){|f| f.write @buf.bin }
   end
 
-  def conv_map( data )
-    aw = @world_width 
-    ah = @world_height
+  def conv_tile( data )
     # pp aw, ah
     a = Array.new(@world_width*@world_height*AREA_WIDTH*AREA_HEIGHT)
     layers = data['layers'].select{|x| x['type'] == 'tilelayer'}.reverse
@@ -62,19 +68,18 @@ class TiledConverter
       a[i] = l['data'][i] - 1
     end
 
-    addr = []
-    ah.times do |ay|
-      aw.times do |ax|
+    @tile_base = @buf.cur
+    @world_height.times do |ay|
+      @world_width .times do |ax|
         d = []
         15.times do |cy|
           16.times do |cx|
             d[cy*16+cx] = a[(ay*15+cy)*AREA_WIDTH*@world_width + (ax*16+cx)]
           end
         end
-        addr << @buf.add( rle_compress( d ) )
+        @buf.add rle_compress( d )
       end
     end
-    @tile_addr = addr
   end
 
   def px2area( x, y )
@@ -100,23 +105,19 @@ class TiledConverter
       end
     end
 
-    cp_addr = []
+    @cp_buf = BankedBuffer.new
     checkpoints.each.with_index do |cp,i|
-      cp_addr << @buf.add( [ cp[:area], cp[:x], cp[:y], cp[:name].unpack('c*'), 0] )
+      @cp_buf.add [ cp[:area], cp[:x], cp[:y], cp[:name].unpack('c*'), 0]
     end
 
-
-    en_addr = []
+    @en_base = @buf.cur
     enemy.each.with_index do |area,i|
       area = area.map do |en| 
         type = ENEMY_TYPE[ en[:type].downcase.to_sym ]
         [type, en[:x], en[:y], en[:p1] % 256, en[:p2] % 256]
       end
-      en_addr << @buf.add( [area.size] + area )
+      @buf.add area
     end
-
-    @checkpoint_addr = cp_addr
-    @enemy_addr = en_addr
   end
 
 end
@@ -130,11 +131,16 @@ end
 TiledConverter.new( ARGV[0] )
 
 __END__
-options(bank:1);
+options(bank:-2);
 use en_types;
 const MAP_WIDTH = <%=@world_width%>;
 const MAP_HEIGHT = <%=@world_height%>;
-const MAP:uint16[] = <%=@tile_addr%>;
-const MAP_CHECKPOINT_NUM = <%=@checkpoint_addr.size%>;
-const MAP_CHECKPOINT:uint16[] = <%=@checkpoint_addr%>;
-const MAP_ENEMY:uint16[] = <%=@enemy_addr%>;
+const MAP_ADDR = <%=@buf.addrs%>;
+const MAP_SIZE = <%=@buf.sizes%>;
+
+const TILE_BASE = <%=@tile_base%>;
+const ENEMY_BASE = <%=@en_base%>;
+
+const MAP_CHECKPOINT_NUM = <%=@cp_buf.buf.size%>;
+const MAP_CHECKPOINT = <%=@cp_buf.addrs%>;
+const MAP_CHECKPOINT_DATA = <%=@cp_buf.buf%>;
