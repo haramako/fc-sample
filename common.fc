@@ -13,7 +13,6 @@ var my_anim:int;
 var vy:sint, vx:sint;
 var my_dir:int;
 var my_state:int;
-var on_ground:int;
 var old_pad_a:int;
 var jump_pow:int;
 
