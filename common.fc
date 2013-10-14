@@ -10,6 +10,8 @@ var debug:int[8] options(address:0x70);
 
 var my_x:int, my_y:int;
 var my_anim:int;
+var my_vx:sint;
+var my_vy:sint;
 var vy:sint, vx:sint;
 var my_dir:int;
 var my_state:int;

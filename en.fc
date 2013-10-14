@@ -89,7 +89,7 @@ function slime_process(i:int):void
 	}else{
 		// 落ちる
 		vy += anim % 2;
-		if( vy > 10 ){ vy = 10; }
+		if( vy > 12 ){ vy = 12; }
 		y = y + (vy+giff)/16;
 	}
 

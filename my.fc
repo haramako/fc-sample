@@ -87,8 +87,12 @@ function my_process():void
 		// 地上
 		
 		// 左右移動
-		if( pad_right ){ vx = 1; my_dir = 0; }
-		if( pad_left ){ vx = -1; my_dir = 1; }
+		if( pad_right ){ my_vx += 4; my_dir = 0; }
+		if( pad_left ){ my_vx -= 4; my_dir = 1; }
+		if( !pad_right && !pad_left ){ my_vx = 0; }
+		if( my_vx > 16 ){ my_vx = 16; }
+		if( my_vx < -16 ){ my_vx = -16; }
+		vx = (my_vx+giff)/16;
 
 		var evx = 0, evy = 0;
 		if( my_state == MY_STATE_ON_ENEMY ){
@@ -102,7 +106,7 @@ function my_process():void
 		
 		my_x += vx + evx;
 
-		if( get_cell(my_x-5,my_y+6) || get_cell(my_x+5,my_y+6) || get_cell(my_x-5,my_y-4) || get_cell(my_x+5,my_y-4) ){
+		if( get_cell(my_x-4,my_y+6) || get_cell(my_x+4,my_y+6) || get_cell(my_x-4,my_y-4) || get_cell(my_x+4,my_y-4) ){
 			my_x -= vx + evx;
 		}
 		
@@ -116,7 +120,7 @@ function my_process():void
 		}else{
 			// 地上にいる
 			if( my_state == MY_STATE_STAND ){
-				if( !get_cell(my_x-5,my_y+8) && !get_cell(my_x+5,my_y+8) ){
+				if( !get_cell(my_x-4,my_y+8) && !get_cell(my_x+4,my_y+8) ){
 					// 床から落ちた
 					my_y += 1;
 					my_state = MY_STATE_JUMP;
@@ -138,11 +142,14 @@ function my_process():void
 		}
 	case MY_STATE_JUMP: // ジャンプ中
 		// 空中にいる
-		if( pad_right ){ vx = 1; my_dir = 0; }
-		if( pad_left ){ vx = -1; my_dir = 1; }
-		my_x += vx;
-		if( get_cell(my_x-5,my_y+6) || get_cell(my_x+5,my_y+6) || get_cell(my_x-5,my_y-4) || get_cell(my_x+5,my_y-4) ){
-			my_x -= vx;
+		if( pad_right ){ my_vx += 1; my_dir = 0; }
+		if( pad_left ){ my_vx -= 1; my_dir = 1; }
+		if( !pad_left && !pad_right ){ my_vx -= sign(my_vx); }
+		if( my_vx > 16 ){ my_vx = 16; }
+		if( my_vx < -16 ){ my_vx = -16; }
+		my_x += (my_vx+giff)/16;
+		if( get_cell(my_x-4,my_y+8) || get_cell(my_x+4,my_y+8) || get_cell(my_x-4,my_y-4) || get_cell(my_x+4,my_y-4) ){
+			my_x -= (my_vx+giff)/16;
 		}
 		if( limited_water ){ vy -= 4; }
 		
@@ -150,10 +157,10 @@ function my_process():void
 		vy += 2;
 		my_y += vy / 16;
 
-		if( vy > 128 ){
+		if( vy < 0 ){
 			if( limited_water && vy < -16 ){ vy = -16; } // 水の中の制限
 			//上昇中
-			if( get_cell(my_x-5,my_y-4) || get_cell(my_x+5,my_y-4) ){
+			if( get_cell(my_x-4,my_y-4) || get_cell(my_x+4,my_y-4) ){
 				my_y -= vy / 16;
 				vy = 0;
 				jump_pow = 0;
@@ -173,7 +180,7 @@ function my_process():void
 			if( vy > 80 ){ vy = 80; }
 			if( limited_water && vy > 32 ){ vy = 32; } // 水の中の制限
 			
-			if( get_cell(my_x-5,my_y+8) || get_cell(my_x+5,my_y+8) ){
+			if( get_cell(my_x-4,my_y+8) || get_cell(my_x+4,my_y+8) ){
 				// 着地
 				vy = 0;
 				my_y = (my_y+8)/16*16 - 8;
