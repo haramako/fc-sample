@@ -1,2 +1,3 @@
 const EN_TYPE_SLIME = 1;
 const EN_TYPE_WOW = 2;
+const EN_TYPE_ELEVATOR = 3;

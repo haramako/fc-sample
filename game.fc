@@ -10,186 +10,15 @@ use bg;
 use common;
 use menu;
 use en;
+use my;
 
 include('character.chr');
 
 const PALLET:int[] = incbin("character.chr.dat");
 
-const MY_STATE_STAND = 0;
-const MY_STATE_WALK = 1;
-const MY_STATE_JUMP = 2;
-const MY_STATE_LADDER = 3; // はしご
-const MY_STATE_DIE = 255;
-
-function get_cell(x:int, y:int):int
-{
-	if( y > 240 ){ return 0; }
-	var c = BG_TYPE[bg_data[(y/16)*16 + x/16]];
-	if( c & BG_TYPE_WALL ){
-		if( c & BG_TYPE_FLOOR ){
-			return (y % 16 < 8);
-		}else{
-			return 1;
-		}
-	}else{
-		return 0;
-	}
-}
-
-function get_cell_type(x:int, y:int):int
-{
-	return BG_TYPE[bg_data[(y/16)*16 + x/16]];
-}
-
-function my_process():void
-{
-	pad_a = pad_a | pad_up;
-	
-	// 横移動
-	vx = 0;
-	my_anim += 1;
-	
-	// 縦移動
-	switch( my_state ){
-	case MY_STATE_STAND, MY_STATE_WALK:
-		// 地上
-		
-		// 左右移動
-		if( pad_right ){ vx = 1; my_dir = 0; }
-		if( pad_left ){ vx = -1; my_dir = 1; }
-		my_x += vx;
-		if( get_cell(my_x-5,my_y-1) || get_cell(my_x+5,my_y-1) || get_cell(my_x-5,my_y-10) || get_cell(my_x+5,my_y-10) ){
-			my_x -= vx;
-		}
-		
-		if( !(pad_right | pad_left) ){
-			my_state = MY_STATE_STAND;
-		}else{
-			my_state = MY_STATE_WALK;
-		}
-		
-		if( pad_up && get_cell_type(my_x,my_y-1) & BG_TYPE_LADDER ){
-			my_state = MY_STATE_LADDER;
-		}elsif( pad_down && get_cell_type(my_x,my_y) & BG_TYPE_LADDER ){
-			my_state = MY_STATE_LADDER;
-			my_y += 8;
-		}else{
-			// 地上にいる
-			if( get_cell(my_x-5,my_y) == 0 && get_cell(my_x+5,my_y) == 0){
-				// 床から落ちた
-				my_y += 1;
-				my_state = MY_STATE_JUMP;
-			}elsif( !old_pad_a && pad_a ){
-				// ジャンプした！
-				my_y -= 1;
-				vy = -36;
-				jump_pow = 10;
-				my_state = MY_STATE_JUMP;
-			}
-		}
-	case MY_STATE_JUMP:
-		// 空中にいる
-		if( pad_right ){ vx = 1; my_dir = 0; }
-		if( pad_left ){ vx = -1; my_dir = 1; }
-		my_x += vx;
-		if( get_cell(my_x-5,my_y-1) || get_cell(my_x+5,my_y-1) || get_cell(my_x-5,my_y-10) || get_cell(my_x+5,my_y-10) ){
-			my_x -= vx;
-		}
-		
-		vy += 2;
-		my_y += vy / 16;
-		if( vy > 128 ){
-			//上昇中
-			if( get_cell(my_x-5,my_y-10) || get_cell(my_x+5,my_y-10) ){
-				my_y -= vy / 16;
-				vy = 0;
-				jump_pow = 0;
-			}else{
-				if( jump_pow ){
-					jump_pow -= 1;
-					if( pad_a ){
-						vy -= 1;
-					}else{
-						vy += 22;
-						jump_pow = 0;
-					}
-				}
-			}
-		}else{
-			// 下降中
-			if( vy > 80 ){ vy = 80; }
-			if( get_cell(my_x-5,my_y) || get_cell(my_x+5,my_y) ){
-				vy = 0;
-				my_y = my_y/16 * 16;
-				my_state = MY_STATE_WALK;
-			}
-		}
-	case MY_STATE_LADDER:
-		my_x = (my_x/16)*16+8;
-		if( (pad_right | pad_left ) & !get_cell(my_x,my_y-8) ){
-			my_state = MY_STATE_STAND;
-		}elsif( pad_up ){
-			if( get_cell_type(my_x,my_y-16) != BG_TYPE_WALL ){
-				if( get_cell_type(my_x,my_y-1) & BG_TYPE_LADDER ){
-					my_y -= 1;
-				}
-			}
-		}elsif( pad_down ){
-			if( !(get_cell_type(my_x,my_y-1) & BG_TYPE_LADDER) ){
-				my_y -= 1;
-				my_state = MY_STATE_STAND;
-			}else{
-				my_y += 1;
-			}
-		}
-	}
-
-	// 刺
-	var c = get_cell_type(my_x,my_y-8);
-	if( c & BG_TYPE_SPIKE ){
-		wait(100);
-		my_state = MY_STATE_DIE;
-	}
-
-	old_pad_a = pad_a;
-
-}
-
-function my_draw():void
-{
-	var anim:int;
-	switch( my_state ){
-	case MY_STATE_STAND, MY_STATE_WALK, MY_STATE_DIE:
-		anim = ((my_anim/16)%2)*4;
-		if( my_state == MY_STATE_STAND ){ anim = 0; }
-		if( my_dir == 0 ){
-			gr_sprite( my_x-8, my_y-16, 1+anim, 0 );
-			gr_sprite( my_x, my_y-16, 3+anim, 0 );
-		}else{
-			gr_sprite( my_x, my_y-16, 1+anim, 64 );
-			gr_sprite( my_x-8, my_y-16, 3+anim, 64 );
-		}
-	case MY_STATE_JUMP:
-		if( vy > 128 ){
-			gr_sprite2( my_x, my_y-8, 9, 64*my_dir );
-		}else{
-			gr_sprite2( my_x, my_y-8, 13, 64*my_dir );
-		}
-	case MY_STATE_LADDER:
-		anim = (my_anim/16)%2;
-		gr_sprite2( my_x, my_y-8, 17, 64*anim );
-	}
-}
-
-function my_on_scroll(x:int, y:int):void
-{
-	my_x += x;
-	my_y += y;
-	my_draw();
-}
-
 function init_area_enemy():void
 {
+	anim = 0;
 	en_clear();
 	
 	var n = 0;
@@ -197,8 +26,8 @@ function init_area_enemy():void
 		var idx = n*5;
 		var i = en_new();
 		en_type[i] = bg_enemy[idx];
-		en_x[i] = bg_enemy[idx+1] * 16;
-		en_y[i] = bg_enemy[idx+2] * 16;
+		en_x[i] = bg_enemy[idx+1] * 16 + 8;
+		en_y[i] = bg_enemy[idx+2] * 16 + 8;
 		en_p1[i] = bg_enemy[idx+3];
 		en_p2[i] = bg_enemy[idx+4];
 		EN_NEW_FUNC[en_type[i]](i);
@@ -265,7 +94,7 @@ function game_main(): void
 			scroll_left();
 		}elsif( my_x >= 248 ){
 			scroll_right();
-		}elsif( my_y >= 240 ){
+		}elsif( my_y >= 230 ){
 			scroll_down();
 		}elsif( my_y < 16 ){
 			scroll_up();

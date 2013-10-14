@@ -50,7 +50,7 @@ class TiledConverter
   AREA_WIDTH = 16
   AREA_HEIGHT = 15
 
-  ENEMY_TYPE = {slime:1, wow:2}
+  ENEMY_TYPE = {slime:1, wow:2, elevator:3}
 
   def initialize( filename )
     data = JSON.parse( File.read(filename) )
@@ -99,10 +99,10 @@ class TiledConverter
   end
 
   def px2area( x, y )
-    area = (y.to_i/16/AREA_HEIGHT)*@world_width + x.to_i/16/AREA_WIDTH
-    cx = (x/16)%AREA_WIDTH
-    cy = (y/16)%AREA_HEIGHT
-    [area, cx, cy]
+    x = x.to_i/16
+    y = (y.to_i/16)-1
+    area = (y/AREA_HEIGHT)*@world_width + x/AREA_WIDTH
+    [area, x%AREA_WIDTH, y%AREA_HEIGHT]
   end
 
   def conv_item( data )

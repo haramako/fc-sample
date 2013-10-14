@@ -13,6 +13,9 @@ var my_anim:int;
 var vy:sint, vx:sint;
 var my_dir:int;
 var my_state:int;
+var my_on_idx:int;
+var my_on_x:int;
+var my_on_y:int;
 var old_pad_a:int;
 var jump_pow:int;
 
@@ -37,4 +40,3 @@ function gr_sprite2(x:int, y:int, pat:int, flag:int):void
 		gr_sprite( x-8, y-8, pat, flag );
 	}
 }
-

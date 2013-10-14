@@ -40,9 +40,16 @@ function en_new():int
 	return 255;
 }
 
-function en_check_hit(i:int):int
+function abs(i:sint):int
 {
-	return (en_x[i] + 12 - my_x < 24) && (en_y[i] + 6 - my_y < 12 );
+	if( i >= 128 ){ return -i; }else{ return i; }
+}
+
+function en_check_hit(i:int, size:int):void
+{
+	if( abs(en_x[i] - my_x) < size && abs(en_y[i] - my_y) < size ){
+		wait(10);
+	}
 }
 
 /*********************************************
@@ -64,28 +71,29 @@ function slime_process(i:int):void
 	var x = en_x[i];
 	var y = en_y[i];
 	var dir:sint = en_p1[i];
-	if( bg_cell_type(x,y) & BG_TYPE_WALL ){
+	if( bg_cell_type(x-5,y+8) & BG_TYPE_WALL || bg_cell_type(x+5,y+8) & BG_TYPE_WALL ){
 		var nx:uint = x+dir*8;
 		if( nx < 8 || nx > 248 || bg_cell_type(nx,y-8) & BG_TYPE_STOP ){
 			dir = -dir;
 		}else{
-			if( giff >= 8 ){ x += dir; }
+			if( (anim%32) < 16 ){
+				if( giff < 10 ){ x += dir; }
+			}else{
+				if( giff < 6 ){ x += dir; }
+			}
 		}
 	}else{
 		y = y + 1;
 	}
 
 	var flip:uint = (1-dir)/2;
-	gr_sprite2( x, y-8, 129+(anim/16)%2*4, 64*flip | 1);
+	gr_sprite2( x, y, 129+(anim/16)%2*4, 64*flip | 1);
 
 	en_x[i] = x;
 	en_y[i] = y;
 	en_p1[i] = dir;
 	
-	if( en_check_hit(i) ){
-		wait(10);
-	}
-
+	en_check_hit(i,10);
 }
 
 /*********************************************
@@ -93,7 +101,6 @@ function slime_process(i:int):void
  *********************************************/
 function wow_new(i:int):void
 {
-	en_x[i] += 8;
 }
 
 function wow_process(i:int):void
@@ -133,16 +140,55 @@ function wow_process(i:int):void
 	// 画面端で折り返す
 	if( x < 16 || x > 240 || y < 16 || y > 240 ){ dir = (dir+2) % 4; }
 
-	gr_sprite2( x, y-8, 137+(anim/2)%2*4, 0);
+	gr_sprite2( x+rand()%4-1, y+rand()%4-1, 137+(anim/4)%2*4, anim%2 );
 
 	en_x[i] = x;
 	en_y[i] = y;
 	en_p1[i] = dir;
 	
-	if( en_check_hit(i) ){
-		wait(10);
-	}
+	en_check_hit(i,8);
 }
 
-const EN_PROCESS: void(int)[] = [en_none_process, slime_process, wow_process];
-const EN_NEW_FUNC: void(int)[] = [en_none_process, slime_new, wow_new];
+/*********************************************
+ * エレベーター
+ *********************************************/
+function elevator_new(i:int):void
+{
+	en_x[i] += 8;
+	if( en_p2[i] == 0 ){ en_p2[i] = 8; }
+}
+
+function elevator_process(i:int):void
+{
+	var x = en_x[i];
+	var y = en_y[i];
+	var dir = en_p1[i];
+	var speed = en_p2[i];
+
+	switch( dir ){
+	case 0:
+		y -= (giff+speed)/16;
+		if( bg_cell_type(x,y-8) & BG_TYPE_STOP ){ dir = 2; }
+	case 1:
+		x += (giff+speed)/16;
+		if( bg_cell_type(x+16,y) & BG_TYPE_STOP ){ dir = 3; }
+	case 2:
+		y += (giff+speed)/16;
+		if( bg_cell_type(x,y+8) & BG_TYPE_STOP ){ dir = 0; }
+	case 3:
+		x -= (giff+speed)/16;
+		if( bg_cell_type(x-16,y) & BG_TYPE_STOP ){ dir = 1; }
+	}
+
+	if( x < 16 || x > 240 || y < 16 || y > 240 ){ dir = (dir+2)%4; }
+	
+	gr_sprite2( x-8, y, 65, 0);
+	gr_sprite2( x+8, y, 65, 64);
+	
+	en_x[i] = x;
+	en_y[i] = y;
+	en_p1[i] = dir;
+}
+
+const EN_PROCESS: void(int)[] = [en_none_process, slime_process, wow_process, elevator_process];
+const EN_NEW_FUNC: void(int)[] = [en_none_process, slime_new, wow_new, elevator_new];

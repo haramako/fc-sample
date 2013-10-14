@@ -84,14 +84,6 @@ function gr_pos( x:int, y:int ):int16;
 
 function gr_sprite( x:int, y:int, pat:int, mode:int ):void;
 
-function gr_sprite2x2( x:int, y:int, pat:int, mode:int ):void
-{
-	gr_sprite(x  ,y  ,pat  ,mode);
-	gr_sprite(x+8,y  ,pat+ 1,mode);
-	gr_sprite(x  ,y+8,pat+16,mode);
-	gr_sprite(x+8,y+8,pat+17,mode);
-}
-
 function wait(n:int):void
 {
 	while( n ){
