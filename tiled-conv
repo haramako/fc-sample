@@ -23,7 +23,8 @@ class BankedBuffer
 
     # バンクをまたぐなら
     if ((@buf.size+data.size) / BANK_SIZE) != (@buf.size / BANK_SIZE)
-      @buf.concat Array.new(@buf.size % BANK_SIZE){0}
+      # pp [@buf.size, data.size, BANK_SIZE - @buf.size % BANK_SIZE]
+      @buf.concat Array.new(BANK_SIZE - @buf.size % BANK_SIZE){0}
     end
 
     @addrs << @buf.size

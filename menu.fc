@@ -1,4 +1,4 @@
-options(bank:-2);
+options(bank:0);
 
 use common;
 use util;
