@@ -77,9 +77,9 @@ function game_main(): void
 		giff = GIFF_TABLE[anim%16];
 		
 		pad_update();
+		en_process();
 		my_process();
 		my_draw();
-		en_process();
 
 		mmc3_set_cbank(0,8+(anim/8)%4*2);
 		wait_vsync();

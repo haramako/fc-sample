@@ -71,7 +71,10 @@ function slime_process(i:int):void
 	var x = en_x[i];
 	var y = en_y[i];
 	var dir:sint = en_p1[i];
+	var vy = en_p3[i];
+	
 	if( bg_cell_type(x-5,y+8) & BG_TYPE_WALL || bg_cell_type(x+5,y+8) & BG_TYPE_WALL ){
+		// 地面の上
 		var nx:uint = x+dir*8;
 		if( nx < 8 || nx > 248 || bg_cell_type(nx,y-8) & BG_TYPE_STOP ){
 			dir = -dir;
@@ -82,8 +85,12 @@ function slime_process(i:int):void
 				if( giff < 6 ){ x += dir; }
 			}
 		}
+		vy = 0;
 	}else{
-		y = y + 1;
+		// 落ちる
+		vy += anim % 2;
+		if( vy > 10 ){ vy = 10; }
+		y = y + (vy+giff)/16;
 	}
 
 	var flip:uint = (1-dir)/2;
@@ -92,6 +99,7 @@ function slime_process(i:int):void
 	en_x[i] = x;
 	en_y[i] = y;
 	en_p1[i] = dir;
+	en_p3[i] = vy;
 	
 	en_check_hit(i,10);
 }

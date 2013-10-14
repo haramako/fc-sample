@@ -38,7 +38,7 @@ function my_check_on_enemy():int
 	for( i, 0, EN_MAX ){
 		switch( en_type[i] ){
 		case EN_TYPE_ELEVATOR:
-			if( abs(my_x-en_x[i])<20 && my_y>=(en_y[i]-16) && my_y < (en_y[i]+8) ){
+			if( abs(my_x-en_x[i])<20 && my_y>=(en_y[i]-18) && my_y < (en_y[i]-10) ){
 				my_y = en_y[i] - 16;
 				return i;
 			}
