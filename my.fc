@@ -177,7 +177,7 @@ function my_process():void
 			}
 		}else{
 			// 下降中
-			if( vy > 80 ){ vy = 80; }
+			if( vy > 64 ){ vy = 64; }
 			if( limited_water && vy > 32 ){ vy = 32; } // 水の中の制限
 			
 			if( get_cell(my_x-4,my_y+8) || get_cell(my_x+4,my_y+8) ){

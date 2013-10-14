@@ -13,7 +13,7 @@ var MMC3_IRQ_LATCH  :int options( address: 0xC000 );
 var MMC3_IRQ_RELOAD :int options( address: 0xC001 );
 var MMC3_IRQ_DISABLE:int options( address: 0xE000 );
 var MMC3_IRQ_ENABLE :int options( address: 0xE001 );
-var mmc3_cbank_bak:int[4];
+var mmc3_cbank_bak:int[6];
 var mmc3_pbank_bak:int[2];
 
 

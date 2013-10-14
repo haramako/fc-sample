@@ -1,4 +1,4 @@
-options( bank: -2 );
+options( bank: 1 );
 
 use math;
 use util;
@@ -117,38 +117,46 @@ function wow_process(i:int):void
 	var y = en_y[i];
 	var dir = en_p1[i];
 	var speed = en_p2[i];
-	
+
 	switch( dir ){
 	case 0: // 上
-		if( bg_cell_type(x,y-16) & BG_TYPE_STOP ){
+		if( y < 16 || bg_cell_type(x,y-8) & BG_TYPE_STOP ){
 			dir = 2;
 		}else{
 			y -= (speed + giff ) / 16;
 		}
 	case 1: // 右
-		if( bg_cell_type(x+8,y-8) & BG_TYPE_STOP ){
+		if( x > 240 || bg_cell_type(x+8,y-8) & BG_TYPE_STOP ){
 			dir = 3;
 		}else{
 			x += (speed + giff ) / 16;
 		}
 	case 2: // 下
-		if( bg_cell_type(x,y) & BG_TYPE_STOP ){
+		if( y > 240 || bg_cell_type(x,y+8) & BG_TYPE_STOP ){
 			dir = 0;
 		}else{
 			y += (speed + giff ) / 16;
 		}
 	case 3: // 左
-		if( bg_cell_type(x-8,y-8) & BG_TYPE_STOP ){
+		if( x < 16 || bg_cell_type(x-8,y-8) & BG_TYPE_STOP ){
 			dir = 1;
 		}else{
 			x -= (speed + giff ) / 16;
 		}
 	}
 
-	// 画面端で折り返す
-	if( x < 16 || x > 240 || y < 16 || y > 240 ){ dir = (dir+2) % 4; }
+	var cx = x % 16;
+	var cy = y % 16;
+	if( cx >= 6 && cx <= 10 && cy >= 6 && cy <= 10 ){
+		var c = bg_cell(x, y);
+		if( c >= 4 && c < 8 && dir != c-4){
+			x = x/16*16 + 8;
+			y = y/16*16 + 8;
+			dir = c - 4;
+		}
+	}
 
-	gr_sprite2( x+rand()%4-1, y+rand()%4-1, 137+(anim/4)%2*4, anim%2 );
+	gr_sprite2( x+rand()%4-2, y+rand()%4-2, 137+(anim/4)%2*4, anim%2 );
 
 	en_x[i] = x;
 	en_y[i] = y;

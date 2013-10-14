@@ -63,6 +63,11 @@ function bg_init():void
 	on_wait_vsync = ->void(){ bg_buf_idx = 0; };
 }
 
+function bg_cell(x:int, y:int):int
+{
+	return bg_data[(y/16)*16 + x/16];
+}
+
 function bg_cell_type(x:int, y:int):int
 {
 	return BG_TYPE[bg_data[(y/16)*16 + x/16]];
