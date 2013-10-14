@@ -55,7 +55,7 @@ function game_main(): void
 
 	var cp = &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[0]];
 	my_x = cp[1]+8;
-	my_y = cp[2];
+	my_y = cp[2]+8;
 	vx = 0;
 	vy = 0;
 	var area = cp[0];
@@ -183,8 +183,8 @@ function menu_do_flag():int
 
 	last_checkpoint = n;
 	var cp = &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[n]];
-	my_x = cp[1];
-	my_y = cp[2];
+	my_x = cp[1]+8;
+	my_y = cp[2]+8;
 	vx = 0;
 	vy = 0;
 	var area = cp[0];
