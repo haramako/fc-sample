@@ -12,8 +12,6 @@ use menu;
 use en;
 use my;
 
-include('character.chr');
-
 const PALLET:int[] = incbin("character.chr.dat");
 
 function init_area_enemy():void
@@ -82,6 +80,8 @@ function game_main(): void
 		my_process();
 		my_draw();
 		en_process();
+
+		mmc3_set_cbank(0,8+(anim/8)%4*2);
 		wait_vsync();
 
 		// 死亡
@@ -149,11 +149,14 @@ function menu_open():void
 	while(1){
 		menu_start("MENU");
 		menu_add( "CHECKPOINT" );
+		menu_add( "WATER SETTING" );
 		menu_add( "EXIT" );
 		switch( menu_select() ){
 		case 0:
 			if( menu_do_flag() ){ break; }
-		case 1,-1:
+		case 1:
+			menu_do_water_setting();
+		case 2,-1:
 			break;
 		}
 	}
@@ -192,4 +195,19 @@ function menu_do_flag():int
 	move_area( area );
 
 	return 1;
+}
+
+function menu_do_water_setting():void
+{
+	menu_start("WATER SETTING");
+	menu_add( "NO" );
+	menu_add( "FULL" );
+	switch( menu_select() ){
+	case 0:
+		my_water_setting = 0;
+	case 1:
+		my_water_setting = 1;
+	case 2:
+		my_water_setting = 2;
+	}
 }

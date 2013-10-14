@@ -1,6 +1,9 @@
 options( bank_count: 16, bank: -1 );
 use game;
 
+include('character.chr');
+include('bg_base.chr');
+
 function main():void
 {
 	ppu_lock();

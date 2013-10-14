@@ -18,6 +18,8 @@ var my_on_x:int;
 var my_on_y:int;
 var old_pad_a:int;
 var jump_pow:int;
+var my_prev_in_water:int;
+var my_water_setting:int;
 
 const EN_MAX = 16;
 var en_type:int[EN_MAX];

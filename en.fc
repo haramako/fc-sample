@@ -190,5 +190,60 @@ function elevator_process(i:int):void
 	en_p1[i] = dir;
 }
 
-const EN_PROCESS: void(int)[] = [en_none_process, slime_process, wow_process, elevator_process];
-const EN_NEW_FUNC: void(int)[] = [en_none_process, slime_new, wow_new, elevator_new];
+/*********************************************
+ * 水の中の泡
+ *********************************************/
+function bubble_process(i:int):void
+{
+	var x = en_x[i];
+	var y = en_y[i];
+	
+	x = x + rand()/128*2 - 1;
+	y = y - (giff/8);
+
+	gr_sprite( x-4, y-8, 35, 0);
+	
+	if( en_y[i] < 16 || (bg_cell_type(x,y-8) & BG_TYPE_WATER) == 0 ){
+		en_type[i] = 0;
+	}
+	
+	en_x[i] = x;
+	en_y[i] = y;
+}
+
+/*********************************************
+ * 水に入った時の飛沫
+ *********************************************/
+function splash_process(i:int):void
+{
+	var x = en_x[i];
+	var y = en_y[i];
+	var life = en_p1[i];
+
+	if( anim % 2 ){
+		gr_sprite2( x-4, y-8, 37, 0);
+	}
+	
+	if( life ){
+		life -= 1;
+	}else{
+		en_type[i] = 0;
+	}
+	
+	en_p1[i] = life;
+}
+
+const EN_PROCESS: void(int)[] = [ en_none_process,
+								  slime_process,
+								  wow_process,
+								  elevator_process,
+								  bubble_process,
+								  splash_process
+								  ];
+const EN_NEW_FUNC: void(int)[] = [ en_none_process,
+								   slime_new,
+								   wow_new,
+								   en_none_process,
+								   en_none_process,
+								   en_none_process
+								   ];

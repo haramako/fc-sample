@@ -1,3 +1,6 @@
+const EN_TYPE_NONE = 0;
 const EN_TYPE_SLIME = 1;
 const EN_TYPE_WOW = 2;
 const EN_TYPE_ELEVATOR = 3;
+const EN_TYPE_BUBBLE = 4;
+const EN_TYPE_SPLASH = 5;
