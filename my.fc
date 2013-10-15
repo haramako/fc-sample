@@ -205,6 +205,13 @@ function my_process():void
 				}
 			}
 		}
+		
+		if( in_water && pad_a ){
+			vy = -28;
+			jump_pow = 10;
+			if( vy <= -28 ){ vy = -28; }
+		}
+		
 	case MY_STATE_LADDER: // はしご
 		my_x = (my_x/16)*16+8;
 		if( (pad_right | pad_left ) & !get_cell(my_x,my_y) ){
