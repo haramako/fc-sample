@@ -29,6 +29,7 @@ var jump_pow:int;
 var my_prev_in_water:int;
 var my_water_setting:int;
 var my_shoes:int;
+var my_items:int[64];
 
 const EN_MAX = 16;
 var en_type:int[EN_MAX];
@@ -41,6 +42,13 @@ var en_p4:int[EN_MAX];
 var en_p5:int[EN_MAX];
 var en_wait:int;
 var en_now:int;
+
+const GAME_EVENT_GET_ITEM = 1;
+
+var game_event:int;
+var game_event_p1:int;
+
+var scroll_x:int options(address: 0x68);
 
 function gr_sprite2(x:int, y:int, pat:int, flag:int):void
 {

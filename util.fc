@@ -28,7 +28,10 @@ var ppu_put_from:int* options (address:0x60);
 var ppu_put_size:int;
 var interrupt_i:int;
 
+// IRQ関連
 var irq_counter:int;
+var irq_setup:void() options( address: 0x62 );
+var irq_next:uint16 options( address: 0x64 );
 
 var on_wait_vsync:void();
 
@@ -36,6 +39,7 @@ function null_func():void{}
 
 function ppu_init():void
 {
+	irq_setup = null_func;
 	on_wait_vsync = null_func;
 }
 
@@ -43,7 +47,7 @@ function wait_vsync():void
 {
 	// PPU_CTRL2 = 0b00010110; // for debug (profiling)
 	while( gr_sprite_idx < 255 ){
-		gr_sprite_buf[gr_sprite_idx] = 0;
+		gr_sprite_buf[gr_sprite_idx] = 255;
 		gr_sprite_idx += 1;
 	}
 	vsync_flag = 1;

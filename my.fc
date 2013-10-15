@@ -255,16 +255,16 @@ function my_draw():void
 	case MY_STATE_STAND, MY_STATE_ON_ENEMY, MY_STATE_DIE:
 		anim = ((my_anim/16)%2)*4;
 		if( vx == 0 ){ anim = 0; }
-		gr_sprite2( my_x, my_y, 1+anim, 64*my_dir );
+		gr_sprite2( my_x, my_y, anim, 64*my_dir );
 	case MY_STATE_JUMP:
 		if( vy > 128 ){
-			gr_sprite2( my_x, my_y, 9, 64*my_dir );
+			gr_sprite2( my_x, my_y, 8, 64*my_dir );
 		}else{
-			gr_sprite2( my_x, my_y, 13, 64*my_dir );
+			gr_sprite2( my_x, my_y, 12, 64*my_dir );
 		}
 	case MY_STATE_LADDER:
 		anim = (my_anim/16)%2;
-		gr_sprite2( my_x, my_y, 17, 64*anim );
+		gr_sprite2( my_x, my_y, 16, 64*anim );
 	}
 }
 

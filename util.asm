@@ -1,5 +1,6 @@
 ;; function interrupt():void
 _interrupt:
+
 	lda _vsync_flag				; if( vsync_flag ){
 	beq .else
 
@@ -36,10 +37,19 @@ _interrupt:
 	lda _ppu_ctrl2_bak			; PPU_CTRL2 = ppu_ctrl2_bak;
 	sta _PPU_CTRL2
 
+	;; setup irq
+	jsr .jsr_irq_setup
+	
 	rts
 
+.jsr_irq_setup:
+	jmp [_irq_setup]
+	
+;;; IRQ割り込み
+;;; 丁度 113-134 サイクルで終わらせる必要あり
+;;; ( irqベクタで24cycle使用しているので、実質89-110サイクル)
 _interrupt_irq:
-	rts
+	jmp [_irq_next]
 
 ;;; same as ppu_put, but in interrupt
 ppu_put3:
@@ -241,22 +251,23 @@ _gr_pos:
 ;; }
 ;; USING: X
 _gr_sprite:
-        ldy _gr_sprite_idx      ; if( gr_sprite_idx >= 252 ){ return; } var p:int = gr_sprite_idx;
-        cpy #252
-        bcs .end
-        lda S+1,x      ; gr_sprite_buf[p] = y;
-        sta _gr_sprite_buf,y   
-        iny                     ; gr_sprite_buf[p+1] = pat;
-        lda S+2,x
-        sta _gr_sprite_buf,y
-        iny                     ; gr_sprite_buf[p+2] = mode;
-        lda S+3,x
-        sta _gr_sprite_buf,y
-        iny                     ; gr_sprite_buf[p+3] = x;
-        lda S+0,x
-        sta _gr_sprite_buf,y
-        iny                     ; gr_sprite_idx += 4;
-        sty _gr_sprite_idx
+    ldy _gr_sprite_idx      ; if( gr_sprite_idx >= 252 ){ return; } var p:int = gr_sprite_idx;
+    cpy #252
+    bcs .end
+    lda S+1,x      ; gr_sprite_buf[p] = y;
+    sta _gr_sprite_buf,y   
+    iny                     ; gr_sprite_buf[p+1] = pat;
+    lda S+2,x
+	ora #1
+    sta _gr_sprite_buf,y
+    iny                     ; gr_sprite_buf[p+2] = mode;
+    lda S+3,x
+    sta _gr_sprite_buf,y
+    iny                     ; gr_sprite_buf[p+3] = x;
+    lda S+0,x
+    sta _gr_sprite_buf,y
+    iny                     ; gr_sprite_idx += 4;
+    sty _gr_sprite_idx
 .end:
-        rts
+    rts
         

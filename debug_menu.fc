@@ -1,0 +1,91 @@
+options( bank: -1 );
+
+use common;
+use menu;
+use bg;
+
+var last_checkpoint:int;
+var menu_move_area:void(int);
+
+function menu_open():void
+{
+	while(1){
+		menu_start("MENU");
+		menu_add( "CHECKPOINT" );
+		menu_add( "WATER SETTING" );
+		menu_add( "SHOES SETTING" );
+		menu_add( "EXIT" );
+		switch( menu_select() ){
+		case 0:
+			if( menu_do_flag() ){ break; }
+		case 1:
+			menu_do_water_setting();
+		case 2:
+			menu_do_shoes_setting();
+		case 3,-1:
+			break;
+		}
+	}
+	
+	ppu_lock();
+	ppu_ctrl1_bak = 0b10100000;
+	ppu_ctrl2_bak = 0b00011110;
+	ppu_scroll1 = 0;
+	ppu_scroll2 = 0;
+	ppu_unlock();
+	wait_vsync();
+}
+
+function menu_do_flag():int
+{
+	menu_start("SELECT CHECKPOINT");
+	var i:int;
+	for( i, 0, MAP_CHECKPOINT_NUM ){
+		menu_add( &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[i]+3] );
+	}
+	menu_cur = last_checkpoint;
+	
+	var n = menu_select();
+	if( n == -1 ){ return 0; }
+
+	last_checkpoint = n;
+	var cp = &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[n]];
+	my_x = cp[1]+8;
+	my_y = cp[2]+8;
+	vx = 0;
+	vy = 0;
+	my_vx = 0;
+	my_vy = 0;
+	var area = cp[0];
+	
+	menu_move_area( area );
+
+	return 1;
+}
+
+function menu_do_water_setting():void
+{
+	menu_start("WATER SETTING");
+	menu_add( "NO" );
+	menu_add( "FULL" );
+	switch( menu_select() ){
+	case 0:
+		my_water_setting = 0;
+	case 1:
+		my_water_setting = 1;
+	}
+}
+
+function menu_do_shoes_setting():void
+{
+	menu_start("SHOES SETTING");
+	menu_add( "NO" );
+	menu_add( "FULL" );
+	switch( menu_select() ){
+	case 0:
+		my_shoes = 0;
+	case 1:
+		my_shoes = 1;
+	}
+}
+

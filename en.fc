@@ -95,7 +95,7 @@ function slime_process(i:int):void
 	}
 
 	var flip:uint = (1-dir)/2;
-	gr_sprite2( x, y, 129+(anim/16)%2*4, 64*flip | 1);
+	gr_sprite2( x, y, 128+(anim/16)%2*4, 64*flip | 1);
 
 	en_x[i] = x;
 	en_y[i] = y;
@@ -157,7 +157,7 @@ function wow_process(i:int):void
 		}
 	}
 
-	gr_sprite2( x+rand()%4-2, y+rand()%4-2, 137+(anim/4)%2*4, anim%2 );
+	gr_sprite2( x+rand()%4-2, y+rand()%4-2, 136+(anim/4)%2*4, anim%2 );
 
 	en_x[i] = x;
 	en_y[i] = y;
@@ -199,8 +199,8 @@ function elevator_process(i:int):void
 
 	if( x < 16 || x > 240 || y < 16 || y > 240 ){ dir = (dir+2)%4; }
 	
-	gr_sprite2( x-8, y, 65, 0);
-	gr_sprite2( x+8, y, 65, 64);
+	gr_sprite2( x-8, y, 64, 0);
+	gr_sprite2( x+8, y, 64, 64);
 	
 	en_x[i] = x;
 	en_y[i] = y;
@@ -218,7 +218,7 @@ function bubble_process(i:int):void
 	x = x + rand()/128*2 - 1;
 	y = y - (giff/8);
 
-	gr_sprite( x-4, y-8, 35, 0);
+	gr_sprite( x-4, y-8, 34, 0);
 	
 	if( en_y[i] < 16 || (bg_cell_type(x,y-8) & BG_TYPE_WATER) == 0 ){
 		en_type[i] = 0;
@@ -238,7 +238,7 @@ function splash_process(i:int):void
 	var life = en_p1[i];
 
 	if( anim % 2 ){
-		gr_sprite2( x-4, y-8, 37, 0);
+		gr_sprite2( x-4, y-8, 36, 0);
 	}
 	
 	if( life ){
@@ -352,7 +352,7 @@ function frog_process(i:int):void
 	
 	var flip = 0;
 	if( dir == 3 ){ flip = 1; }
-	gr_sprite2( x, y, 161+state*4, 64*flip+2);
+	gr_sprite2( x, y, 160+state*4, 64*flip+2);
 	
 	en_x[i] = x;
 	en_y[i] = y;
@@ -385,13 +385,41 @@ function cookie_process(i:int):void
 	x = en_p4[i] + (cos(angle)>>size);
 	y = en_p5[i] + (sin(angle)>>size);
 
-	gr_sprite2( x+rand()%4-2, y+rand()%4-2, 137+(anim/4)%2*4, anim%2 );
+	gr_sprite2( x+rand()%4-2, y+rand()%4-2, 136+(anim/4)%2*4, anim%2 );
 
 	en_x[i] = x;
 	en_y[i] = y;
 	en_p1[i] = angle;
 	
 	en_check_hit(i,8);
+}
+
+/*********************************************
+ * 宝箱
+ *********************************************/
+function chest_new(i:int):void
+{
+	if( my_items[en_p1[i]] ){
+		en_type[i] = 0;
+	}
+}
+
+function chest_process(i:int):void
+{
+	var x = en_x[i];
+	var y = en_y[i];
+
+	if( abs(my_x-x) < 16 && abs(my_y-y) < 16 ){
+		game_event = GAME_EVENT_GET_ITEM;
+		game_event_p1 = en_p1[i];
+		
+		my_items[en_p1[i]] = 1;
+		en_type[i] = 0;
+		return;
+	}
+	
+	gr_sprite2( x, y-1, 96, 0 );
+
 }
 
 /*********************************************
@@ -406,7 +434,8 @@ const EN_PROCESS: void(int)[] = [ en_none_process,
 								  splash_process,
 								  block_process,
 								  frog_process,
-								  cookie_process
+								  cookie_process,
+								  chest_process
 								  ];
 const EN_NEW_FUNC: void(int)[] = [ en_none_process,
 								   slime_new,
@@ -416,5 +445,6 @@ const EN_NEW_FUNC: void(int)[] = [ en_none_process,
 								   en_none_process,
 								   block_new,
 								   frog_new,
-								   cookie_new
+								   cookie_new,
+								   chest_new
 								   ];

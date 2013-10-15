@@ -1,0 +1,59 @@
+options( bank: -1 );
+
+use util;
+use common;
+use mmc3;
+use memory;
+use bg;
+use pad;
+
+include("event.asm");
+
+function ppu_clear():void
+{
+	memset( bg_data_buf, 256, 0 );
+	var i:int;
+	for( i, 0, 4 ){
+		gr_add( gr_pos(0,i*2)+0x400, bg_data_buf, 64, 0 );
+		wait_vsync();
+	}
+	gr_add( 0x27c0, bg_data_buf, 64, 0 );
+	wait_vsync();
+}
+
+const ITEM_NAME:int[] = "  BOOTS        BOOTS  ";
+
+function event_start():void
+{
+
+	MMC3_MIRROR = 0; // vertical
+	ppu_clear();
+	gr_add( gr_pos(10,3)+0x400, "YOU GOT ITEM!", 13, 0 );
+	gr_add( gr_pos(12,5)+0x400, &ITEM_NAME[game_event_p1*8], 8, 0 );
+	wait_vsync();
+		
+	irq_setup = event_irq_setup;
+
+	var i = 0;
+	while(1){
+		pad_update();
+		if( pad_a && i > 120 ){ break; }
+		if( i < 140 ){ i += 1; }
+		wait_vsync();
+	}
+
+	ppu_lock();
+	irq_setup = null_func;
+	ppu_unlock();
+	wait_vsync();
+
+	calc_item();
+}
+
+function event_irq_setup():void;
+
+
+function calc_item():void
+{
+	if( my_items[0] ){ my_shoes = 1; }
+}
