@@ -51,7 +51,7 @@ class TiledConverter
   AREA_WIDTH = 16
   AREA_HEIGHT = 15
 
-  ENEMY_TYPE = {slime:1, wow:2, elevator:3}
+  ENEMY_TYPE = {slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8}
 
   def initialize( filename )
     data = JSON.parse( File.read(filename) )
@@ -118,7 +118,7 @@ class TiledConverter
         checkpoints[prop['id'].to_i] = {name:obj['name'], area:area, x:x*16, y:y*16}
       when 'enemy'
         area, x, y = px2area( obj['x'], obj['y'] )
-        enemy[area] << {type:prop['type'], x:x, y:y, p1:prop['p1'].to_i, p2:prop['p2'].to_i }
+        enemy[area] << {type:prop['type'], x:x, y:y, p1:prop['p1'].to_i, p2:prop['p2'].to_i, p3:prop['p3'].to_i }
       end
     end
 
@@ -131,7 +131,7 @@ class TiledConverter
     enemy.each.with_index do |area,i|
       area = area.map do |en| 
         type = ENEMY_TYPE[ en[:type].downcase.to_sym ]
-        [type, en[:x], en[:y], en[:p1] % 256, en[:p2] % 256]
+        [type, en[:x], en[:y], en[:p1] % 256, en[:p2] % 256, en[:p3] % 256]
       end
       @buf.add area
     end

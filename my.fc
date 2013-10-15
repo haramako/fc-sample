@@ -6,12 +6,6 @@ use pad;
 use bg;
 use en;
 
-const MY_STATE_STAND = 0;
-const MY_STATE_JUMP = 2;
-const MY_STATE_LADDER = 3; // はしご
-const MY_STATE_ON_ENEMY = 4;
-const MY_STATE_DIE = 255;
-
 function get_cell(x:int, y:int):int
 {
 	if( y > 240 ){ return 0; }
@@ -42,8 +36,8 @@ function my_check_on_enemy():int
 				my_y = en_y[i] - 16;
 				return i;
 			}
-		case EN_TYPE_SLIME:
-			if( abs(my_x-en_x[i])<14 && my_y>=(en_y[i]-12) && my_y < (en_y[i]-2) ){
+		case EN_TYPE_SLIME, EN_TYPE_FROG:
+			if( my_shoes >= 1 && abs(my_x-en_x[i])<14 && my_y>=(en_y[i]-12) && my_y < (en_y[i]-2) ){
 				my_y = en_y[i] - 10;
 				return i;
 			}
@@ -142,8 +136,10 @@ function my_process():void
 		}
 	case MY_STATE_JUMP: // ジャンプ中
 		// 空中にいる
-		if( pad_right ){ my_vx += 1; my_dir = 0; }
-		if( pad_left ){ my_vx -= 1; my_dir = 1; }
+		var vvx = 1;
+		if( jump_pow ){ vvx = 4; }
+		if( pad_right ){ my_vx += vvx; my_dir = 0; }
+		if( pad_left ){ my_vx -= vvx; my_dir = 1; }
 		if( !pad_left && !pad_right ){ my_vx -= sign(my_vx); }
 		if( my_vx > 16 ){ my_vx = 16; }
 		if( my_vx < -16 ){ my_vx = -16; }

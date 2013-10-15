@@ -8,6 +8,12 @@ var giff:int;
 
 var debug:int[8] options(address:0x70);
 
+const MY_STATE_STAND = 0;
+const MY_STATE_JUMP = 2;
+const MY_STATE_LADDER = 3; // はしご
+const MY_STATE_ON_ENEMY = 4;
+const MY_STATE_DIE = 255;
+
 var my_x:int, my_y:int;
 var my_anim:int;
 var my_vx:sint;
@@ -22,6 +28,7 @@ var old_pad_a:int;
 var jump_pow:int;
 var my_prev_in_water:int;
 var my_water_setting:int;
+var my_shoes:int;
 
 const EN_MAX = 16;
 var en_type:int[EN_MAX];
@@ -31,6 +38,7 @@ var en_p1:int[EN_MAX];
 var en_p2:int[EN_MAX];
 var en_p3:int[EN_MAX];
 var en_p4:int[EN_MAX];
+var en_p5:int[EN_MAX];
 var en_wait:int;
 var en_now:int;
 
