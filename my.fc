@@ -100,6 +100,19 @@ function my_process():void
 		
 		my_x += vx + evx;
 
+		if( anim % 32 == 0 && vx != 0 ){
+			var block_x = my_x + sign(vx)*9;
+			if( bg_cell( block_x, my_y ) == 56 ){
+				bi = en_new();
+				if( bi != -1 ){
+					en_type[bi] = EN_TYPE_BLOCK;
+					en_x[bi] = block_x/16*16+8;
+					en_y[bi] = my_y/16*16+8;
+					en_p1[bi] = sign(vx);
+				}
+			}
+		}
+
 		if( get_cell(my_x-4,my_y+6) || get_cell(my_x+4,my_y+6) || get_cell(my_x-4,my_y-4) || get_cell(my_x+4,my_y-4) ){
 			my_x -= vx + evx;
 		}

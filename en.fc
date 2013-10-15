@@ -262,27 +262,31 @@ function block_process(i:int):void
 	if( anim % 8 != 0 ){ return; }
 	var x = en_x[i];
 	var y = en_y[i];
+	var dir:sint = en_p1[i];
 	var redraw = 0;
-	
-	if( bg_cell_type(x,y+16) == 0 ){
-		y += 16;
-		redraw = 1;
-		if( y >= 240 ){
-			bg_put2( en_x[i]/16, en_y[i]/16, 0, 0 );
+
+	if( dir != 0 ){
+		// 左右に動く
+		if( bg_cell_type(x+dir*16,y) == 0 ){
+			x += dir*16;
+			redraw = 1;
+			dir = 0;
+		}else{
 			en_type[i] = 0;
 			return;
 		}
-	}elsif( my_state == MY_STATE_STAND ){
-		if( pad_right && my_x < x && my_x > x-16 && my_y == y ){
-			if( bg_cell_type(x+16,y) == 0 ){
-				x += 16;
-				redraw = 1;
+	}else{
+		// 落下中
+		if( bg_cell_type(x,y+16) == 0 ){
+			y += 16;
+			if( y >= 240 ){
+				bg_put2( en_x[i]/16, en_y[i]/16, 0, 0 );
+				en_type[i] = 0;
+				return;
 			}
-		}elsif( pad_left && my_x > x && my_x < x+16 && my_y == y ){
-			if( bg_cell_type(x-16,y) == 0 ){
-				x -= 16;
-				redraw = 1;
-			}
+			redraw = 1;
+		}else{
+			en_type[i] = 0;
 		}
 	}
 
@@ -292,6 +296,10 @@ function block_process(i:int):void
 		en_x[i] = x;
 		en_y[i] = y;
 	}
+
+	en_x[i] = x;
+	en_y[i] = y;
+	en_p1[i] = dir;
 }
 
 /*********************************************
