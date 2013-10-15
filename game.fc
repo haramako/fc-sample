@@ -21,13 +21,14 @@ function init_area_enemy():void
 	
 	var n = 0;
 	for( n, 0, bg_enemy_num ){
-		var idx = n*5;
+		var idx = n*6;
 		var i = en_new();
 		en_type[i] = bg_enemy[idx];
 		en_x[i] = bg_enemy[idx+1] * 16 + 8;
 		en_y[i] = bg_enemy[idx+2] * 16 + 8;
 		en_p1[i] = bg_enemy[idx+3];
 		en_p2[i] = bg_enemy[idx+4];
+		en_p3[i] = bg_enemy[idx+5];
 		EN_NEW_FUNC[en_type[i]](i);
 	}
 }
@@ -73,6 +74,7 @@ function game_main(): void
 	my_vx = 0;
 	my_vy = 0;
 	old_pad_a = 0;
+	my_shoes = 0;
 
 	while( 1 ){
 		anim += 1;
@@ -154,13 +156,16 @@ function menu_open():void
 		menu_start("MENU");
 		menu_add( "CHECKPOINT" );
 		menu_add( "WATER SETTING" );
+		menu_add( "SHOES SETTING" );
 		menu_add( "EXIT" );
 		switch( menu_select() ){
 		case 0:
 			if( menu_do_flag() ){ break; }
 		case 1:
 			menu_do_water_setting();
-		case 2,-1:
+		case 2:
+			menu_do_shoes_setting();
+		case 3,-1:
 			break;
 		}
 	}
@@ -213,7 +218,18 @@ function menu_do_water_setting():void
 		my_water_setting = 0;
 	case 1:
 		my_water_setting = 1;
-	case 2:
-		my_water_setting = 2;
+	}
+}
+
+function menu_do_shoes_setting():void
+{
+	menu_start("SHOES SETTING");
+	menu_add( "NO" );
+	menu_add( "FULL" );
+	switch( menu_select() ){
+	case 0:
+		my_shoes = 0;
+	case 1:
+		my_shoes = 1;
 	}
 }

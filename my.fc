@@ -6,12 +6,6 @@ use pad;
 use bg;
 use en;
 
-const MY_STATE_STAND = 0;
-const MY_STATE_JUMP = 2;
-const MY_STATE_LADDER = 3; // はしご
-const MY_STATE_ON_ENEMY = 4;
-const MY_STATE_DIE = 255;
-
 function get_cell(x:int, y:int):int
 {
 	if( y > 240 ){ return 0; }
@@ -42,8 +36,8 @@ function my_check_on_enemy():int
 				my_y = en_y[i] - 16;
 				return i;
 			}
-		case EN_TYPE_SLIME:
-			if( abs(my_x-en_x[i])<14 && my_y>=(en_y[i]-12) && my_y < (en_y[i]-2) ){
+		case EN_TYPE_SLIME, EN_TYPE_FROG:
+			if( my_shoes >= 1 && abs(my_x-en_x[i])<14 && my_y>=(en_y[i]-12) && my_y < (en_y[i]-2) ){
 				my_y = en_y[i] - 10;
 				return i;
 			}
@@ -106,6 +100,19 @@ function my_process():void
 		
 		my_x += vx + evx;
 
+		if( anim % 32 == 0 && vx != 0 ){
+			var block_x = my_x + sign(vx)*9;
+			if( bg_cell( block_x, my_y ) == 56 ){
+				bi = en_new();
+				if( bi != -1 ){
+					en_type[bi] = EN_TYPE_BLOCK;
+					en_x[bi] = block_x/16*16+8;
+					en_y[bi] = my_y/16*16+8;
+					en_p1[bi] = sign(vx);
+				}
+			}
+		}
+
 		if( get_cell(my_x-4,my_y+6) || get_cell(my_x+4,my_y+6) || get_cell(my_x-4,my_y-4) || get_cell(my_x+4,my_y-4) ){
 			my_x -= vx + evx;
 		}
@@ -142,8 +149,10 @@ function my_process():void
 		}
 	case MY_STATE_JUMP: // ジャンプ中
 		// 空中にいる
-		if( pad_right ){ my_vx += 1; my_dir = 0; }
-		if( pad_left ){ my_vx -= 1; my_dir = 1; }
+		var vvx = 1;
+		if( jump_pow ){ vvx = 4; }
+		if( pad_right ){ my_vx += vvx; my_dir = 0; }
+		if( pad_left ){ my_vx -= vvx; my_dir = 1; }
 		if( !pad_left && !pad_right ){ my_vx -= sign(my_vx); }
 		if( my_vx > 16 ){ my_vx = 16; }
 		if( my_vx < -16 ){ my_vx = -16; }
@@ -177,7 +186,7 @@ function my_process():void
 			}
 		}else{
 			// 下降中
-			if( vy > 80 ){ vy = 80; }
+			if( vy > 64 ){ vy = 64; }
 			if( limited_water && vy > 32 ){ vy = 32; } // 水の中の制限
 			
 			if( get_cell(my_x-4,my_y+8) || get_cell(my_x+4,my_y+8) ){

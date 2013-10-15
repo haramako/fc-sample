@@ -27,7 +27,7 @@ const PAL:int[] =
 	 1,1,1,0,0,0,0,0,
 	 0,0,0,0,0,0,0,0,
 	 1,1,0,0,0,0,0,0,
-	 0,0,0,0,0,0,0,1];
+	 0,0,2,2,3,3,0,1];
 
 const BG_TYPE_WALL = 1 << 0;
 const BG_TYPE_FLOOR = 1 << 1;
@@ -53,7 +53,7 @@ const BG_TYPE:int[] =
 		0,   1,   3,   0,   0,   0,0x13,0x10,
 		4,   4,   4,   4,   4,   0,   0,   0,
 		0,   0,   0,   0,   0,   0,   0,   0,
-		0,   0,   0,   0,   0,   0,   0,   8];
+		1,   0,   1,   3,   1,   3,   0,   8];
 
 function bg_init():void
 {
@@ -61,6 +61,11 @@ function bg_init():void
 	bg_cur_area = 0;
 	bg_buf_idx = 0;
 	on_wait_vsync = ->void(){ bg_buf_idx = 0; };
+}
+
+function bg_cell(x:int, y:int):int
+{
+	return bg_data[(y/16)*16 + x/16];
 }
 
 function bg_cell_type(x:int, y:int):int
@@ -89,7 +94,8 @@ function bg_fetch_area(area:int):void
 	if( len != 16*15 ){ asm( ".db 255" ); } // length check
 
 	len = fs_copy( bg_enemy, ENEMY_BASE+area );
-	bg_enemy_num = len/5;
+	bg_enemy_num = len/6;
+	debug[0] = bg_enemy_num;
 }
 
 function scroll_left():void
@@ -244,6 +250,12 @@ function bg_set_pal(x:int, y:int, pal:int):int
 	var mask:int = (0b00000011 << pos) ^ 0xff;
 	bg_pal[pal_addr] = (bg_pal[pal_addr] & mask) | (pal << pos);
 	return pal_addr;
+}
+
+function bg_put2(x:int, y:int, n:int, pal:int):void
+{
+	bg_data[y*16+x] = n;
+	bg_put(x,y,n,pal);
 }
 
 function bg_put(x:int, y:int, n:int, pal:int):void
