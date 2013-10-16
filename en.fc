@@ -279,7 +279,7 @@ function block_process(i:int):void
 		}
 	}else{
 		// 落下中
-		c = bg_cell_type(x+dir*16,y);
+		c = bg_cell_type(x,y+16);
 		if( c == 0 || c == BG_TYPE_SPIKE ){
 			y += 16;
 			if( y >= 240 ){
@@ -314,33 +314,54 @@ function frog_new(i:int):void
 	en_p4[i] = 30;
 }
 
-var en_check_ng:int;
-function en_check_x(x:int, y:int, size:int):int
+const EN_CHECK_TOP = 1;
+const EN_CHECK_BOTTOM= 2;
+const EN_CHECK_LEFT = 4;
+const EN_CHECK_RIGHT = 8;
+
+function en_check_block(px:int*, py:int*):int
 {
-	if( bg_cell_type(x+size,y) & BG_TYPE_STOP ){
-		en_check_ng = 1;
-		return (x+size)/16*16 - size - 1;
+	const size = 8;
+	var x = *px;
+	var y = *py;
+	var r = 0;
+	
+	// 下方向
+	if( bg_cell_type(x+4,y+(size-1)) & BG_TYPE_WALL || bg_cell_type(x-4,y+(size-1)) & BG_TYPE_WALL ){
+		*py = (y+size)/16*16 - size;
+		r = EN_CHECK_BOTTOM;
 	}
+
+	// 右方向
+	if( bg_cell_type(x+(size-1),y) & BG_TYPE_STOP ){
+		*px = (x+size)/16*16 - size;
+		r = r | EN_CHECK_RIGHT;
+	}elsif( x >= 240 ){
+		*px = 239;
+		r = r | EN_CHECK_RIGHT;
+	}
+
+	// 左方向
 	if( bg_cell_type(x-size,y) & BG_TYPE_STOP ){
-		en_check_ng = 1;
-		return (x-size)/16*16 + 17 + size;
+		*px = (x-size)/16*16 + 16 + size;
+		r = r | EN_CHECK_LEFT;
+	}elsif( x < 16 ){
+		*px = 16;
+		r = r | EN_CHECK_LEFT;
 	}
-	en_check_ng = 0;
-	return x;
+	
+	// 上方向
+	if( bg_cell_type(x+4,y-size) & BG_TYPE_WALL || bg_cell_type(x-4,y-size) & BG_TYPE_WALL ){
+		*py = (y-size)/16*16 + 16 + size;
+		r = r | EN_CHECK_TOP;
+	}
+	
+	return r;
 }
 
-function en_check_y(x:int, y:int, size:int):int
+function en_check_outsize(x:int, y:int):int
 {
-	if( bg_cell_type(x,y+size) & BG_TYPE_WALL ){
-		en_check_ng = 1;
-		return (y+size)/16*16 - size;
-	}
-	if( bg_cell_type(x,y-size) & BG_TYPE_WALL ){
-		en_check_ng = 1;
-		return (y-size)/16*16 + 16 + size;
-	}
-	en_check_ng = 0;
-	return y;
+	return ( x >= 240 || x < 16 || y < 16 || y >= 240 );
 }
 
 function frog_process(i:int):void
@@ -369,14 +390,15 @@ function frog_process(i:int):void
 		var d:sint = 2-dir;
 		if( giff < 8 ){ x += d; }
 		t += 1;
-		x = en_check_x(x,y,8);
-		if( en_check_ng ){ dir = 4 - dir; }
-		y = en_check_y(x,y,8);
-		if( en_check_ng ){
+		var hit = en_check_block(&x,&y);
+		if( hit & (EN_CHECK_RIGHT | EN_CHECK_LEFT) ){ dir = 4 - dir; }
+		if( hit & EN_CHECK_BOTTOM ){
 			state = 0;
 			t = 30;
 		}
-		if( x >= 248 || x < 8 || y > 248 ){
+		if( hit & EN_CHECK_TOP ){ t = 0; }
+		
+		if( en_check_outsize(x,y) ){
 			en_type[i] = 0;
 			return;
 		}
