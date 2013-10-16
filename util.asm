@@ -255,6 +255,8 @@ _gr_sprite:
     cpy #252
     bcs .end
     lda S+1,x      ; gr_sprite_buf[p] = y;
+	sec
+	sbc #1
     sta _gr_sprite_buf,y   
     iny                     ; gr_sprite_buf[p+1] = pat;
     lda S+2,x

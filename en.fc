@@ -264,10 +264,12 @@ function block_process(i:int):void
 	var y = en_y[i];
 	var dir:sint = en_p1[i];
 	var redraw = 0;
+	var c:int;
 
 	if( dir != 0 ){
 		// 左右に動く
-		if( bg_cell_type(x+dir*16,y) == 0 ){
+		c = bg_cell_type(x+dir*16,y);
+		if( c == 0 || c == BG_TYPE_SPIKE ){
 			x += dir*16;
 			redraw = 1;
 			dir = 0;
@@ -277,7 +279,8 @@ function block_process(i:int):void
 		}
 	}else{
 		// 落下中
-		if( bg_cell_type(x,y+16) == 0 ){
+		c = bg_cell_type(x+dir*16,y);
+		if( c == 0 || c == BG_TYPE_SPIKE ){
 			y += 16;
 			if( y >= 240 ){
 				bg_put2( en_x[i]/16, en_y[i]/16, 0, 0 );
@@ -311,6 +314,35 @@ function frog_new(i:int):void
 	en_p4[i] = 30;
 }
 
+var en_check_ng:int;
+function en_check_x(x:int, y:int, size:int):int
+{
+	if( bg_cell_type(x+size,y) & BG_TYPE_STOP ){
+		en_check_ng = 1;
+		return (x+size)/16*16 - size - 1;
+	}
+	if( bg_cell_type(x-size,y) & BG_TYPE_STOP ){
+		en_check_ng = 1;
+		return (x-size)/16*16 + 17 + size;
+	}
+	en_check_ng = 0;
+	return x;
+}
+
+function en_check_y(x:int, y:int, size:int):int
+{
+	if( bg_cell_type(x,y+size) & BG_TYPE_WALL ){
+		en_check_ng = 1;
+		return (y+size)/16*16 - size;
+	}
+	if( bg_cell_type(x,y-size) & BG_TYPE_WALL ){
+		en_check_ng = 1;
+		return (y-size)/16*16 + 16 + size;
+	}
+	en_check_ng = 0;
+	return y;
+}
+
 function frog_process(i:int):void
 {
 	var x = en_x[i];
@@ -337,10 +369,10 @@ function frog_process(i:int):void
 		var d:sint = 2-dir;
 		if( giff < 8 ){ x += d; }
 		t += 1;
-		if( bg_cell_type(x+d*8,y) & BG_TYPE_STOP ){
-			dir = 4 - dir;
-		}
-		if( bg_cell_type(x, y+8) & BG_TYPE_WALL ){
+		x = en_check_x(x,y,8);
+		if( en_check_ng ){ dir = 4 - dir; }
+		y = en_check_y(x,y,8);
+		if( en_check_ng ){
 			state = 0;
 			t = 30;
 		}
