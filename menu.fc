@@ -1,4 +1,4 @@
-options(bank:0);
+options(bank:-2);
 
 use common;
 use util;
@@ -46,16 +46,25 @@ function menu_start():void
 		if( pad_pushed & (PAD_B|PAD_SELECT) ){ break; }
 
 		if( menu_item_prev != menu_item_idx ){
-			if( menu_item_idx < 5 ){
-				var buf = gr_alloc(32);
+			if( menu_item_idx < 6 ){
+				wait_vsync();
+				var buf = gr_alloc(64);
+				var buf2 = gr_alloc(64);
+				memzero( buf2, 64 );
 				var size = fs_copy( buf, ITEM_NAME_BASE+menu_item_idx );
-				memzero( buf+size, 32-size );
-				gr_add( gr_pos(4,20)+0x400, buf, 32, 0 );
+				buf[size] = 0;
+				text_print( buf2, buf );
+				gr_add( gr_pos(4,20)+0x400, buf2, 64, 0 );
+				wait_vsync();
 				
-				buf = gr_alloc(32);
+				buf = gr_alloc(64);
+				buf2 = gr_alloc(64);
+				memzero( buf2, 64 );
 				size = fs_copy( buf, ITEM_DESC_BASE+menu_item_idx );
-				memzero( buf+size, 32-size );
-				gr_add( gr_pos(8,22)+0x400, buf, 32, 0 );
+				buf[size] = 0;
+				text_print( buf2, buf );
+				gr_add( gr_pos(8,22)+0x400, buf2, 64, 0 );
+				wait_vsync();
 			}
 			menu_item_prev = menu_item_idx;
 		}
@@ -98,4 +107,22 @@ function menu_put_item(i:int):void
 	buf[3] = c+3;
 	ppu_put( addr, buf, 2 );
 	ppu_put( addr+32, buf+2, 2 );
+}
+
+function text_print(p:int*, str:int*):int
+{
+	var i = 0;
+	var pi = 0;
+	while(1){
+		var c = str[i];
+		if( c == 0 ){ break; }
+		if( c == 2 || c == 3){
+			p[pi-1] = c;
+		}else{
+			p[pi+32] = c;
+			pi += 1;
+		}
+		i += 1;
+	}
+	return 0;
 }
