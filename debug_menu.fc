@@ -5,26 +5,100 @@ use menu;
 use bg;
 
 var last_checkpoint:int;
-var menu_move_area:void(int);
+var debug_menu_move_area:void(int);
 
-function menu_open():void
+const DEBUG_MENU_PALLET:int[32] = [0x0f,0x27,0x38,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13,
+							 0x19,0x0b,0x2b,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13];
+
+var debug_menu_num:int;
+var debug_menu_items:int*[16];
+var debug_menu_cur:int;
+var debug_menu_title:int*;
+
+function debug_menu_init():void
+{
+}
+
+function debug_menu_start(name:int*):void
+{
+	debug_menu_title = name;
+	debug_menu_num = 0;
+	debug_menu_cur = 0;
+}
+
+function debug_menu_add(item:int*):void
+{
+	debug_menu_items[debug_menu_num] = item;
+	debug_menu_num += 1;
+}
+
+function debug_menu_add_items( n:int, items:int** ):void
+{
+	var i:int;
+	for( i, 0, n ){
+		debug_menu_add(items[n]);
+	}
+}
+
+const DEBUG_MENU_VRAM:int16 = 0x2400;
+
+function debug_menu_select():int
+{
+	ppu_lock();
+	MMC3_MIRROR = 0; // vertical
+	ppu_ctrl1_bak = 0b10100001;
+	ppu_ctrl2_bak = 0b00011110;
+	ppu_scroll1 = 0;
+	ppu_scroll2 = 0;
+	ppu_fill( DEBUG_MENU_VRAM, 0x0400, 0 );
+
+	ppu_put( DEBUG_MENU_VRAM + 32*3 + 2, debug_menu_title, strlen(debug_menu_title) );
+	
+	var i:int;
+	for(i, 0, debug_menu_num){
+		ppu_put( DEBUG_MENU_VRAM + 32*(i+5) + 4, debug_menu_items[i], strlen(debug_menu_items[i]) );
+	}
+	ppu_unlock();
+
+	var pad_up_old = 0;
+	var pad_down_old = 0;
+	var pad_a_old = 0;
+	var pad_b_old = 0;
+	while(1){
+		pad_up_old = pad_up;
+		pad_down_old = pad_down;
+		pad_a_old = pad_a;
+		pad_b_old = pad_b;
+		pad_update();
+		
+		if( !pad_up_old && pad_up && debug_menu_cur > 0 ){ debug_menu_cur -= 1; }
+		if( !pad_down_old && pad_down && debug_menu_cur < debug_menu_num-1 ){ debug_menu_cur += 1; }
+		if( !pad_a_old && pad_a ){ return debug_menu_cur; }
+		if( !pad_b_old && pad_b ){ return -1; }
+
+		gr_sprite( 3*8-2, 5*8-1+debug_menu_cur*8, 33, 0);
+		wait_vsync();
+	}
+}
+
+function debug_menu_open():void
 {
 	var old0 = mmc3_set_cbank(0,CBANK_TEXT+0);
 	var old1 = mmc3_set_cbank(1,CBANK_TEXT+1);
 	
 	while(1){
-		menu_start( _T("メニュー") );
-		menu_add( _T("チェックポイント") );
-		menu_add( _T("潜水") );
-		menu_add( _T("靴") );
-		menu_add( _T("終了") );
-		switch( menu_select() ){
+		debug_menu_start( _T("メニュー") );
+		debug_menu_add( _T("チェックポイント") );
+		debug_menu_add( _T("潜水") );
+		debug_menu_add( _T("靴") );
+		debug_menu_add( _T("終了") );
+		switch( debug_menu_select() ){
 		case 0:
-			if( menu_do_flag() ){ break; }
+			if( debug_menu_do_flag() ){ break; }
 		case 1:
-			menu_do_water_setting();
+			debug_menu_do_water_setting();
 		case 2:
-			menu_do_shoes_setting();
+			debug_menu_do_shoes_setting();
 		case 3,-1:
 			break;
 		}
@@ -41,16 +115,16 @@ function menu_open():void
 	wait_vsync();
 }
 
-function menu_do_flag():int
+function debug_menu_do_flag():int
 {
-	menu_start(_T("チェックポイントを選択"));
+	debug_menu_start(_T("チェックポイントを選択"));
 	var i:int;
 	for( i, 0, MAP_CHECKPOINT_NUM ){
-		menu_add( &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[i]+3] );
+		debug_menu_add( &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[i]+3] );
 	}
-	menu_cur = last_checkpoint;
+	debug_menu_cur = last_checkpoint;
 	
-	var n = menu_select();
+	var n = debug_menu_select();
 	if( n == -1 ){ return 0; }
 
 	last_checkpoint = n;
@@ -63,17 +137,17 @@ function menu_do_flag():int
 	my_vy = 0;
 	var area = cp[0];
 	
-	menu_move_area( area );
+	debug_menu_move_area( area );
 
 	return 1;
 }
 
-function menu_do_water_setting():void
+function debug_menu_do_water_setting():void
 {
-	menu_start(_T("潜水設定"));
-	menu_add( _T("無効") );
-	menu_add( _T("潜水") );
-	switch( menu_select() ){
+	debug_menu_start(_T("潜水設定"));
+	debug_menu_add( _T("無効") );
+	debug_menu_add( _T("潜水") );
+	switch( debug_menu_select() ){
 	case 0:
 		my_water_setting = 0;
 	case 1:
@@ -81,12 +155,12 @@ function menu_do_water_setting():void
 	}
 }
 
-function menu_do_shoes_setting():void
+function debug_menu_do_shoes_setting():void
 {
-	menu_start(_T("靴"));
-	menu_add( _T("無効") );
-	menu_add( _T("スライムブーツ") );
-	switch( menu_select() ){
+	debug_menu_start(_T("靴"));
+	debug_menu_add( _T("無効") );
+	debug_menu_add( _T("スライムブーツ") );
+	switch( debug_menu_select() ){
 	case 0:
 		my_shoes = 0;
 	case 1:

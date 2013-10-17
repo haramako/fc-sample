@@ -1,11 +1,13 @@
 options(bank:-1);
 
 use util;
+use fs_config;
 include( "macro.rb" );
 
 const CBANK_CHAR = 0;
 const CBANK_BG_BASE = 8;
 const CBANK_TEXT = 16;
+const CBANK_ITEM = 24;
 
 const GIFF_TABLE = [0,8,4,12, 2,10,6,14, 1,9,5,13, 3,11,7,15];
 var anim:int;
@@ -66,4 +68,10 @@ function gr_sprite2(x:int, y:int, pat:int, flag:int):void
 		gr_sprite( x, y-8, pat+2, flag );
 		gr_sprite( x-8, y-8, pat, flag );
 	}
+}
+
+function calc_item():void
+{
+	my_shoes = 0;
+	if( my_items[ITEM_ID_SLIME_BOOTS] ){ my_shoes = 1; }
 }

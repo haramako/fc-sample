@@ -126,9 +126,11 @@ function game_main(): void
 		}
 		
 		// メニュー
-		if( pad_start ){
-			menu_move_area = move_area;
-			menu_open();
+		if( pad_pushed & PAD_START ){
+			debug_menu_move_area = move_area;
+			debug_menu_open();
+		}elsif( pad_pushed & PAD_SELECT ){
+			menu_start();
 		}
 	}
   

@@ -5,78 +5,96 @@ use util;
 use mmc3;
 use pad;
 use memory;
+use fs;
 
-const MENU_PALLET:int[32] = [0x0f,0x27,0x38,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13,
-							 0x19,0x0b,0x2b,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13];
+include( "menu.asm" );
 
-var menu_num:int;
-var menu_items:int*[16];
-var menu_cur:int;
-var menu_title:int*;
+var menu_item_idx:int;
+var menu_item_prev:int;
 
-function menu_init():void
+function menu_start():void
 {
-}
-
-function menu_start(name:int*):void
-{
-	menu_title = name;
-	menu_num = 0;
-	menu_cur = 0;
-}
-
-function menu_add(item:int*):void
-{
-	menu_items[menu_num] = item;
-	menu_num += 1;
-}
-
-function menu_add_items( n:int, items:int** ):void
-{
-	var i:int;
-	for( i, 0, n ){
-		menu_add(items[n]);
-	}
-}
-
-const MENU_VRAM:int16 = 0x2400;
-
-function menu_select():int
-{
+	menu_item_idx = 0;
+	menu_item_prev = -1;
+	
 	ppu_lock();
+	var old_ppu_ctrl1 = ppu_ctrl1_bak;
+	var old_cbank0 = mmc3_set_cbank(0,CBANK_ITEM);
+	var old_cbank1 = mmc3_set_cbank(1,CBANK_TEXT);
 	MMC3_MIRROR = 0; // vertical
 	ppu_ctrl1_bak = 0b10100001;
-	ppu_ctrl2_bak = 0b00011110;
-	ppu_scroll1 = 0;
-	ppu_scroll2 = 0;
-	ppu_fill( MENU_VRAM, 0x0400, 0 );
+	irq_setup = menu_irq_setup;
 
-	ppu_put( MENU_VRAM + 32*3 + 2, menu_title, strlen(menu_title) );
-	
 	var i:int;
-	for(i, 0, menu_num){
-		ppu_put( MENU_VRAM + 32*(i+5) + 4, menu_items[i], strlen(menu_items[i]) );
+	for( i, 0, 18 ){
+		menu_put_item(i);
 	}
+
+	ppu_put( 0x2400+32*2+4, [4,5,6,7], 4 );
+
 	ppu_unlock();
 
-	var pad_up_old = 0;
-	var pad_down_old = 0;
-	var pad_a_old = 0;
-	var pad_b_old = 0;
 	while(1){
-		pad_up_old = pad_up;
-		pad_down_old = pad_down;
-		pad_a_old = pad_a;
-		pad_b_old = pad_b;
 		pad_update();
-		
-		if( !pad_up_old && pad_up && menu_cur > 0 ){ menu_cur -= 1; }
-		if( !pad_down_old && pad_down && menu_cur < menu_num-1 ){ menu_cur += 1; }
-		if( !pad_a_old && pad_a ){ return menu_cur; }
-		if( !pad_b_old && pad_b ){ return -1; }
+		gr_sprite2( (menu_item_idx%6)*32+40, (menu_item_idx/6)*32+40, 40, 0 );
+		if( pad_pushed & (PAD_UP) ){ menu_item_idx += 12; }
+		if( pad_pushed & (PAD_DOWN) ){ menu_item_idx += 6; }
+		if( pad_pushed & (PAD_RIGHT) ){ menu_item_idx += 1; }
+		if( pad_pushed & (PAD_LEFT) ){ menu_item_idx -= 1; }
+		if( menu_item_idx >= 18 ){ menu_item_idx -= 18; }
+		if( pad_pushed & (PAD_B|PAD_SELECT) ){ break; }
 
-		gr_sprite( 3*8-2, 5*8-1+menu_cur*8, 33, 0);
+		if( menu_item_prev != menu_item_idx ){
+			if( menu_item_idx < 2 ){
+				var buf = gr_alloc(32);
+				var size = fs_copy( buf, ITEM_NAME_BASE+menu_item_idx );
+				memzero( buf+size, 32-size );
+				gr_add( gr_pos(4,20)+0x400, buf, 32, 0 );
+				
+				buf = gr_alloc(32);
+				size = fs_copy( buf, ITEM_DESC_BASE+menu_item_idx );
+				memzero( buf+size, 32-size );
+				gr_add( gr_pos(8,22)+0x400, buf, 32, 0 );
+			}
+			menu_item_prev = menu_item_idx;
+		}
+		
+		if( pad_pushed & PAD_A){
+			my_items[menu_item_idx] = 1-my_items[menu_item_idx];
+			calc_item();
+			ppu_lock();
+			for( i, 0, 18 ){
+				menu_put_item(i);
+			}
+			ppu_unlock();
+		}
 		wait_vsync();
 	}
+
+	irq_setup = null_func;
+	wait_vsync();
+	ppu_lock();
+	mmc3_set_cbank(0,old_cbank0);
+	mmc3_set_cbank(1,old_cbank1);
+	ppu_ctrl1_bak = old_ppu_ctrl1;
+	ppu_unlock();
+	wait_vsync();
 }
 
+function menu_irq_setup():void;
+
+function menu_put_item(i:int):void
+{
+	var y:int16 = i/6;
+	var x = i%6*4 + 4;
+	var addr:int16 = 0x2400+32*4 + (y<<7) + x;
+	var buf = gr_alloc(4);
+	var c = i*4+32;
+	if( !my_items[i] ){ c = 8; }
+	buf[0] = c+0;
+	buf[1] = c+2;
+	buf[2] = c+1;
+	buf[3] = c+3;
+	ppu_put( addr, buf, 2 );
+	ppu_put( addr+32, buf+2, 2 );
+}

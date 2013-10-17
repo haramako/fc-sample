@@ -1,9 +1,13 @@
 options( bank_count: 16, bank: -1 );
+
+include header ( "macro.asm" );
+
 use game;
 
 include('character.chr');
 include('bg_base.chr');
 include('text.chr');
+include('item.chr');
 
 function main():void
 {
