@@ -3,8 +3,55 @@
 
 require 'pp'
 require 'json'
-require_relative 'rle'
 require 'erb'
+require_relative 'rle'
+require_relative 'text_conv'
+
+
+class NesImage
+  def initialize(filename)
+    @img = Magick::ImageList.new(filename)[0]
+  end
+
+  def get8x8( img, cx, cy )
+    a = Array.new(8){Array.new(8){0}}
+    8.times do |py|
+      8.times do |px|
+        c = img.pixel_color(cx*8+px, cy*8+py)
+        a[py][px] = if c.red > 0 then 3 else 0 end
+      end
+    end
+    a
+  end
+
+  def px2chr( d )
+    r = [[],[]]
+    8.times do |py|
+      line = [0,0]
+      8.times do |px|
+        line[0] |= ((d[py][px] >> 0)& 1) << (8-px)
+        line[1] |= ((d[py][px] >> 1)& 1) << (8-px)
+      end
+      r[0] << line[0]
+      r[1] << line[1]
+    end
+    r.flatten
+  end
+
+  def to_chr(filename)
+    data = []
+    16.times do |cy|
+      16.times do |cx|
+        c = get8x8(@img,cx,cy)
+        data << px2chr(c)
+      end
+    end
+
+    data.flatten!
+    
+    IO.write(filename, data.pack('c*'))
+  end
+end
 
 # 8KBごとのバンクに分けられたバッファ
 class BankedBuffer
@@ -51,8 +98,8 @@ class TiledConverter
   AREA_WIDTH = 16
   AREA_HEIGHT = 15
 
-  ENEMY_TYPE = {slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8, chest:9}
-  ITEMS = {slime_boots:0}
+  ENEMY_TYPE = {slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8, chest:9, lamp:10}
+  ITEMS = {slime_boots:0, lamp:1}
 
   def initialize( filename )
     data = JSON.parse( File.read(filename) )
@@ -64,10 +111,24 @@ class TiledConverter
     @world_width = w / AREA_WIDTH
     @world_height = h / AREA_HEIGHT
 
+    @text_conv = TextConverter.new
+
+    conv_text
     conv_tile( data )
     conv_item( data )
+    conv_item_data
 
-    print ERB.new(DATA.read).result(binding)
+    begin
+      @text_conv.make_image('text.png')
+      IO.write('text.txt', @text_conv.using.join)
+      img = NesImage.new('text.png')
+      img.to_chr( 'text.chr' )
+    rescue
+      STDERR.puts 'WARING: conv make image'
+      STDERR.puts $!
+    end
+
+    print ERB.new(DATA.read,nil,'-').result(binding)
 
     @buf.buf.each_slice( BankedBuffer::BANK_SIZE ).with_index do |bin,i|
       open("fs_data#{i}.bin",'wb'){|f| f.write bin.pack('c*') }
@@ -129,7 +190,8 @@ class TiledConverter
 
     @cp_buf = BankedBuffer.new
     checkpoints.each.with_index do |cp,i|
-      @cp_buf.add [ cp[:area], cp[:x], cp[:y], cp[:name].unpack('c*'), 0]
+      name = @text_conv.conv( cp[:name] )
+      @cp_buf.add [ cp[:area], cp[:x], cp[:y], name, 0].flatten
     end
 
     @en_base = @buf.cur
@@ -139,6 +201,40 @@ class TiledConverter
         [type, en[:x], en[:y], en[:p1] % 256, en[:p2] % 256, en[:p3] % 256]
       end
       @buf.add area
+    end
+  end
+
+  ITEM_DATA = 
+    [
+     ['slime_boots', 'スライムブーツ', ''],
+     ['lamp', 'らんぷ', ''],
+    ]
+
+  def conv_item_data
+
+    @item_ids = []
+    ITEM_DATA.each do |item|
+      @item_ids << item[0].upcase
+    end
+
+    @item_name_base = @buf.cur
+    ITEM_DATA.each do |item|
+      @buf.add @text_conv.conv(item[1])
+    end
+
+    @item_desc_base = @buf.cur
+    ITEM_DATA.each do |item|
+      @buf.add @text_conv.conv(item[2])
+    end
+
+  end
+
+  def conv_text
+    Dir.glob('*.fc') do |f|
+      d = []
+      txt = File.open(f,'rb:UTF-8'){|f| f.read }
+      txt.gsub(/_T\(\"(.*?)\"\)/){ d << $1 }
+      @text_conv.conv(d.join(''))
     end
   end
 
@@ -155,12 +251,9 @@ TiledConverter.new( ARGV[0] )
 __END__
 options(bank:-2);
 
-<% @buf.bank_size.times do |i| %>
+<%- @buf.bank_size.times do |i| -%>
 use fs_data<%=i%>;
-<% end %>
-
-const _FS_ADDR = <%=@buf.addrs%>;
-const _FS_SIZE = <%=@buf.sizes%>;
+<%- end -%>
 
 const MAP_WIDTH = <%=@world_width%>;
 const MAP_HEIGHT = <%=@world_height%>;
@@ -171,3 +264,13 @@ const ENEMY_BASE = <%=@en_base%>;
 const MAP_CHECKPOINT_NUM = <%=@cp_buf.cur%>;
 const MAP_CHECKPOINT = <%=@cp_buf.addrs%>;
 const MAP_CHECKPOINT_DATA = <%=@cp_buf.buf%>;
+
+const ITEM_NAME_BASE = <%=@item_name_base%>;
+const ITEM_DESC_BASE = <%=@item_desc_base%>;
+<%- @item_ids.each.with_index do |item,i| -%>
+const ITEM_ID_<%=item%> = <%= i %>;
+<%- end -%>
+
+const _FS_ADDR = <%=@buf.addrs%>;
+const _FS_SIZE = <%=@buf.sizes%>;
+

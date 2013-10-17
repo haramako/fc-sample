@@ -22,6 +22,8 @@ var gr_size_buf:int[GR_MAX];
 var gr_flag_buf:int[GR_MAX];
 var gr_sprite_idx:int;
 var gr_sprite_buf:int[256] options (address:0x0700);
+var gr_buf:int[256];
+var gr_buf_idx:int;
 
 var ppu_put_to:int16;
 var ppu_put_from:int* options (address:0x60);
@@ -52,6 +54,7 @@ function wait_vsync():void
 	}
 	vsync_flag = 1;
 	while( vsync_flag ){}
+	gr_buf_idx = 0;
 	on_wait_vsync();
 }
 
@@ -82,6 +85,13 @@ function gr_add( to:int16, from:int*, size:int, flag:int ):void
 	gr_size_buf[gr_idx] = size;
 	gr_flag_buf[gr_idx] = flag;
 	gr_idx += 1;
+}
+
+function gr_alloc(size:int):int*
+{
+	var old = gr_buf_idx;
+	gr_buf_idx += size;
+	return &gr_buf[old];
 }
 
 function gr_pos( x:int, y:int ):int16;

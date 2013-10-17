@@ -66,6 +66,8 @@ function game_main(): void
 	move_area( area );
 	set_last();
 	bg_on_scroll = my_on_scroll;
+	scroll_before_scroll = game_before_scroll;
+	scroll_after_scroll = game_after_scroll;
 
 	ppu_unlock();
 	
@@ -141,6 +143,25 @@ function set_last():void
 	last_area = bg_cur_area;
 	last_x = my_x;
 	last_y = my_y;
+}
+
+function game_before_scroll():void
+{
+	
+	if( ((bg_cur_area == 1*16+6) || (last_area == 1*16+6) ) && !my_items[ITEM_LAMP] ){
+		gr_add( 0x3fc0,
+				[0x0d,0x00,0x10,0x30, 0x0d,0x0d,0x0d,0x0d, 0x0d,0x0d,0x0d,0x0d, 0x0d,0x0d,0x0d,0x0d], 16, 0 );
+		wait_vsync();
+	}
+}
+
+function game_after_scroll():void
+{
+	
+	if( (bg_cur_area != 1*16+6) && !my_items[ITEM_LAMP] ){
+		gr_add( 0x3fc0, PALLET, 16, 0);
+		wait_vsync();
+	}
 }
 
 function move_to_last():void

@@ -18,6 +18,8 @@ var bg_buf:int[256];
 var bg_pal:int[64];
 
 var bg_cur_area:int;
+var scroll_before_scroll:void();
+var scroll_after_scroll:void();
 
 const PAL:int[] =
 	[0,0,0,0,0,0,0,0,
@@ -58,6 +60,8 @@ const BG_TYPE:int[] =
 function bg_init():void
 {
 	bg_on_scroll = bg_on_scroll_null;
+	scroll_before_scroll = null_func;
+	scroll_after_scroll = null_func;
 	bg_cur_area = 0;
 	bg_buf_idx = 0;
 	on_wait_vsync = ->void(){ bg_buf_idx = 0; };
@@ -104,6 +108,7 @@ function scroll_left():void
 	var i:int;
 	bg_cur_area -= 1;
 	bg_fetch_area(bg_cur_area);
+	scroll_before_scroll();
 	MMC3_MIRROR = 1; // horizontal
 	while(1){
 		draw_map_vertical(x);
@@ -118,6 +123,7 @@ function scroll_left():void
 		if( x == 0 ){ break; }
 		x -= 1;
 	}
+	scroll_after_scroll();
 }
 
 function scroll_right():void
@@ -126,6 +132,7 @@ function scroll_right():void
 	var i:int;
 	bg_cur_area += 1;
 	bg_fetch_area(bg_cur_area);
+	scroll_before_scroll();
 	MMC3_MIRROR = 1; // horizontal
 	while(1){
 		draw_map_vertical(x);
@@ -140,6 +147,7 @@ function scroll_right():void
 		if( x == 15 ){ break; }
 		x += 1;
 	}
+	scroll_after_scroll();
 }
 
 function scroll_up():void
@@ -148,6 +156,7 @@ function scroll_up():void
 	var i:int;
 	bg_cur_area -= MAP_WIDTH;
 	bg_fetch_area(bg_cur_area);
+	scroll_before_scroll();
 	MMC3_MIRROR = 0; // vertical
 	while(1){
 		draw_map_horizontal(y);
@@ -162,6 +171,7 @@ function scroll_up():void
 		if( y == 0 ){ break; }
 		y -= 1;
 	}
+	scroll_after_scroll();
 }
 
 function scroll_down():void
@@ -170,6 +180,7 @@ function scroll_down():void
 	var i:int;
 	bg_cur_area += MAP_WIDTH;
 	bg_fetch_area(bg_cur_area);
+	scroll_before_scroll();
 	MMC3_MIRROR = 0; // vertical
 	while(1){
 		draw_map_horizontal(y);
@@ -184,6 +195,7 @@ function scroll_down():void
 		if( y == 14 ){ break; }
 		y += 1;
 	}
+	scroll_after_scroll();
 }
 
 function bg_put_in_lock(x:int, y:int, n:int):void

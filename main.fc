@@ -3,6 +3,7 @@ use game;
 
 include('character.chr');
 include('bg_base.chr');
+include('text.chr');
 
 function main():void
 {

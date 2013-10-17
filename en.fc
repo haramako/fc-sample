@@ -53,6 +53,57 @@ function en_check_hit(i:int, size:int):void
 	}
 }
 
+const EN_CHECK_TOP = 1;
+const EN_CHECK_BOTTOM= 2;
+const EN_CHECK_LEFT = 4;
+const EN_CHECK_RIGHT = 8;
+
+function en_check_block(px:int*, py:int*):int
+{
+	const size = 8;
+	var x = *px;
+	var y = *py;
+	var r = 0;
+	
+	// 下方向
+	if( bg_cell_type(x+4,y+(size-1)) & BG_TYPE_WALL || bg_cell_type(x-4,y+(size-1)) & BG_TYPE_WALL ){
+		*py = (y+size)/16*16 - size;
+		r = EN_CHECK_BOTTOM;
+	}
+
+	// 右方向
+	if( bg_cell_type(x+(size-1),y) & BG_TYPE_STOP ){
+		*px = (x+size)/16*16 - size;
+		r = r | EN_CHECK_RIGHT;
+	}elsif( x >= 240 ){
+		*px = 239;
+		r = r | EN_CHECK_RIGHT;
+	}
+
+	// 左方向
+	if( bg_cell_type(x-size,y) & BG_TYPE_STOP ){
+		*px = (x-size)/16*16 + 16 + size;
+		r = r | EN_CHECK_LEFT;
+	}elsif( x < 16 ){
+		*px = 16;
+		r = r | EN_CHECK_LEFT;
+	}
+	
+	// 上方向
+	if( bg_cell_type(x+4,y-size) & BG_TYPE_WALL || bg_cell_type(x-4,y-size) & BG_TYPE_WALL ){
+		*py = (y-size)/16*16 + 16 + size;
+		r = r | EN_CHECK_TOP;
+	}
+	
+	return r;
+}
+
+function en_check_outsize(x:int, y:int):int
+{
+	return ( x >= 240 || x < 16 || y < 16 || y >= 240 );
+}
+
+
 /*********************************************
  * ダミー
  *********************************************/
@@ -314,56 +365,6 @@ function frog_new(i:int):void
 	en_p4[i] = 30;
 }
 
-const EN_CHECK_TOP = 1;
-const EN_CHECK_BOTTOM= 2;
-const EN_CHECK_LEFT = 4;
-const EN_CHECK_RIGHT = 8;
-
-function en_check_block(px:int*, py:int*):int
-{
-	const size = 8;
-	var x = *px;
-	var y = *py;
-	var r = 0;
-	
-	// 下方向
-	if( bg_cell_type(x+4,y+(size-1)) & BG_TYPE_WALL || bg_cell_type(x-4,y+(size-1)) & BG_TYPE_WALL ){
-		*py = (y+size)/16*16 - size;
-		r = EN_CHECK_BOTTOM;
-	}
-
-	// 右方向
-	if( bg_cell_type(x+(size-1),y) & BG_TYPE_STOP ){
-		*px = (x+size)/16*16 - size;
-		r = r | EN_CHECK_RIGHT;
-	}elsif( x >= 240 ){
-		*px = 239;
-		r = r | EN_CHECK_RIGHT;
-	}
-
-	// 左方向
-	if( bg_cell_type(x-size,y) & BG_TYPE_STOP ){
-		*px = (x-size)/16*16 + 16 + size;
-		r = r | EN_CHECK_LEFT;
-	}elsif( x < 16 ){
-		*px = 16;
-		r = r | EN_CHECK_LEFT;
-	}
-	
-	// 上方向
-	if( bg_cell_type(x+4,y-size) & BG_TYPE_WALL || bg_cell_type(x-4,y-size) & BG_TYPE_WALL ){
-		*py = (y-size)/16*16 + 16 + size;
-		r = r | EN_CHECK_TOP;
-	}
-	
-	return r;
-}
-
-function en_check_outsize(x:int, y:int):int
-{
-	return ( x >= 240 || x < 16 || y < 16 || y >= 240 );
-}
-
 function frog_process(i:int):void
 {
 	var x = en_x[i];
@@ -477,6 +478,22 @@ function chest_process(i:int):void
 }
 
 /*********************************************
+ * 宝箱
+ *********************************************/
+function lamp_new(i:int):void
+{
+}
+
+function lamp_process(i:int):void
+{
+	if( my_items[ITEM_LAMP] ){
+		gr_sprite2(en_x[i], en_y[i]+4, 136+(anim/2)%2*4, 1);
+	}else{
+		en_type[i] = 0;
+	}
+}
+
+/*********************************************
  * 
  *********************************************/
 
@@ -489,7 +506,8 @@ const EN_PROCESS: void(int)[] = [ en_none_process,
 								  block_process,
 								  frog_process,
 								  cookie_process,
-								  chest_process
+								  chest_process,
+								  lamp_process
 								  ];
 const EN_NEW_FUNC: void(int)[] = [ en_none_process,
 								   slime_new,
@@ -500,5 +518,6 @@ const EN_NEW_FUNC: void(int)[] = [ en_none_process,
 								   block_new,
 								   frog_new,
 								   cookie_new,
-								   chest_new
+								   chest_new,
+								   lamp_new
 								   ];

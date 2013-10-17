@@ -94,9 +94,9 @@ title_irq_1:
 	lda #%00100001
 	sta _PPU_CTRL1
 
-	ldx #0
+	ldx #(_CBANK_TEXT+0)
 	mmc3_cbank #0
-	ldx #1
+	ldx #(_CBANK_TEXT+1)
 	mmc3_cbank #1
 
 	loadw _irq_next, title_irq_2

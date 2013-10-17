@@ -1,6 +1,11 @@
 options(bank:-1);
 
 use util;
+include( "macro.rb" );
+
+const CBANK_CHAR = 0;
+const CBANK_BG_BASE = 8;
+const CBANK_TEXT = 16;
 
 const GIFF_TABLE = [0,8,4,12, 2,10,6,14, 1,9,5,13, 3,11,7,15];
 var anim:int;
@@ -13,6 +18,8 @@ const MY_STATE_JUMP = 2;
 const MY_STATE_LADDER = 3; // はしご
 const MY_STATE_ON_ENEMY = 4;
 const MY_STATE_DIE = 255;
+
+const ITEM_LAMP = 1;
 
 var my_x:int, my_y:int;
 var my_anim:int;

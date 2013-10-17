@@ -9,12 +9,15 @@ var menu_move_area:void(int);
 
 function menu_open():void
 {
+	var old0 = mmc3_set_cbank(0,CBANK_TEXT+0);
+	var old1 = mmc3_set_cbank(1,CBANK_TEXT+1);
+	
 	while(1){
-		menu_start("MENU");
-		menu_add( "CHECKPOINT" );
-		menu_add( "WATER SETTING" );
-		menu_add( "SHOES SETTING" );
-		menu_add( "EXIT" );
+		menu_start( _T("メニュー") );
+		menu_add( _T("チェックポイント") );
+		menu_add( _T("潜水") );
+		menu_add( _T("靴") );
+		menu_add( _T("終了") );
 		switch( menu_select() ){
 		case 0:
 			if( menu_do_flag() ){ break; }
@@ -32,13 +35,15 @@ function menu_open():void
 	ppu_ctrl2_bak = 0b00011110;
 	ppu_scroll1 = 0;
 	ppu_scroll2 = 0;
+	mmc3_set_cbank(0,old0);
+	mmc3_set_cbank(1,old1);
 	ppu_unlock();
 	wait_vsync();
 }
 
 function menu_do_flag():int
 {
-	menu_start("SELECT CHECKPOINT");
+	menu_start(_T("チェックポイントを選択"));
 	var i:int;
 	for( i, 0, MAP_CHECKPOINT_NUM ){
 		menu_add( &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[i]+3] );
@@ -65,9 +70,9 @@ function menu_do_flag():int
 
 function menu_do_water_setting():void
 {
-	menu_start("WATER SETTING");
-	menu_add( "NO" );
-	menu_add( "FULL" );
+	menu_start(_T("潜水設定"));
+	menu_add( _T("無効") );
+	menu_add( _T("潜水") );
 	switch( menu_select() ){
 	case 0:
 		my_water_setting = 0;
@@ -78,9 +83,9 @@ function menu_do_water_setting():void
 
 function menu_do_shoes_setting():void
 {
-	menu_start("SHOES SETTING");
-	menu_add( "NO" );
-	menu_add( "FULL" );
+	menu_start(_T("靴"));
+	menu_add( _T("無効") );
+	menu_add( _T("スライムブーツ") );
 	switch( menu_select() ){
 	case 0:
 		my_shoes = 0;
