@@ -56,7 +56,3 @@ function event_start():void
 function event_irq_setup():void;
 
 
-function calc_item():void
-{
-	if( my_items[0] ){ my_shoes = 1; }
-}

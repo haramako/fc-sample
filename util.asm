@@ -39,7 +39,7 @@ _interrupt:
 
 	;; setup irq
 	jsr .jsr_irq_setup
-	
+
 	rts
 
 .jsr_irq_setup:
