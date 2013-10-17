@@ -123,7 +123,7 @@ class TiledConverter
       IO.write('text.txt', @text_conv.using.join)
       img = NesImage.new('text.png')
       img.to_chr( 'text.chr' )
-    rescue
+    rescue LoadError
       STDERR.puts 'WARING: conv make image'
       STDERR.puts $!
     end
