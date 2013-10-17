@@ -79,8 +79,6 @@ function game_main(): void
 	vy = 0;
 	my_vx = 0;
 	my_vy = 0;
-	old_pad_a = 0;
-	my_shoes = 0;
 
 	while( 1 ){
 		anim += 1;

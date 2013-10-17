@@ -24,6 +24,7 @@ function menu_start():void
 	MMC3_MIRROR = 0; // vertical
 	ppu_ctrl1_bak = 0b10100001;
 	irq_setup = menu_irq_setup;
+	ppu_fill( 0x2400, 0x400, 0 );
 
 	var i:int;
 	for( i, 0, 18 ){
@@ -45,7 +46,7 @@ function menu_start():void
 		if( pad_pushed & (PAD_B|PAD_SELECT) ){ break; }
 
 		if( menu_item_prev != menu_item_idx ){
-			if( menu_item_idx < 2 ){
+			if( menu_item_idx < 5 ){
 				var buf = gr_alloc(32);
 				var size = fs_copy( buf, ITEM_NAME_BASE+menu_item_idx );
 				memzero( buf+size, 32-size );

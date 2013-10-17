@@ -37,7 +37,6 @@ var old_pad_a:int;
 var jump_pow:int;
 var my_prev_in_water:int;
 var my_water_setting:int;
-var my_shoes:int;
 var my_items:int[64];
 
 const EN_MAX = 16;
@@ -72,6 +71,4 @@ function gr_sprite2(x:int, y:int, pat:int, flag:int):void
 
 function calc_item():void
 {
-	my_shoes = 0;
-	if( my_items[ITEM_ID_SLIME_BOOTS] ){ my_shoes = 1; }
 }

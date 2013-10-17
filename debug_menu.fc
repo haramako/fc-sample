@@ -89,17 +89,11 @@ function debug_menu_open():void
 	while(1){
 		debug_menu_start( _T("メニュー") );
 		debug_menu_add( _T("チェックポイント") );
-		debug_menu_add( _T("潜水") );
-		debug_menu_add( _T("靴") );
 		debug_menu_add( _T("終了") );
 		switch( debug_menu_select() ){
 		case 0:
 			if( debug_menu_do_flag() ){ break; }
-		case 1:
-			debug_menu_do_water_setting();
-		case 2:
-			debug_menu_do_shoes_setting();
-		case 3,-1:
+		case 1,-1:
 			break;
 		}
 	}
@@ -140,31 +134,5 @@ function debug_menu_do_flag():int
 	debug_menu_move_area( area );
 
 	return 1;
-}
-
-function debug_menu_do_water_setting():void
-{
-	debug_menu_start(_T("潜水設定"));
-	debug_menu_add( _T("無効") );
-	debug_menu_add( _T("潜水") );
-	switch( debug_menu_select() ){
-	case 0:
-		my_water_setting = 0;
-	case 1:
-		my_water_setting = 1;
-	}
-}
-
-function debug_menu_do_shoes_setting():void
-{
-	debug_menu_start(_T("靴"));
-	debug_menu_add( _T("無効") );
-	debug_menu_add( _T("スライムブーツ") );
-	switch( debug_menu_select() ){
-	case 0:
-		my_shoes = 0;
-	case 1:
-		my_shoes = 1;
-	}
 }
 

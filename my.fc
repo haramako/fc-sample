@@ -36,8 +36,13 @@ function my_check_on_enemy():int
 				my_y = en_y[i] - 16;
 				return i;
 			}
-		case EN_TYPE_SLIME, EN_TYPE_FROG:
-			if( my_shoes >= 1 && abs(my_x-en_x[i])<14 && my_y>=(en_y[i]-12) && my_y < (en_y[i]-2) ){
+		case EN_TYPE_SLIME:
+			if( my_items[ITEM_ID_SANDAL] && abs(my_x-en_x[i])<14 && my_y>=(en_y[i]-12) && my_y < (en_y[i]-2) ){
+				my_y = en_y[i] - 10;
+				return i;
+			}
+		case EN_TYPE_FROG:
+			if( my_items[ITEM_ID_BOOTS] && abs(my_x-en_x[i])<14 && my_y>=(en_y[i]-12) && my_y < (en_y[i]-2) ){
 				my_y = en_y[i] - 10;
 				return i;
 			}
@@ -100,7 +105,7 @@ function my_process():void
 		
 		my_x += vx + evx;
 
-		if( anim % 32 == 0 && vx != 0 ){
+		if( anim % 32 == 0 && vx != 0 && my_items[ITEM_ID_GROBE]){
 			var block_x = my_x + sign(vx)*9;
 			if( bg_cell( block_x, my_y ) == 56 ){
 				bi = en_new();
@@ -139,7 +144,7 @@ function my_process():void
 					my_state = MY_STATE_JUMP;
 				}
 			}
-			if( !old_pad_a && pad_a ){
+			if( pad_pushed & PAD_A ){
 				// ジャンプした！
 				my_y -= 1;
 				vy = -36;
@@ -243,8 +248,6 @@ function my_process():void
 		wait(100);
 		my_state = MY_STATE_DIE;
 	}
-
-	old_pad_a = pad_a;
 
 }
 
