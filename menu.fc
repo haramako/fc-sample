@@ -1,39 +1,33 @@
 options(bank:-2);
 
-use common;
-use ppu;
-use mmc3;
-use pad;
+use * from common;
 use mem;
-use fs;
 use my;
 
 include( "menu.asm" );
 
-var menu_item_idx:int;
-var menu_item_prev:int;
+private:
 
-function menu_start():void{}
+var item_idx:int;
+var item_prev:int;
 
-/*
-
-function menu_start():void
+public function start():void
 {
-	menu_item_idx = 0;
-	menu_item_prev = -1;
+	item_idx = 0;
+	item_prev = -1;
 	
 	ppu.lock();
-	var old_ppu_ctrl1 = ppu_ctrl1_bak;
-	var old_cbank0 = mmc3_set_cbank(0,CBANK_ITEM);
-	var old_cbank1 = mmc3_set_cbank(1,CBANK_TEXT);
-	MMC3_MIRROR = 0; // vertical
-	ppu_ctrl1_bak = 0b10100001;
-	irq_setup = menu_irq_setup;
-	ppu_fill( 0x2400, 0x400, 0 );
+	var old_ppu_ctrl1 = ppu.ctrl1_bak;
+	var old_cbank0 = mmc3.set_cbank(0,CBANK_ITEM);
+	var old_cbank1 = mmc3.set_cbank(1,CBANK_TEXT);
+	mmc3.MIRROR = 0; // vertical
+	ppu.ctrl1_bak = 0b10100001;
+	ppu.irq_setup = irq_setup;
+	ppu.fill_in_lock( 0x2400, 0x400, 0 );
 
 	var i:int;
 	for( i, 0, 18 ){
-		menu_put_item(i);
+		put_item(i);
 	}
 
 	ppu.put_in_lock( 0x2400+32*2+4, [4,5,6,7], 4 );
@@ -41,77 +35,77 @@ function menu_start():void
 	ppu.unlock();
 
 	while(1){
-		pad_update();
-		gr_sprite2( (menu_item_idx%6)*32+40, (menu_item_idx/6)*32+40, 40, 0 );
-		if( pad_pushed & (PAD_UP) ){ menu_item_idx += 12; }
-		if( pad_pushed & (PAD_DOWN) ){ menu_item_idx += 6; }
-		if( pad_pushed & (PAD_RIGHT) ){ menu_item_idx += 1; }
-		if( pad_pushed & (PAD_LEFT) ){ menu_item_idx -= 1; }
-		if( menu_item_idx >= 18 ){ menu_item_idx -= 18; }
-		if( pad_pushed & (PAD_B|PAD_SELECT) ){ break; }
+		pad.update();
+		gr_sprite2( (item_idx%6)*32+40, (item_idx/6)*32+40, 40, 0 );
+		if( pad.pushed & (pad.UP) ){ item_idx += 12; }
+		if( pad.pushed & (pad.DOWN) ){ item_idx += 6; }
+		if( pad.pushed & (pad.RIGHT) ){ item_idx += 1; }
+		if( pad.pushed & (pad.LEFT) ){ item_idx -= 1; }
+		if( item_idx >= 18 ){ item_idx -= 18; }
+		if( pad.pushed & (pad.B|pad.SELECT) ){ break; }
 
-		if( menu_item_prev != menu_item_idx ){
-			if( menu_item_idx < 6 ){
-				wait_vsync();
-				var buf = gr_alloc(64);
-				var buf2 = gr_alloc(64);
-				memzero( buf2, 64 );
-				var size = fs_copy( buf, ITEM_NAME_BASE+menu_item_idx );
+		if( item_prev != item_idx ){
+			if( item_idx < 6 ){
+				ppu.wait_vsync();
+				var buf = ppu.alloc(64);
+				var buf2 = ppu.alloc(64);
+				mem.zero( buf2, 64 );
+				var size = fs.copy( buf, fs.ITEM_NAME_BASE+item_idx );
 				buf[size] = 0;
 				text_print( buf2, buf );
-				gr_add( gr_pos(4,20)+0x400, buf2, 64, 0 );
-				wait_vsync();
+				ppu.put( ppu.pos(4,20)+0x400, buf2, 64, 0 );
+				ppu.wait_vsync();
 				
-				buf = gr_alloc(64);
-				buf2 = gr_alloc(64);
-				memzero( buf2, 64 );
-				size = fs_copy( buf, ITEM_DESC_BASE+menu_item_idx );
+				buf = ppu.alloc(64);
+				buf2 = ppu.alloc(64);
+				mem.zero( buf2, 64 );
+				size = fs.copy( buf, fs.ITEM_DESC_BASE+item_idx );
 				buf[size] = 0;
 				text_print( buf2, buf );
-				gr_add( gr_pos(8,22)+0x400, buf2, 64, 0 );
-				wait_vsync();
+				ppu.put( ppu.pos(8,22)+0x400, buf2, 64, 0 );
+				ppu.wait_vsync();
 			}
-			menu_item_prev = menu_item_idx;
+			item_prev = item_idx;
 		}
 		
-		if( pad_pushed & PAD_A){
-			my_items[menu_item_idx] = 1-my_items[menu_item_idx];
+		if( pad.pushed & pad.A){
+			my.items[item_idx] = 1-my.items[item_idx];
 			calc_item();
 			ppu.lock();
 			for( i, 0, 18 ){
-				menu_put_item(i);
+				put_item(i);
 			}
 			ppu.unlock();
 		}
-		wait_vsync();
+		ppu.wait_vsync();
 	}
 
-	irq_setup = null_func;
-	wait_vsync();
+	ppu.irq_setup = ppu.null_func;
+	ppu.wait_vsync();
 	ppu.lock();
-	mmc3_set_cbank(0,old_cbank0);
-	mmc3_set_cbank(1,old_cbank1);
+	mmc3.set_cbank(0,old_cbank0);
+	mmc3.set_cbank(1,old_cbank1);
 	ppu.ctrl1_bak = old_ppu_ctrl1;
 	ppu.unlock();
 	ppu.wait_vsync();
 }
 
-function menu_irq_setup():void;
+function irq_setup():void;
 
-function menu_put_item(i:int):void
+function put_item(i:int):void
 {
 	var y:int16 = i/6;
 	var x = i%6*4 + 4;
 	var addr:int16 = 0x2400+32*4 + (y<<7) + x;
-	var buf = gr_alloc(4);
+	var buf = ppu.alloc(4);
 	var c = i*4+32;
-	if( !my_items[i] ){ c = 8; }
+	if( !my.items[i] ){ c = 8; }
 	buf[0] = c+0;
 	buf[1] = c+2;
 	buf[2] = c+1;
 	buf[3] = c+3;
-	ppu_put( addr, buf, 2 );
-	ppu_put( addr+32, buf+2, 2 );
+	ppu.put_in_lock( addr, buf, 2 );
+	ppu.put_in_lock( addr+32, buf+2, 2 );
 }
 
 function text_print(p:int*, str:int*):int
@@ -131,4 +125,3 @@ function text_print(p:int*, str:int*):int
 	}
 	return 0;
 }
-*/

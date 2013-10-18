@@ -1,10 +1,7 @@
 options(bank:-2);
-use mmc3;
-use ppu;
-use common;
-use mem;
+
+use * from common;
 use rle;
-use fs;
 
 var data:int[256] options(address:0x6000);
 var enemy:int[256] options(address:0x6100);

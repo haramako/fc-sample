@@ -1,12 +1,5 @@
 options( bank:0 );
 
-use mmc3;
-use nes;
-use math;
-use ppu;
-use mem;
-use pad;
-use bg;
 use * from common;
 use menu;
 use en;
@@ -122,7 +115,7 @@ function start(): void
 			debug_menu.debug_menu_move_area = move_area;
 			debug_menu.debug_menu_open();
 		}elsif( pad.pushed & pad.SELECT ){
-			menu.menu_start();
+			menu.start();
 		}
 	}
   

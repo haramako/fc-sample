@@ -1,9 +1,6 @@
 options( bank:0 );
 
 use * from common;
-use ppu;
-use pad;
-use bg;
 use en;
 use math;
 
@@ -294,10 +291,10 @@ public function draw():void
 	}
 }
 
-public function on_scroll(x:int, y:int):void
+public function on_scroll(dx:int, dy:int):void
 {
-	x += x;
-	y += y;
+	x += dx;
+	y += dy;
 	draw();
 }
 

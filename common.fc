@@ -1,7 +1,13 @@
 options(bank:-1);
 
+use nes;
 use ppu;
 use fs;
+use bg;
+use pad;
+use mmc3;
+use math;
+
 include( "macro.rb" );
 
 const CBANK_CHAR = 0;

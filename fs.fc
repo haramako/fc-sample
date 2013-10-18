@@ -1,9 +1,8 @@
 options( bank:-1 );
 
-use mmc3;
-use * from fs_config;
+use * from common;
 use mem;
-use common;
+use * from fs_config;
 
 const BASE = 0xa000;
 const BANK_SIZE = 0x2000;

@@ -1,9 +1,7 @@
 options( bank: -1 );
 
-use common;
+use * from common;
 use menu;
-use bg;
-use ppu;
 
 var last_checkpoint:int;
 var debug_menu_move_area:void(int);

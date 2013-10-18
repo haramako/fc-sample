@@ -151,7 +151,7 @@ ppu_put_sub:
         sty $100
         rts
 		
-;;; function ppu_put( to:int16, from:int*, size:int ):void
+;;; function ppu_put(addr:int16, from:int*, size:int ):void
 _ppu_put_in_lock:
 		lda S+0,x
 		sta _ppu_put_to+0
@@ -165,9 +165,9 @@ _ppu_put_in_lock:
 		sta _ppu_put_size
 		jmp ppu_put_sub
 
-;;; function ppu_fill(addr:int16, size:int16, n:int)
+;;; function ppu_fill_in_lock(addr:int16, size:int16, n:int)
 ;;; use: reg[0]
-_ppu_fill:
+_ppu_fill_in_lock:
 	lda S+1,x
 	sta _nes_PPU_ADDR
 	lda S+0,x

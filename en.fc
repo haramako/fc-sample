@@ -1,10 +1,6 @@
 options( bank: 1 );
 
 use * from common;
-use math;
-use ppu;
-use bg;
-use pad;
 use my;
 use event;
 

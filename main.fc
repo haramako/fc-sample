@@ -2,10 +2,7 @@ options( bank_count: 16, bank: -1 );
 
 include header ( "macro.asm" );
 
-use * from nes;
-use ppu;
-use mmc3;
-use bg;
+use * from common;
 use game;
 use en;
 
@@ -22,7 +19,7 @@ function main():void
 	bg.init();
 	en.init();
 
-	APU_INTERRUPT = 0x40; // disable APU IRQ
+	nes.APU_INTERRUPT = 0x40; // disable APU IRQ
 	mmc3.MIRROR = 1; // horizontal
 	mmc3.RAM_PROTECT = 0b10000000;
 	

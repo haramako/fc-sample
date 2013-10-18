@@ -1,11 +1,7 @@
 options( bank: -1 );
 
-use ppu;
-use common;
-use mmc3;
+use * from common;
 use mem;
-use bg;
-use pad;
 
 include("event.asm");
 
@@ -13,49 +9,45 @@ const ID_GET_ITEM = 1;
 
 function ppu_clear():void
 {
-	/*
-	memset( bg_data_buf, 256, 0 );
+	mem.set( bg.data_buf, 256, 0 );
 	var i:int;
 	for( i, 0, 4 ){
-		gr_add( gr_pos(0,i*2)+0x400, bg_data_buf, 64, 0 );
-		wait_vsync();
+		ppu.put( ppu.pos(0,i*2)+0x400, bg.data_buf, 64, 0 );
+		ppu.wait_vsync();
 	}
-	gr_add( 0x27c0, bg_data_buf, 64, 0 );
-	wait_vsync();
-	*/
+	ppu.put( 0x27c0, bg.data_buf, 64, 0 );
+	ppu.wait_vsync();
 }
 
 function event_start():void
 {
-	/*
-	MMC3_MIRROR = 0; // vertical
+	mmc3.MIRROR = 0; // vertical
 	ppu_clear();
-	var str = gr_alloc(32), tail = str;
-	tail += strcpy( tail, _T("『") );
-	tail += fs_copy( tail, ITEM_NAME_BASE+game_event_p1 );
-	tail += strcpy( tail, _T("』を手に入れた") );
-	gr_add( gr_pos(6,4)+0x400, str, strlen(str), 0 );
-	wait_vsync();
+	var str = ppu.alloc(32), tail = str;
+	tail += mem.strcpy( tail, _T("『") );
+	tail += fs.copy( tail, fs.ITEM_NAME_BASE+game_event_p1 );
+	tail += mem.strcpy( tail, _T("』を手に入れた") );
+	ppu.put( ppu.pos(6,4)+0x400, str, mem.strlen(str), 0 );
+	ppu.wait_vsync();
 		
-	irq_setup = event_irq_setup;
+	ppu.irq_setup = irq_setup;
 
 	var i = 0;
 	while(1){
 		pad.update();
 		if( i > 60 && (pad.pushed & pad.A) ){ break; }
 		i += 1;
-		wait_vsync();
+		ppu.wait_vsync();
 	}
 
 	ppu.lock();
-	ppu.irq_setup = null_func;
+	ppu.irq_setup = ppu.null_func;
 	ppu.unlock();
-	wait_vsync();
+	ppu.wait_vsync();
 
 	calc_item();
-	*/
 }
 
-function event_irq_setup():void;
+function irq_setup():void;
 
 
