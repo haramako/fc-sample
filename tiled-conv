@@ -98,8 +98,7 @@ class TiledConverter
   AREA_WIDTH = 16
   AREA_HEIGHT = 15
 
-  ENEMY_TYPE = {slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8, chest:9, lamp:10}
-  ITEMS = {slime_boots:0, lamp:1}
+  ENEMY_TYPE = {slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8, chest:9, lamp:10, gas:11, ghost:12}
 
   def initialize( filename )
     data = JSON.parse( File.read(filename) )
@@ -183,7 +182,8 @@ class TiledConverter
         enemy[area] << {type:prop['type'], x:x, y:y, p1:prop['p1'].to_i, p2:prop['p2'].to_i, p3:prop['p3'].to_i }
       when 'item'
         area, x, y = px2area( obj['x'], obj['y'] )
-        id = ITEMS[obj['name'].downcase.to_sym]
+        id = ITEM_DATA.find_index{|i| i[0] == obj['name'].downcase}
+        raise unless id
         enemy[area] << {type:'chest', x:x, y:y, p1:id, p2:0, p3:0 }
       end
     end
@@ -198,6 +198,7 @@ class TiledConverter
     enemy.each.with_index do |area,i|
       area = area.map do |en| 
         type = ENEMY_TYPE[ en[:type].downcase.to_sym ]
+        raise unless type
         [type, en[:x], en[:y], en[:p1] % 256, en[:p2] % 256, en[:p3] % 256]
       end
       @buf.add area
@@ -208,10 +209,12 @@ class TiledConverter
     [
      ['sandal', 'サンダル', 'すごくやわらかいものなら乗れるかも？'],
      ['lamp', 'ランプ', '燭台に火を灯す'],
-     ['grobe', 'グローブ', 'これなら、岩を押せしてもケガしない'],
+     ['grobe', 'グローブ', 'これなら、岩を押してもケガしない'],
      ['boots', '緑のブーツ', 'ベトベトしたカエルの背中もすべらない'],
      ['omamori', 'お守り', 'ひとだまに触っても祟られない'],
      ['map', '地図', '迷宮で迷わないためには、地図が必要だ'],
+     ['gas_mask', 'ガスマスク', 'ガスにあたっても死なない'],
+     ['weight', 'おもり', '水に潜れるようになる'],
     ]
 
   def conv_item_data

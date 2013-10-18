@@ -503,7 +503,7 @@ function chest_process(i:int):void
 }
 
 /*********************************************
- * 宝箱
+ * ランプの灯火
  *********************************************/
 function lamp_new(i:int):void
 {
@@ -519,30 +519,114 @@ function lamp_process(i:int):void
 }
 
 /*********************************************
+ * ガスさん
+ *********************************************/
+function gas_new(i:int):void
+{
+}
+
+function gas_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var dir = p1[i];
+	var speed = p2[i];
+
+	var v = (speed+giff)/16;
+	switch( dir ){
+	case 0: y -= v;
+	case 1: x += v;
+	case 2: y += v;
+	case 3: x -= v;
+	}
+	var hit = check_block(&x,&y);
+	if( hit ){ dir = (2+dir)%4; }
+
+	gr_sprite2( x+math.sin(anim*8)/64, y+math.cos(anim*8)/64, 144+(anim/8)%2*4, 2 );
+
+	px[i] = x;
+	py[i] = y;
+	p1[i] = dir;
+
+	if( !my.items[fs.ITEM_ID_GAS_MASK] ){
+		check_hit(i,8);
+	}
+}
+
+/*********************************************
+ * ゴースト
+ *********************************************/
+
+function ghost_new(i:int):void
+{
+}
+
+function ghost_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var speed = p2[i];
+
+	var ok = 0;
+	if( (my.x < x && my.dir == 1) || (my.x > x && my.dir == 0) ){
+		ok = 1;
+	}
+
+	var dir:int;
+	var v = (speed+giff)/16;
+	if( x > my.x ){ dir = 1; }else{ dir = 0; }
+	if( ok ){
+		if( x > my.x ){
+			x -= v;
+		}else{
+			x += v;
+		}
+		if( y > my.y ){
+			y -= v;
+		}else{
+			y += v;
+		}
+		gr_sprite2( x, y, 152+(anim/16)%2*4, (dir*64));
+	}else{
+		gr_sprite2( x, y, 152, (dir*64));
+	}
+	
+	px[i] = x;
+	py[i] = y;
+
+	if( !my.items[fs.ITEM_ID_OMAMORI] ){ check_hit(i,8); }
+}
+
+/*********************************************
  * 関数テーブル
  *********************************************/
 
 public const PROCESS: void(int)[] = [ none_process,
-								  slime_process,
-								  wow_process,
-								  elevator_process,
-								  bubble_process,
-								  splash_process,
-								  block_process,
-								  frog_process,
-								  cookie_process,
-								  chest_process,
-								  lamp_process
-								  ];
+									  slime_process,
+									  wow_process,
+									  elevator_process,
+									  bubble_process,
+									  splash_process,
+									  block_process,
+									  frog_process,
+									  cookie_process,
+									  chest_process,
+									  lamp_process,
+									  gas_process,
+									  ghost_process
+									  ];
+
 public const NEW_FUNC: void(int)[] = [ none_process,
-								   slime_new,
-								   wow_new,
-								   none_process,
-								   none_process,
-								   none_process,
-								   block_new,
-								   frog_new,
-								   cookie_new,
-								   chest_new,
-								   lamp_new
-								   ];
+									   slime_new,
+									   wow_new,
+									   none_process,
+									   none_process,
+									   none_process,
+									   block_new,
+									   frog_new,
+									   cookie_new,
+									   chest_new,
+									   lamp_new,
+									   gas_new,
+									   ghost_new
+									   ];

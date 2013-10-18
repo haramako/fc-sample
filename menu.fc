@@ -45,7 +45,7 @@ public function start():void
 		if( pad.pushed & (pad.B|pad.SELECT) ){ break; }
 
 		if( item_prev != item_idx ){
-			if( item_idx < 6 ){
+			if( item_idx < 8 ){
 				ppu.wait_vsync();
 				var buf = ppu.alloc(64);
 				var buf2 = ppu.alloc(64);

@@ -22,7 +22,6 @@ var on_x:int;
 var on_y:int;
 var jump_pow:int;
 var prev_in_water:int;
-var water_setting:int;
 var items:int[64];
 
 private:
@@ -54,8 +53,8 @@ function check_on_enemy():int
 		switch( en.type[i] ){
 		case en.TYPE_ELEVATOR:
 			var size:int;
-			if( en.p3[0] == 1 ){ size = 14; }else{ size = 18; }
-			if( math.abs(x-en.px[i])<14 && y>=(en.py[i]-18) && y < (en.py[i]-10) ){
+			if( en.p3[0] == 1 ){ size = 14; }else{ size = 20; }
+			if( math.abs(x-en.px[i])<size && y>=(en.py[i]-18) && y < (en.py[i]-10) ){
 				y = en.py[i] - 16;
 				return i;
 			}
@@ -97,7 +96,7 @@ public function process():void
 		if( anim % 2 ){	return; }
 	}
 	prev_in_water = in_water;
-	var limited_water = in_water && (water_setting==0);
+	var limited_water = in_water && (items[fs.ITEM_ID_WEIGHT]==0);
 	
 	vx = 0;
 	my_anim += 1;
