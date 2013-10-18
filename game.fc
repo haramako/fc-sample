@@ -112,8 +112,8 @@ function start(): void
 		
 		// メニュー
 		if( pad.pushed & pad.START ){
-			debug_menu.debug_menu_move_area = move_area;
-			debug_menu.debug_menu_open();
+			debug_menu.move_area = move_area;
+			debug_menu.start();
 		}elsif( pad.pushed & pad.SELECT ){
 			menu.start();
 		}
