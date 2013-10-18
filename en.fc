@@ -76,7 +76,7 @@ function check_block(px:int*, py:int*):int
 	var r = 0;
 	
 	// 下方向
-	if( bg.cell_type(x+4,y+(size-1)) & bg.TYPE_WALL || bg.cell_type(x-4,y+(size-1)) & bg.TYPE_WALL ){
+	if( bg.cell_type(x+4,y+(size-1)) & bg.TYPE_STOP || bg.cell_type(x-4,y+(size-1)) & bg.TYPE_STOP ){
 		*py = (y+size)/16*16 - size;
 		r = CHECK_BOTTOM;
 	}
@@ -100,7 +100,7 @@ function check_block(px:int*, py:int*):int
 	}
 	
 	// 上方向
-	if( bg.cell_type(x+4,y-size) & bg.TYPE_WALL || bg.cell_type(x-4,y-size) & bg.TYPE_WALL ){
+	if( bg.cell_type(x+4,y-size) & bg.TYPE_STOP || bg.cell_type(x-4,y-size) & bg.TYPE_STOP ){
 		*py = (y-size)/16*16 + 16 + size;
 		r = r | CHECK_TOP;
 	}
@@ -108,7 +108,7 @@ function check_block(px:int*, py:int*):int
 	return r;
 }
 
-function check_outsize(x:int, y:int):int
+function check_outside(x:int, y:int):int
 {
 	return ( x >= 240 || x < 16 || y < 16 || y >= 240 );
 }
@@ -238,8 +238,8 @@ function wow_process(i:int):void
  *********************************************/
 function elevator_new(i:int):void
 {
-	px[i] += 8;
 	if( p2[i] == 0 ){ p2[i] = 8; }
+	if( p3[i] == 0 ){ px[i] += 8; }
 }
 
 function elevator_process(i:int):void
@@ -249,25 +249,32 @@ function elevator_process(i:int):void
 	var dir = p1[i];
 	var speed = p2[i];
 
+	var size:int;
+	if( p3[i] == 1 ){ size = 8; }else{ size = 16; }
+	
 	switch( dir ){
 	case 0:
 		y -= (giff+speed)/16;
 		if( bg.cell_type(x,y-8) & bg.TYPE_STOP ){ dir = 2; }
 	case 1:
 		x += (giff+speed)/16;
-		if( bg.cell_type(x+16,y) & bg.TYPE_STOP ){ dir = 3; }
+		if( bg.cell_type(x+size,y) & bg.TYPE_STOP ){ dir = 3; }
 	case 2:
 		y += (giff+speed)/16;
 		if( bg.cell_type(x,y+8) & bg.TYPE_STOP ){ dir = 0; }
 	case 3:
 		x -= (giff+speed)/16;
-		if( bg.cell_type(x-16,y) & bg.TYPE_STOP ){ dir = 1; }
+		if( bg.cell_type(x-size,y) & bg.TYPE_STOP ){ dir = 1; }
 	}
 
-	if( x < 16 || x > 240 || y < 16 || y > 240 ){ dir = (dir+2)%4; }
-	
-	gr_sprite2( x-8, y, 64, 0);
-	gr_sprite2( x+8, y, 64, 64);
+	if( check_outside(x,y) ){ dir = (dir+2)%4; }
+
+	if( p3[i] == 1 ){
+		gr_sprite2( x, y, 64, 0);
+	}else{
+		gr_sprite2( x-8, y, 64, 0);
+		gr_sprite2( x+8, y, 64, 64);
+	}
 	
 	px[i] = x;
 	py[i] = y;
@@ -377,8 +384,9 @@ function block_process(i:int):void
  *********************************************/
 function frog_new(i:int):void
 {
-	p3[i] = 0;
-	p4[i] = 30;
+	if( p3[i] == 0 ){ p3[i] = 32; }
+	p4[i] = 0;
+	p5[i] = 30;
 }
 
 function frog_process(i:int):void
@@ -387,8 +395,9 @@ function frog_process(i:int):void
 	var y = py[i];
 	var dir = p1[i];
 	var speed = p2[i];
-	var state = p3[i];
-	var t:sint = p4[i];
+	var pow = p3[i];
+	var state = p4[i];
+	var t:sint = p5[i];
 	var anim = 0;
 
 
@@ -399,13 +408,13 @@ function frog_process(i:int):void
 			t -= 1;
 		}else{
 			state = 1;
-			t = -32;
+			t = -pow;
 		}
 	case 1:
 		// jump
 		y += (t+giff)/16;
-		var d:sint = 2-dir;
-		if( giff < 8 ){ x += d; }
+		var vx = (pow/4+giff)/16;
+		if( dir == 1 ){ x += vx; }else{ x -= vx; }
 		t += 1;
 		var hit = check_block(&x,&y);
 		if( hit & (CHECK_RIGHT | CHECK_LEFT) ){ dir = 4 - dir; }
@@ -415,7 +424,7 @@ function frog_process(i:int):void
 		}
 		if( hit & CHECK_TOP ){ t = 0; }
 		
-		if( check_outsize(x,y) ){
+		if( check_outside(x,y) ){
 			type[i] = 0;
 			return;
 		}
@@ -428,8 +437,8 @@ function frog_process(i:int):void
 	px[i] = x;
 	py[i] = y;
 	p1[i] = dir;
-	p3[i] = state;
-	p4[i] = t;
+	p4[i] = state;
+	p5[i] = t;
 	
 	check_hit(i,8);
 }

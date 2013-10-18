@@ -54,6 +54,8 @@ function start(): void
 	my.vx = 0;
 	my.vy = 0;
 	var area = cp[0];
+	var i:int;
+	for( i, 0, 64 ){ my.items[i] = 1; }
 	
 	move_area( area );
 	set_last();
@@ -134,21 +136,23 @@ function set_last():void
 
 function before_scroll():void
 {
-	
+	/*	
 	if( ((bg.cur_area == 1*16+6) || (last_area == 1*16+6) ) && !my.items[fs.ITEM_ID_LAMP] ){
 		ppu.put( 0x3fc0,
 				[0x0d,0x00,0x10,0x30, 0x0d,0x0d,0x0d,0x0d, 0x0d,0x0d,0x0d,0x0d, 0x0d,0x0d,0x0d,0x0d], 16, 0 );
 		ppu.wait_vsync();
 	}
+	*/
 }
 
 function after_scroll():void
 {
-	
+	/*	
 	if( (bg.cur_area != 1*16+6) && !my.items[fs.ITEM_ID_LAMP] ){
 		ppu.put( 0x3fc0, PALLET, 16, 0);
 		ppu.wait_vsync();
 	}
+	*/
 }
 
 function move_to_last():void
