@@ -1,17 +1,41 @@
 options( bank:0 );
 
-use common;
-use util;
+use * from common;
+use ppu;
 use pad;
 use bg;
 use en;
+use math;
+
+const STATE_STAND = 0;
+const STATE_JUMP = 2;
+const STATE_LADDER = 3; // はしご
+const STATE_ON_ENEMY = 4;
+const STATE_DIE = 255;
+
+var x:int, y:int;
+var my_anim:int;
+var my_vx:sint;
+var my_vy:sint;
+var vy:sint, vx:sint;
+var dir:int;
+var state:int;
+var on_idx:int;
+var on_x:int;
+var on_y:int;
+var jump_pow:int;
+var prev_in_water:int;
+var water_setting:int;
+var items:int[64];
+
+private:
 
 function get_cell(x:int, y:int):int
 {
 	if( y > 240 ){ return 0; }
-	var c = BG_TYPE[bg_data[(y/16)*16 + x/16]];
-	if( c & BG_TYPE_WALL ){
-		if( c & BG_TYPE_FLOOR ){
+	var c = bg.TYPE[bg.data[(y/16)*16 + x/16]];
+	if( c & bg.TYPE_WALL ){
+		if( c & bg.TYPE_FLOOR ){
 			return (y % 16 < 8);
 		}else{
 			return 1;
@@ -23,27 +47,27 @@ function get_cell(x:int, y:int):int
 
 function get_cell_type(x:int, y:int):int
 {
-	return BG_TYPE[bg_data[(y/16)*16 + x/16]];
+	return bg.TYPE[bg.data[(y/16)*16 + x/16]];
 }
 
-function my_check_on_enemy():int
+function check_on_enemy():int
 {
 	var i:int;
-	for( i, 0, EN_MAX ){
-		switch( en_type[i] ){
-		case EN_TYPE_ELEVATOR:
-			if( abs(my_x-en_x[i])<20 && my_y>=(en_y[i]-18) && my_y < (en_y[i]-10) ){
-				my_y = en_y[i] - 16;
+	for( i, 0, en.MAX ){
+		switch( en.type[i] ){
+		case en.TYPE_ELEVATOR:
+			if( math.abs(x-en.px[i])<20 && y>=(en.py[i]-18) && y < (en.py[i]-10) ){
+				y = en.py[i] - 16;
 				return i;
 			}
-		case EN_TYPE_SLIME:
-			if( my_items[ITEM_ID_SANDAL] && abs(my_x-en_x[i])<14 && my_y>=(en_y[i]-12) && my_y < (en_y[i]-2) ){
-				my_y = en_y[i] - 10;
+		case en.TYPE_SLIME:
+			if( items[fs.ITEM_ID_SANDAL] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
+				y = en.py[i] - 10;
 				return i;
 			}
-		case EN_TYPE_FROG:
-			if( my_items[ITEM_ID_BOOTS] && abs(my_x-en_x[i])<14 && my_y>=(en_y[i]-12) && my_y < (en_y[i]-2) ){
-				my_y = en_y[i] - 10;
+		case en.TYPE_FROG:
+			if( items[fs.ITEM_ID_BOOTS] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
+				y = en.py[i] - 10;
 				return i;
 			}
 		}
@@ -51,137 +75,136 @@ function my_check_on_enemy():int
 	return -1;
 }
 
-function my_process():void
+public function process():void
 {
 	// 水の中の処理
 	var bi:int;
-	var in_water = get_cell_type(my_x,my_y) & BG_TYPE_WATER;
-	if( my_prev_in_water ^ in_water ){
+	var in_water = get_cell_type(x,y) & bg.TYPE_WATER;
+	if( prev_in_water ^ in_water ){
 		// 水に飛び込んだ飛沫を表示
-		bi = en_new();
-		en_type[bi] = EN_TYPE_SPLASH;
-		en_x[bi] = my_x;
-		en_y[bi] = (my_y+8)/16*16+8;
-		en_p1[bi] = 8;
+		bi = en.new();
+		en.type[bi] = en.TYPE_SPLASH;
+		en.px[bi] = x;
+		en.py[bi] = (y+8)/16*16+8;
+		en.p1[bi] = 8;
 	}
 	if( in_water ){
 		if( anim % 64 == 0 ){
-			bi = en_new();
-			en_type[bi] = EN_TYPE_BUBBLE;
-			en_x[bi] = my_x;
-			en_y[bi] = my_y;
+			bi = en.new();
+			en.type[bi] = en.TYPE_BUBBLE;
+			en.px[bi] = x;
+			en.py[bi] = y;
 		}
 		if( anim % 2 ){	return; }
 	}
-	my_prev_in_water = in_water;
-	var limited_water = in_water && (my_water_setting==0);
+	prev_in_water = in_water;
+	var limited_water = in_water && (water_setting==0);
 	
-	pad_a = pad_a | pad_up;
 	vx = 0;
 	my_anim += 1;
 	
 	// 縦移動
-	switch( my_state ){
-	case MY_STATE_STAND, MY_STATE_ON_ENEMY:
+	switch( state ){
+	case STATE_STAND, STATE_ON_ENEMY:
 		// 地上
 		
 		// 左右移動
-		if( pad_right ){ my_vx += 4; my_dir = 0; }
-		if( pad_left ){ my_vx -= 4; my_dir = 1; }
-		if( !pad_right && !pad_left ){ my_vx = 0; }
+		if( pad.right ){ my_vx += 4; dir = 0; }
+		if( pad.left ){ my_vx -= 4; dir = 1; }
+		if( !pad.right && !pad.left ){ my_vx = 0; }
 		if( my_vx > 16 ){ my_vx = 16; }
 		if( my_vx < -16 ){ my_vx = -16; }
 		vx = (my_vx+giff)/16;
 
 		var evx = 0, evy = 0;
-		if( my_state == MY_STATE_ON_ENEMY ){
+		if( state == STATE_ON_ENEMY ){
 			// 敵に乗ってる
-			var ei = my_on_idx;
-			evx += en_x[ei] - my_on_x;
-			evy += en_y[ei] - my_on_y;
-			my_on_x = en_x[ei];
-			my_on_y = en_y[ei];
+			var ei = on_idx;
+			evx += en.px[ei] - on_x;
+			evy += en.py[ei] - on_y;
+			on_x = en.px[ei];
+			on_y = en.py[ei];
 		}
 		
-		my_x += vx + evx;
+		x += vx + evx;
 
-		if( anim % 32 == 0 && vx != 0 && my_items[ITEM_ID_GROBE]){
-			var block_x = my_x + sign(vx)*9;
-			if( bg_cell( block_x, my_y ) == 56 ){
-				bi = en_new();
+		if( anim % 32 == 0 && vx != 0 && items[fs.ITEM_ID_GROBE]){
+			var block_x = x + math.sign(vx)*9;
+			if( bg.cell( block_x, y ) == 56 ){
+				bi = en.new();
 				if( bi != -1 ){
-					en_type[bi] = EN_TYPE_BLOCK;
-					en_x[bi] = block_x/16*16+8;
-					en_y[bi] = my_y/16*16+8;
-					en_p1[bi] = sign(vx);
+					en.type[bi] = en.TYPE_BLOCK;
+					en.px[bi] = block_x/16*16+8;
+					en.py[bi] = y/16*16+8;
+					en.p1[bi] = math.sign(vx);
 				}
 			}
 		}
 
-		if( get_cell(my_x-4,my_y+6) || get_cell(my_x+4,my_y+6) || get_cell(my_x-4,my_y-4) || get_cell(my_x+4,my_y-4) ){
-			my_x -= vx + evx;
+		if( get_cell(x-4,y+6) || get_cell(x+4,y+6) || get_cell(x-4,y-4) || get_cell(x+4,y-4) ){
+			x -= vx + evx;
 		}
 		
-		if( pad_up && get_cell_type(my_x,my_y) & BG_TYPE_LADDER ){
+		if( pad.up && get_cell_type(x,y) & bg.TYPE_LADDER ){
 			// はしごに登り始める
-			my_state = MY_STATE_LADDER;
-		}elsif( pad_down && get_cell_type(my_x,my_y+8) & BG_TYPE_LADDER ){
+			state = STATE_LADDER;
+		}elsif( pad.down && get_cell_type(x,y+8) & bg.TYPE_LADDER ){
 			// はしごに下り始める
-			my_state = MY_STATE_LADDER;
-			my_y += 8;
+			state = STATE_LADDER;
+			y += 8;
 		}else{
 			// 地上にいる
-			if( my_state == MY_STATE_STAND ){
-				if( !get_cell(my_x-4,my_y+8) && !get_cell(my_x+4,my_y+8) ){
+			if( state == STATE_STAND ){
+				if( !get_cell(x-4,y+8) && !get_cell(x+4,y+8) ){
 					// 床から落ちた
-					my_y += 1;
-					my_state = MY_STATE_JUMP;
+					y += 1;
+					state = STATE_JUMP;
 				}
 			}else{
 				// 敵に乗ってる
-				if( my_check_on_enemy() != my_on_idx ){
-					my_y += 1;
-					my_state = MY_STATE_JUMP;
+				if( check_on_enemy() != on_idx ){
+					y += 1;
+					state = STATE_JUMP;
 				}
 			}
-			if( pad_pushed & PAD_A ){
+			if( pad.pushed & (pad.A|pad.UP) ){
 				// ジャンプした！
-				my_y -= 1;
+				y -= 1;
 				vy = -36;
 				jump_pow = 10;
-				my_state = MY_STATE_JUMP;
+				state = STATE_JUMP;
 			}
 		}
-	case MY_STATE_JUMP: // ジャンプ中
+	case STATE_JUMP: // ジャンプ中
 		// 空中にいる
 		var vvx = 1;
 		if( jump_pow ){ vvx = 4; }
-		if( pad_right ){ my_vx += vvx; my_dir = 0; }
-		if( pad_left ){ my_vx -= vvx; my_dir = 1; }
-		if( !pad_left && !pad_right ){ my_vx -= sign(my_vx); }
+		if( pad.right ){ my_vx += vvx; dir = 0; }
+		if( pad.left ){ my_vx -= vvx; dir = 1; }
+		if( !pad.left && !pad.right ){ my_vx -= math.sign(my_vx); }
 		if( my_vx > 16 ){ my_vx = 16; }
 		if( my_vx < -16 ){ my_vx = -16; }
-		my_x += (my_vx+giff)/16;
-		if( get_cell(my_x-4,my_y+8) || get_cell(my_x+4,my_y+8) || get_cell(my_x-4,my_y-4) || get_cell(my_x+4,my_y-4) ){
-			my_x -= (my_vx+giff)/16;
+		x += (my_vx+giff)/16;
+		if( get_cell(x-4,y+8) || get_cell(x+4,y+8) || get_cell(x-4,y-4) || get_cell(x+4,y-4) ){
+			x -= (my_vx+giff)/16;
 		}
 		if( limited_water ){ vy -= 4; }
 		
 
 		vy += 2;
-		my_y += vy / 16;
+		y += vy / 16;
 
 		if( vy < 0 ){
 			if( limited_water && vy < -16 ){ vy = -16; } // 水の中の制限
 			//上昇中
-			if( get_cell(my_x-4,my_y-4) || get_cell(my_x+4,my_y-4) ){
-				my_y -= vy / 16;
+			if( get_cell(x-4,y-4) || get_cell(x+4,y-4) ){
+				y -= vy / 16;
 				vy = 0;
 				jump_pow = 0;
 			}else{
 				if( jump_pow ){
 					jump_pow -= 1;
-					if( pad_a ){
+					if( pad.cur & (pad.A|pad.UP) ){
 						vy -= 1;
 					}else{
 						vy += 22;
@@ -194,87 +217,87 @@ function my_process():void
 			if( vy > 64 ){ vy = 64; }
 			if( limited_water && vy > 32 ){ vy = 32; } // 水の中の制限
 			
-			if( get_cell(my_x-4,my_y+8) || get_cell(my_x+4,my_y+8) ){
+			if( get_cell(x-4,y+8) || get_cell(x+4,y+8) ){
 				// 着地
 				vy = 0;
-				my_y = (my_y+8)/16*16 - 8;
-				my_state = MY_STATE_STAND;
+				y = (y+8)/16*16 - 8;
+				state = STATE_STAND;
 			}else{
-				my_on_idx = my_check_on_enemy();
-				if( my_on_idx != -1 ){
+				on_idx = check_on_enemy();
+				if( on_idx != -1 ){
 					// 敵に乗った!
-					my_state = MY_STATE_ON_ENEMY;
+					state = STATE_ON_ENEMY;
 					vy = 0;
-					my_on_x = en_x[my_on_idx];
-					my_on_y = en_y[my_on_idx];
+					on_x = en.px[on_idx];
+					on_y = en.py[on_idx];
 				}
 			}
 		}
 		
-		if( in_water && pad_a ){
+		if( in_water && pad.a ){
 			vy = -28;
 			jump_pow = 10;
 			if( vy <= -28 ){ vy = -28; }
 		}
 		
-	case MY_STATE_LADDER: // はしご
-		my_x = (my_x/16)*16+8;
-		if( (pad_right | pad_left ) & !get_cell(my_x,my_y) ){
-			my_state = MY_STATE_JUMP;
-		}elsif( pad_up ){
+	case STATE_LADDER: // はしご
+		x = (x/16)*16+8;
+		if( (pad.right | pad.left ) & !get_cell(x,y) ){
+			state = STATE_JUMP;
+		}elsif( pad.up ){
 			// 登る
-			if( get_cell_type(my_x,my_y-4) != BG_TYPE_WALL ){
-				if( get_cell_type(my_x,my_y) & BG_TYPE_LADDER ){
-					my_y -= 1;
+			if( get_cell_type(x,y-4) != bg.TYPE_WALL ){
+				if( get_cell_type(x,y) & bg.TYPE_LADDER ){
+					y -= 1;
 				}else{
-					my_y -= 8;
-					my_state = MY_STATE_STAND;
+					y -= 8;
+					state = STATE_STAND;
 				}
 			}
-		}elsif( pad_down ){
+		}elsif( pad.down ){
 			// 降りる
-			if( !(get_cell_type(my_x,my_y+7) & BG_TYPE_LADDER) ){
-				my_y -= 1;
-				my_state = MY_STATE_STAND;
+			if( !(get_cell_type(x,y+7) & bg.TYPE_LADDER) ){
+				y -= 1;
+				state = STATE_STAND;
 			}else{
-				my_y += 1;
+				y += 1;
 			}
 		}
 	}
 
 	// 刺
-	var c = get_cell_type(my_x,my_y);
-	if( c & BG_TYPE_SPIKE ){
-		wait(100);
-		my_state = MY_STATE_DIE;
+	var c = get_cell_type(x,y);
+	if( c & bg.TYPE_SPIKE ){
+		ppu.wait(100);
+		state = STATE_DIE;
 	}
 
 }
 
-function my_draw():void
+public function draw():void
 {
-	var anim:int;
-	switch( my_state ){
-	case MY_STATE_STAND, MY_STATE_ON_ENEMY, MY_STATE_DIE:
-		anim = ((my_anim/16)%2)*4;
-		if( vx == 0 ){ anim = 0; }
-		gr_sprite2( my_x, my_y, anim, 64*my_dir );
-	case MY_STATE_JUMP:
+	var a:int;
+	switch( state ){
+	case STATE_STAND, STATE_ON_ENEMY, STATE_DIE:
+		a = ((my_anim/16)%2)*4;
+		if( vx == 0 ){ a = 0; }
+		gr_sprite2( x, y, a, 64*dir );
+	case STATE_JUMP:
 		if( vy > 128 ){
-			gr_sprite2( my_x, my_y, 8, 64*my_dir );
+			gr_sprite2( x, y, 8, 64*dir );
 		}else{
-			gr_sprite2( my_x, my_y, 12, 64*my_dir );
+			gr_sprite2( x, y, 12, 64*dir );
 		}
-	case MY_STATE_LADDER:
-		anim = (my_anim/16)%2;
-		gr_sprite2( my_x, my_y, 16, 64*anim );
+	case STATE_LADDER:
+		a = (my_anim/16)%2;
+		gr_sprite2( x, y, 16, 64*a );
 	}
 }
 
-function my_on_scroll(x:int, y:int):void
+public function on_scroll(x:int, y:int):void
 {
-	my_x += x;
-	my_y += y;
-	my_draw();
+	x += x;
+	y += y;
+	draw();
 }
 

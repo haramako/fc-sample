@@ -1,18 +1,18 @@
-use nes;
+use * from nes;
 
 options( bank: -1 );
 
-include( "util.asm" );
+include( "ppu.asm" );
 
 var vsync_flag:int;
-var ppu_ctrl1_bak:int;// = 0b10000000;
-var ppu_ctrl2_bak:int;// = 0b00011110;
-var ppu_scroll1:int;
-var ppu_scroll2:int;
+var ctrl1_bak:int;// = 0b10000000;
+var ctrl2_bak:int;// = 0b00011110;
+var scroll1:int;
+var scroll2:int;
 
-const PPU_HORIZONTAL = 0b00000000;
-const PPU_VERTICAL   = 0b01000000;
-const PPU_ATTRIBUTE  = 0b10000000;
+const HORIZONTAL = 0b00000000;
+const VERTICAL   = 0b01000000;
+const ATTRIBUTE  = 0b10000000;
 
 const GR_MAX = 8;
 var gr_idx:int;
@@ -25,9 +25,9 @@ var gr_sprite_buf:int[256] options (address:0x0700);
 var gr_buf:int[256];
 var gr_buf_idx:int;
 
-var ppu_put_to:int16;
-var ppu_put_from:int* options (address:0x60);
-var ppu_put_size:int;
+var put_to:int16;
+var put_from:int* options (address:0x60);
+var put_size:int;
 var interrupt_i:int;
 
 // IRQ関連
@@ -39,7 +39,7 @@ var on_wait_vsync:void();
 
 function null_func():void{}
 
-function ppu_init():void
+function init():void
 {
 	irq_setup = null_func;
 	on_wait_vsync = null_func;
@@ -58,45 +58,45 @@ function wait_vsync():void
 	on_wait_vsync();
 }
 
-function ppu_lock():void
+function lock():void
 {
 	PPU_CTRL1 = 0b00000000;
 	PPU_CTRL2 = 0b00000000;
 }
 
-function ppu_unlock():void
+function unlock():void
 {
 	PPU_CTRL1 = 0b10000000;
 	wait_vsync();
 }
 
-function ppu_put( to:int16, from:int*, size:int ):void;
+function put_in_lock(addr:int16, _from:int*, size:int ):void;
 
-function ppu_fill(addr:int16, size:int16, n:int):void;
+function fill_in_lock(addr:int16, size:int16, n:int):void;
 
-function gr_add( to:int16, from:int*, size:int, flag:int ):void
+function put(addr:int16, _from:int*, size:int, flag:int ):void
 {
 	while( gr_idx >= GR_MAX ){
 		vsync_flag = 2;
 		while( vsync_flag ){}
 	}
-	gr_from_buf[gr_idx] = from;
-	gr_to_buf[gr_idx] = to;
+	gr_from_buf[gr_idx] = _from;
+	gr_to_buf[gr_idx] = addr;
 	gr_size_buf[gr_idx] = size;
 	gr_flag_buf[gr_idx] = flag;
 	gr_idx += 1;
 }
 
-function gr_alloc(size:int):int*
+function alloc(size:int):int*
 {
 	var old = gr_buf_idx;
 	gr_buf_idx += size;
 	return &gr_buf[old];
 }
 
-function gr_pos( x:int, y:int ):int16;
+function pos( x:int, y:int ):int16;
 
-function gr_sprite( x:int, y:int, pat:int, mode:int ):void;
+function sprite( x:int, y:int, pat:int, mode:int ):void;
 
 function wait(n:int):void
 {

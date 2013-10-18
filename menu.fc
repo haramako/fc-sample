@@ -1,23 +1,28 @@
 options(bank:-2);
 
 use common;
-use util;
+use ppu;
 use mmc3;
 use pad;
-use memory;
+use mem;
 use fs;
+use my;
 
 include( "menu.asm" );
 
 var menu_item_idx:int;
 var menu_item_prev:int;
 
+function menu_start():void{}
+
+/*
+
 function menu_start():void
 {
 	menu_item_idx = 0;
 	menu_item_prev = -1;
 	
-	ppu_lock();
+	ppu.lock();
 	var old_ppu_ctrl1 = ppu_ctrl1_bak;
 	var old_cbank0 = mmc3_set_cbank(0,CBANK_ITEM);
 	var old_cbank1 = mmc3_set_cbank(1,CBANK_TEXT);
@@ -31,9 +36,9 @@ function menu_start():void
 		menu_put_item(i);
 	}
 
-	ppu_put( 0x2400+32*2+4, [4,5,6,7], 4 );
+	ppu.put_in_lock( 0x2400+32*2+4, [4,5,6,7], 4 );
 
-	ppu_unlock();
+	ppu.unlock();
 
 	while(1){
 		pad_update();
@@ -72,23 +77,23 @@ function menu_start():void
 		if( pad_pushed & PAD_A){
 			my_items[menu_item_idx] = 1-my_items[menu_item_idx];
 			calc_item();
-			ppu_lock();
+			ppu.lock();
 			for( i, 0, 18 ){
 				menu_put_item(i);
 			}
-			ppu_unlock();
+			ppu.unlock();
 		}
 		wait_vsync();
 	}
 
 	irq_setup = null_func;
 	wait_vsync();
-	ppu_lock();
+	ppu.lock();
 	mmc3_set_cbank(0,old_cbank0);
 	mmc3_set_cbank(1,old_cbank1);
-	ppu_ctrl1_bak = old_ppu_ctrl1;
-	ppu_unlock();
-	wait_vsync();
+	ppu.ctrl1_bak = old_ppu_ctrl1;
+	ppu.unlock();
+	ppu.wait_vsync();
 }
 
 function menu_irq_setup():void;
@@ -126,3 +131,4 @@ function text_print(p:int*, str:int*):int
 	}
 	return 0;
 }
+*/

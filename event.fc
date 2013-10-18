@@ -1,16 +1,19 @@
 options( bank: -1 );
 
-use util;
+use ppu;
 use common;
 use mmc3;
-use memory;
+use mem;
 use bg;
 use pad;
 
 include("event.asm");
 
+const ID_GET_ITEM = 1;
+
 function ppu_clear():void
 {
+	/*
 	memset( bg_data_buf, 256, 0 );
 	var i:int;
 	for( i, 0, 4 ){
@@ -19,13 +22,12 @@ function ppu_clear():void
 	}
 	gr_add( 0x27c0, bg_data_buf, 64, 0 );
 	wait_vsync();
+	*/
 }
-
-const ITEM_NAME:int[] = "  BOOTS   LAMP        BOOTS  ";
 
 function event_start():void
 {
-
+	/*
 	MMC3_MIRROR = 0; // vertical
 	ppu_clear();
 	var str = gr_alloc(32), tail = str;
@@ -39,18 +41,19 @@ function event_start():void
 
 	var i = 0;
 	while(1){
-		pad_update();
-		if( pad_a && i > 60 ){ break; }
-		if( i < 140 ){ i += 1; }
+		pad.update();
+		if( i > 60 && (pad.pushed & pad.A) ){ break; }
+		i += 1;
 		wait_vsync();
 	}
 
-	ppu_lock();
-	irq_setup = null_func;
-	ppu_unlock();
+	ppu.lock();
+	ppu.irq_setup = null_func;
+	ppu.unlock();
 	wait_vsync();
 
 	calc_item();
+	*/
 }
 
 function event_irq_setup():void;

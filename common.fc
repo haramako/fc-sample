@@ -1,7 +1,7 @@
 options(bank:-1);
 
-use util;
-use fs_config;
+use ppu;
+use fs;
 include( "macro.rb" );
 
 const CBANK_CHAR = 0;
@@ -10,48 +10,10 @@ const CBANK_TEXT = 16;
 const CBANK_ITEM = 24;
 
 const GIFF_TABLE = [0,8,4,12, 2,10,6,14, 1,9,5,13, 3,11,7,15];
-var anim:int;
+public var anim:int;
 var giff:int;
 
 var debug:int[8] options(address:0x70);
-
-const MY_STATE_STAND = 0;
-const MY_STATE_JUMP = 2;
-const MY_STATE_LADDER = 3; // はしご
-const MY_STATE_ON_ENEMY = 4;
-const MY_STATE_DIE = 255;
-
-const ITEM_LAMP = 1;
-
-var my_x:int, my_y:int;
-var my_anim:int;
-var my_vx:sint;
-var my_vy:sint;
-var vy:sint, vx:sint;
-var my_dir:int;
-var my_state:int;
-var my_on_idx:int;
-var my_on_x:int;
-var my_on_y:int;
-var old_pad_a:int;
-var jump_pow:int;
-var my_prev_in_water:int;
-var my_water_setting:int;
-var my_items:int[64];
-
-const EN_MAX = 16;
-var en_type:int[EN_MAX];
-var en_x:int[EN_MAX];
-var en_y:int[EN_MAX];
-var en_p1:int[EN_MAX];
-var en_p2:int[EN_MAX];
-var en_p3:int[EN_MAX];
-var en_p4:int[EN_MAX];
-var en_p5:int[EN_MAX];
-var en_wait:int;
-var en_now:int;
-
-const GAME_EVENT_GET_ITEM = 1;
 
 var game_event:int;
 var game_event_p1:int;
@@ -61,14 +23,15 @@ var scroll_x:int options(address: 0x68);
 function gr_sprite2(x:int, y:int, pat:int, flag:int):void
 {
 	if( flag & (1<<6) ){
-		gr_sprite( x, y-8, pat, flag );
-		gr_sprite( x-8, y-8, pat+2, flag );
+		ppu.sprite( x, y-8, pat, flag );
+		ppu.sprite( x-8, y-8, pat+2, flag );
 	}else{
-		gr_sprite( x, y-8, pat+2, flag );
-		gr_sprite( x-8, y-8, pat, flag );
+		ppu.sprite( x, y-8, pat+2, flag );
+		ppu.sprite( x-8, y-8, pat, flag );
 	}
 }
 
 function calc_item():void
 {
 }
+

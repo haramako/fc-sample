@@ -3,12 +3,13 @@ options( bank: -1 );
 use common;
 use menu;
 use bg;
+use ppu;
 
 var last_checkpoint:int;
 var debug_menu_move_area:void(int);
 
 const DEBUG_MENU_PALLET:int[32] = [0x0f,0x27,0x38,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13,
-							 0x19,0x0b,0x2b,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13];
+						0x19,0x0b,0x2b,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13];
 
 var debug_menu_num:int;
 var debug_menu_items:int*[16];
@@ -26,6 +27,9 @@ function debug_menu_start(name:int*):void
 	debug_menu_cur = 0;
 }
 
+function debug_menu_open():void{}
+
+/*
 function debug_menu_add(item:int*):void
 {
 	debug_menu_items[debug_menu_num] = item;
@@ -44,32 +48,28 @@ const DEBUG_MENU_VRAM:int16 = 0x2400;
 
 function debug_menu_select():int
 {
-	ppu_lock();
+	ppu.lock();
 	MMC3_MIRROR = 0; // vertical
-	ppu_ctrl1_bak = 0b10100001;
-	ppu_ctrl2_bak = 0b00011110;
-	ppu_scroll1 = 0;
-	ppu_scroll2 = 0;
-	ppu_fill( DEBUG_MENU_VRAM, 0x0400, 0 );
+	ppu.ctrl1_bak = 0b10100001;
+	ppu.ctrl2_bak = 0b00011110;
+	ppu.scroll1 = 0;
+	ppu.scroll2 = 0;
+	ppu.fill_in_lock( DEBUG_MENU_VRAM, 0x0400, 0 );
 
 	ppu_put( DEBUG_MENU_VRAM + 32*3 + 2, debug_menu_title, strlen(debug_menu_title) );
 	
 	var i:int;
 	for(i, 0, debug_menu_num){
-		ppu_put( DEBUG_MENU_VRAM + 32*(i+5) + 4, debug_menu_items[i], strlen(debug_menu_items[i]) );
+		ppu.put_in_lock( DEBUG_MENU_VRAM + 32*(i+5) + 4, debug_menu_items[i], strlen(debug_menu_items[i]) );
 	}
-	ppu_unlock();
+	ppu.unlock();
 
 	var pad_up_old = 0;
 	var pad_down_old = 0;
 	var pad_a_old = 0;
 	var pad_b_old = 0;
 	while(1){
-		pad_up_old = pad_up;
-		pad_down_old = pad_down;
-		pad_a_old = pad_a;
-		pad_b_old = pad_b;
-		pad_update();
+		pad.update();
 		
 		if( !pad_up_old && pad_up && debug_menu_cur > 0 ){ debug_menu_cur -= 1; }
 		if( !pad_down_old && pad_down && debug_menu_cur < debug_menu_num-1 ){ debug_menu_cur += 1; }
@@ -98,15 +98,15 @@ function debug_menu_open():void
 		}
 	}
 	
-	ppu_lock();
-	ppu_ctrl1_bak = 0b10100000;
-	ppu_ctrl2_bak = 0b00011110;
-	ppu_scroll1 = 0;
-	ppu_scroll2 = 0;
-	mmc3_set_cbank(0,old0);
-	mmc3_set_cbank(1,old1);
-	ppu_unlock();
-	wait_vsync();
+	ppu.lock();
+	ppu.ctrl1_bak = 0b10100000;
+	ppu.ctrl2_bak = 0b00011110;
+	ppu.scroll1 = 0;
+	ppu.scroll2 = 0;
+	mmc3.set_cbank(0,old0);
+	mmc3.set_cbank(1,old1);
+	ppu.unlock();
+	ppu.wait_vsync();
 }
 
 function debug_menu_do_flag():int
@@ -123,12 +123,12 @@ function debug_menu_do_flag():int
 
 	last_checkpoint = n;
 	var cp = &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[n]];
-	my_x = cp[1]+8;
-	my_y = cp[2]+8;
-	vx = 0;
-	vy = 0;
-	my_vx = 0;
-	my_vy = 0;
+	my.x = cp[1]+8;
+	my.y = cp[2]+8;
+	my.vx = 0;
+	my.vy = 0;
+	my.my_vx = 0;
+	my.my_vy = 0;
 	var area = cp[0];
 	
 	debug_menu_move_area( area );
@@ -136,3 +136,4 @@ function debug_menu_do_flag():int
 	return 1;
 }
 
+*/

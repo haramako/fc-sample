@@ -3,11 +3,11 @@ options( bank:0 );
 use mmc3;
 use nes;
 use math;
-use util;
-use memory;
+use ppu;
+use mem;
 use pad;
 use bg;
-use common;
+use * from common;
 use menu;
 use en;
 use my;
@@ -19,93 +19,87 @@ const PALLET:int[] = incbin("character.chr.dat");
 function init_area_enemy():void
 {
 	anim = 0;
-	en_clear();
+	en.clear();
 	
 	var n = 0;
-	for( n, 0, bg_enemy_num ){
+	for( n, 0, bg.enemy_num ){
 		var idx = n*6;
-		var i = en_new();
-		en_type[i] = bg_enemy[idx];
-		en_x[i] = bg_enemy[idx+1] * 16 + 8;
-		en_y[i] = bg_enemy[idx+2] * 16 + 8;
-		en_p1[i] = bg_enemy[idx+3];
-		en_p2[i] = bg_enemy[idx+4];
-		en_p3[i] = bg_enemy[idx+5];
-		EN_NEW_FUNC[en_type[i]](i);
+		var i = en.new();
+		en.type[i] = bg.enemy[idx];
+		en.px[i] = bg.enemy[idx+1] * 16 + 8;
+		en.py[i] = bg.enemy[idx+2] * 16 + 8;
+		en.p1[i] = bg.enemy[idx+3];
+		en.p2[i] = bg.enemy[idx+4];
+		en.p3[i] = bg.enemy[idx+5];
+		en.NEW_FUNC[en.type[i]](i);
 	}
 }
 
 
-function game_main(): void
+function start(): void
 {
 	// ppu lock状態で入ってくる
 	
-	mmc3_set_cbank( 0, 0 );
-	mmc3_set_cbank( 1, 2 );
-	mmc3_set_cbank( 2, 4 );
-	mmc3_set_cbank( 3, 5 );
-	mmc3_set_cbank( 4, 6 );
-	mmc3_set_cbank( 5, 7 );
+	mmc3.set_cbank( 0, 0 );
+	mmc3.set_cbank( 1, 2 );
+	mmc3.set_cbank( 2, 4 );
+	mmc3.set_cbank( 3, 5 );
+	mmc3.set_cbank( 4, 6 );
+	mmc3.set_cbank( 5, 7 );
 	
-	ppu_ctrl1_bak = 0b10100000;
-	ppu_ctrl2_bak = 0b00011110;
-	ppu_scroll1 = 0;
-	ppu_scroll2 = 0;
-	gr_idx = 0;
+	ppu.ctrl1_bak = 0b10100000;
+	ppu.ctrl2_bak = 0b00011110;
+	ppu.scroll1 = 0;
+	ppu.scroll2 = 0;
 
 	// パレットの初期化
-	ppu_put( 0x3f00, PALLET, 32 );
+	ppu.put_in_lock( 0x3f00, PALLET, 32 );
 
-	var cp = &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[0]];
-	my_x = cp[1]+8;
-	my_y = cp[2]+8;
-	vx = 0;
-	vy = 0;
+	var cp = &fs.MAP_CHECKPOINT_DATA[fs.MAP_CHECKPOINT[0]];
+	my.x = cp[1]+8;
+	my.y = cp[2]+8;
+	my.vx = 0;
+	my.vy = 0;
 	var area = cp[0];
 	
 	move_area( area );
 	set_last();
-	bg_on_scroll = my_on_scroll;
-	scroll_before_scroll = game_before_scroll;
-	scroll_after_scroll = game_after_scroll;
+	bg.on_scroll = my.on_scroll;
+	bg.scroll_before_scroll = before_scroll;
+	bg.scroll_after_scroll = after_scroll;
 
-	ppu_unlock();
+	ppu.unlock();
 	
 	asm( "cli" );
 
 	anim = 0;
-	my_dir = 0;
-	vx = 0;
-	vy = 0;
-	my_vx = 0;
-	my_vy = 0;
 
 	while( 1 ){
 		anim += 1;
 		giff = GIFF_TABLE[anim%16];
 		
-		pad_update();
-		en_process();
-		my_process();
-		my_draw();
+		pad.update();
+		en.process();
+		my.process();
+		my.draw();
 
-		mmc3_set_cbank(0,8+(anim/8)%4*2);
-		wait_vsync();
+		mmc3.set_cbank(0,8+(anim/8)%4*2);
+		ppu.wait_vsync();
 
 		// 死亡
-		if( my_state == MY_STATE_DIE ){
+		if( my.state == my.STATE_DIE ){
 			move_to_last();
 		}
 
 		var scrolled = 1;
-		if( my_x < 16 ){
-			scroll_left();
-		}elsif( my_x >= 248 ){
-			scroll_right();
-		}elsif( my_y >= 230 ){
-			scroll_down();
-		}elsif( my_y < 16 ){
-			scroll_up();
+		if( my.x < 16 ){
+			bg.scroll_left();
+		}elsif( my.x >= 248 ){
+			bg.scroll_right();
+		}elsif( my.y >= 230 ){
+			bg.scroll_down();
+		}elsif( my.y < 16 ){
+			bg.scroll_up();
 		}else{
 			scrolled = 0;
 		}
@@ -117,18 +111,18 @@ function game_main(): void
 		// イベント
 		if( game_event ){
 			switch( game_event ){
-			case GAME_EVENT_GET_ITEM:
-				event_start();
+			case event.ID_GET_ITEM:
+				event.event_start();
 			}
 			game_event = 0;
 		}
 		
 		// メニュー
-		if( pad_pushed & PAD_START ){
-			debug_menu_move_area = move_area;
-			debug_menu_open();
-		}elsif( pad_pushed & PAD_SELECT ){
-			menu_start();
+		if( pad.pushed & pad.START ){
+			debug_menu.debug_menu_move_area = move_area;
+			debug_menu.debug_menu_open();
+		}elsif( pad.pushed & pad.SELECT ){
+			menu.menu_start();
 		}
 	}
   
@@ -140,47 +134,47 @@ var last_y:int;
 
 function set_last():void
 {
-	last_area = bg_cur_area;
-	last_x = my_x;
-	last_y = my_y;
+	last_area = bg.cur_area;
+	last_x = my.x;
+	last_y = my.y;
 }
 
-function game_before_scroll():void
+function before_scroll():void
 {
 	
-	if( ((bg_cur_area == 1*16+6) || (last_area == 1*16+6) ) && !my_items[ITEM_LAMP] ){
-		gr_add( 0x3fc0,
+	if( ((bg.cur_area == 1*16+6) || (last_area == 1*16+6) ) && !my.items[fs.ITEM_ID_LAMP] ){
+		ppu.put( 0x3fc0,
 				[0x0d,0x00,0x10,0x30, 0x0d,0x0d,0x0d,0x0d, 0x0d,0x0d,0x0d,0x0d, 0x0d,0x0d,0x0d,0x0d], 16, 0 );
-		wait_vsync();
+		ppu.wait_vsync();
 	}
 }
 
-function game_after_scroll():void
+function after_scroll():void
 {
 	
-	if( (bg_cur_area != 1*16+6) && !my_items[ITEM_LAMP] ){
-		gr_add( 0x3fc0, PALLET, 16, 0);
-		wait_vsync();
+	if( (bg.cur_area != 1*16+6) && !my.items[fs.ITEM_ID_LAMP] ){
+		ppu.put( 0x3fc0, PALLET, 16, 0);
+		ppu.wait_vsync();
 	}
 }
 
 function move_to_last():void
 {
 	move_area(last_area);
-	my_state = MY_STATE_STAND;
-	my_x = last_x;
-	my_y = last_y;
-	vx = 0;
-	vy = 0;
-	my_vx = 0;
-	my_vy = 0;
+	my.state = my.STATE_STAND;
+	my.x = last_x;
+	my.y = last_y;
+	my.vx = 0;
+	my.vy = 0;
+	my.my_vx = 0;
+	my.my_vy = 0;
 }
 
 function move_area(area:int):void
 {
-	bg_fetch_area(area);
+	bg.fetch_area(area);
 	init_area_enemy();
-	ppu_lock();
-	draw_screen();
-	ppu_unlock();
+	ppu.lock();
+	bg.draw_screen();
+	ppu.unlock();
 }
