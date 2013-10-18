@@ -127,8 +127,6 @@ function move_to_last():void
 	my.y = last_y;
 	my.vx = 0;
 	my.vy = 0;
-	my.my_vx = 0;
-	my.my_vy = 0;
 }
 
 function move_area(area:int):void
