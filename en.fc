@@ -186,43 +186,26 @@ function wow_process(i:int):void
 	var dir = p1[i];
 	var speed = p2[i];
 
-	switch( dir ){
-	case 0: // 上
-		if( y < 16 || bg.cell_type(x,y-8) & bg.TYPE_STOP ){
-			dir = 2;
-		}else{
-			y -= (speed + giff ) / 16;
+	var n = (speed+giff)/16;
+	while(n){
+		var vx = DIR_VX[dir];
+		var vy = DIR_VY[dir];
+		if( bg.cell_type(x+vx*8,y+vy*8) & bg.TYPE_STOP || check_outside(x,y) ){
+			dir = (2+dir)%4;
 		}
-	case 1: // 右
-		if( x > 240 || bg.cell_type(x+8,y-8) & bg.TYPE_STOP ){
-			dir = 3;
-		}else{
-			x += (speed + giff ) / 16;
+		x += vx;
+		y += vy;
+
+		var cx = x % 16;
+		var cy = y % 16;
+		if( x % 16 == 8 && y % 16 == 8 ){
+			var c = bg.cell(x, y);
+			if( c >= 4 && c < 8 ){ dir = c - 4; }
 		}
-	case 2: // 下
-		if( y > 240 || bg.cell_type(x,y+8) & bg.TYPE_STOP ){
-			dir = 0;
-		}else{
-			y += (speed + giff ) / 16;
-		}
-	case 3: // 左
-		if( x < 16 || bg.cell_type(x-8,y-8) & bg.TYPE_STOP ){
-			dir = 1;
-		}else{
-			x -= (speed + giff ) / 16;
-		}
+		
+		n -= 1;
 	}
 
-	var cx = x % 16;
-	var cy = y % 16;
-	if( cx >= 6 && cx <= 10 && cy >= 6 && cy <= 10 ){
-		var c = bg.cell(x, y);
-		if( c >= 4 && c < 8 && dir != c-4){
-			x = x/16*16 + 8;
-			y = y/16*16 + 8;
-			dir = c - 4;
-		}
-	}
 
 	gr_sprite2( x+math.rand()%4-2, y+math.rand()%4-2, 136+(anim/4)%2*4, anim%2 );
 
@@ -249,26 +232,21 @@ function elevator_process(i:int):void
 	var dir = p1[i];
 	var speed = p2[i];
 
-	var size:int;
-	if( p3[i] == 1 ){ size = 8; }else{ size = 16; }
-	
-	switch( dir ){
-	case 0:
-		y -= (giff+speed)/16;
-		if( bg.cell_type(x,y-8) & bg.TYPE_STOP ){ dir = 2; }
-	case 1:
-		x += (giff+speed)/16;
-		if( bg.cell_type(x+size,y) & bg.TYPE_STOP ){ dir = 3; }
-	case 2:
-		y += (giff+speed)/16;
-		if( bg.cell_type(x,y+8) & bg.TYPE_STOP ){ dir = 0; }
-	case 3:
-		x -= (giff+speed)/16;
-		if( bg.cell_type(x-size,y) & bg.TYPE_STOP ){ dir = 1; }
+	var n = (speed+giff)/16;
+	while(n){
+		var vx = DIR_VX[dir];
+		var vy = DIR_VY[dir];
+		var size:int;
+		if( p3[i] == 1 ){ size = vx * 8; }else{ size = vx * 16; }
+		if( bg.cell_type(x+size,y+vy*8) & bg.TYPE_STOP || check_outside(x,y) ){
+			dir = (2+dir)%4;
+		}
+		x += vx;
+		y += vy;
+
+		n -= 1;
 	}
-
-	if( check_outside(x,y) ){ dir = (dir+2)%4; }
-
+	
 	if( p3[i] == 1 ){
 		gr_sprite2( x, y, 64, 0);
 	}else{

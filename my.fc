@@ -73,6 +73,12 @@ function check_on_enemy():int
 	return -1;
 }
 
+public function init():void
+{
+	var i:int;
+	for( i, 0, 64 ){ items[i] = 1; }
+}
+
 public function process():void
 {
 	// 水の中の処理
@@ -290,12 +296,5 @@ public function draw():void
 		a = (my_anim/16)%2;
 		gr_sprite2( x, y, 16, 64*a );
 	}
-}
-
-public function on_scroll(dx:int, dy:int):void
-{
-	x += dx;
-	y += dy;
-	draw();
 }
 

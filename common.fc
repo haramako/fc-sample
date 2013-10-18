@@ -37,7 +37,9 @@ function gr_sprite2(x:int, y:int, pat:int, flag:int):void
 	}
 }
 
-function calc_item():void
-{
-}
-
+const DIR_VX:sint[] = [0,1,0,-1];
+const DIR_VY:sint[] = [-1,0,1,0];
+const DIR_UP = 0;
+const DIR_LEFT = 1;
+const DIR_DOWN = 2;
+const DIR_RIGHT = 3;

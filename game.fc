@@ -48,20 +48,7 @@ function start(): void
 	// パレットの初期化
 	ppu.put_in_lock( 0x3f00, PALLET, 32 );
 
-	var cp = &fs.MAP_CHECKPOINT_DATA[fs.MAP_CHECKPOINT[0]];
-	my.x = cp[1]+8;
-	my.y = cp[2]+8;
-	my.vx = 0;
-	my.vy = 0;
-	var area = cp[0];
-	var i:int;
-	for( i, 0, 64 ){ my.items[i] = 1; }
-	
-	move_area( area );
-	set_last();
-	bg.on_scroll = my.on_scroll;
-	bg.scroll_before_scroll = before_scroll;
-	bg.scroll_after_scroll = after_scroll;
+	move_checkpoint(0);
 
 	ppu.unlock();
 	
@@ -86,19 +73,18 @@ function start(): void
 			move_to_last();
 		}
 
-		var scrolled = 1;
-		if( my.x < 16 ){
-			bg.scroll_left();
+		var scroll_dir = -1;
+		if( my.x < 8 ){
+			scroll_dir = DIR_LEFT;
 		}elsif( my.x >= 248 ){
-			bg.scroll_right();
-		}elsif( my.y >= 230 ){
-			bg.scroll_down();
-		}elsif( my.y < 16 ){
-			bg.scroll_up();
-		}else{
-			scrolled = 0;
+			scroll_dir = DIR_RIGHT;
+		}elsif( my.y >= 232 ){
+			scroll_dir = DIR_DOWN;
+		}elsif( my.y < 8 ){
+			scroll_dir = DIR_UP;
 		}
-		if( scrolled ){
+		if( scroll_dir != -1 ){
+			bg.scroll( scroll_dir );
 			set_last();
 			init_area_enemy();
 		}
@@ -114,7 +100,6 @@ function start(): void
 		
 		// メニュー
 		if( pad.pushed & pad.START ){
-			debug_menu.move_area = move_area;
 			debug_menu.start();
 		}elsif( pad.pushed & pad.SELECT ){
 			menu.start();
@@ -132,27 +117,6 @@ function set_last():void
 	last_area = bg.cur_area;
 	last_x = my.x;
 	last_y = my.y;
-}
-
-function before_scroll():void
-{
-	/*	
-	if( ((bg.cur_area == 1*16+6) || (last_area == 1*16+6) ) && !my.items[fs.ITEM_ID_LAMP] ){
-		ppu.put( 0x3fc0,
-				[0x0d,0x00,0x10,0x30, 0x0d,0x0d,0x0d,0x0d, 0x0d,0x0d,0x0d,0x0d, 0x0d,0x0d,0x0d,0x0d], 16, 0 );
-		ppu.wait_vsync();
-	}
-	*/
-}
-
-function after_scroll():void
-{
-	/*	
-	if( (bg.cur_area != 1*16+6) && !my.items[fs.ITEM_ID_LAMP] ){
-		ppu.put( 0x3fc0, PALLET, 16, 0);
-		ppu.wait_vsync();
-	}
-	*/
 }
 
 function move_to_last():void
@@ -174,4 +138,16 @@ function move_area(area:int):void
 	ppu.lock();
 	bg.draw_screen();
 	ppu.unlock();
+}
+
+function move_checkpoint(i:int):void
+{
+	var cp = &fs.MAP_CHECKPOINT_DATA[fs.MAP_CHECKPOINT[i]];
+	my.x = cp[1]+8;
+	my.y = cp[2]+8;
+	my.vx = 0;
+	my.vy = 0;
+	var area = cp[0];
+	move_area( area );
+	set_last();
 }
