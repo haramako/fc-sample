@@ -29,8 +29,8 @@ class NesImage
     8.times do |py|
       line = [0,0]
       8.times do |px|
-        line[0] |= ((d[py][px] >> 0)& 1) << (8-px)
-        line[1] |= ((d[py][px] >> 1)& 1) << (8-px)
+        line[0] |= ((d[py][px] >> 0)& 1) << (7-px)
+        line[1] |= ((d[py][px] >> 1)& 1) << (7-px)
       end
       r[0] << line[0]
       r[1] << line[1]
@@ -206,8 +206,12 @@ class TiledConverter
 
   ITEM_DATA = 
     [
-     ['slime_boots', 'スライムブーツ', 'スライムに乗れるようになる'],
+     ['sandal', 'サンダル', 'すごくやわらかいものなら乗れるかも？'],
      ['lamp', 'ランプ', '燭台に火を灯す'],
+     ['grobe', 'グローブ', 'これなら、岩を押せしてもケガしない'],
+     ['boots', '緑のブーツ', 'ベトベトしたカエルの背中もすべらない'],
+     ['omamori', 'お守り', 'ひとだまに触っても祟られない'],
+     ['map', '地図', '迷宮で迷わないためには、地図が必要だ'],
     ]
 
   def conv_item_data

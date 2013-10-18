@@ -6,7 +6,7 @@ require 'pp'
 
 class TextConverter
 
-  PRESET_CHAR = "　↓０１２３４５６７８９！？ー。、゛゜あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらゃゅょりるれろわをんっ".each_char.to_a
+  PRESET_CHAR = "　↓゛゜０１２３４５６７８９！？ー。、あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらゃゅょりるれろわをんっ".each_char.to_a
 
   CONVERT_CHAR = {
     ' ' => '　',

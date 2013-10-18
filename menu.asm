@@ -8,22 +8,22 @@ scroll:
 	rol a
 	asl a
 	asl a
-	sta _PPU_ADDR
+	sta _nes_PPU_ADDR
 	tya
-	sta _PPU_SCROLL
+	sta _nes_PPU_SCROLL
 	asl a
 	asl a
 	and #%11100000
-	sta _scroll_x+0
+	sta _common_scroll_x+0
 	txa
 	lsr a
 	lsr a
 	lsr a
-	ora _scroll_x+0
+	ora _common_scroll_x+0
 
 	;finish setting the scroll during HBlank (11 cycles)
-	stx _PPU_SCROLL
-	sta _PPU_ADDR
+	stx _nes_PPU_SCROLL
+	sta _nes_PPU_ADDR
 	rts
 	
 ;;; IRQの設定
@@ -35,16 +35,16 @@ _menu_irq_setup:
 	ldx _mmc3_cbank_bak+1
 	mmc3_cbank #1
 	
-	loadw _irq_next, menu_irq_1
+	loadw _ppu_irq_next, menu_irq_1
 	rts
 
 ;;; IRQ割り込み(上辺)
 menu_irq_1:
-	sta _MMC3_IRQ_DISABLE
+	sta _mmc3_IRQ_DISABLE
 
-	ldx #(_CBANK_TEXT+0)
+	ldx #(_common_CBANK_TEXT+0)
 	mmc3_cbank #0
-	ldx #(_CBANK_TEXT+1)
+	ldx #(_common_CBANK_TEXT+1)
 	mmc3_cbank #1
 
 	rts

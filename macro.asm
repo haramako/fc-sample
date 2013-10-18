@@ -19,8 +19,8 @@ loadw .macro
 ;;; use 11cycle
 mmc3_cbank .macro
 	lda #(\1)
-	sta _MMC3_BANK_SELECT
-	stx _MMC3_BANK_DATA
+	sta _mmc3_BANK_SELECT
+	stx _mmc3_BANK_DATA
 	.endm
 
 ;;; wait N
@@ -36,10 +36,10 @@ xwait .macro
 ;;; use 18cycle( if \1 is zeropage )
 irq_set .macro
 	lda \1
-	sta _MMC3_IRQ_LATCH
-	sta _MMC3_IRQ_RELOAD
-	sta _MMC3_IRQ_DISABLE
-	sta _MMC3_IRQ_ENABLE
+	sta _mmc3_IRQ_LATCH
+	sta _mmc3_IRQ_RELOAD
+	sta _mmc3_IRQ_DISABLE
+	sta _mmc3_IRQ_ENABLE
 	.endm
 	
 

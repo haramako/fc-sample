@@ -2,7 +2,9 @@ options( bank_count: 16, bank: -1 );
 
 include header ( "macro.asm" );
 
+use * from common;
 use game;
+use en;
 
 include('character.chr');
 include('bg_base.chr');
@@ -11,16 +13,16 @@ include('item.chr');
 
 function main():void
 {
-	ppu_lock();
-	mmc3_init();
-	ppu_init();
-	bg_init();
-	en_init();
+	ppu.lock();
+	mmc3.init();
+	ppu.init();
+	bg.init();
+	en.init();
 
-	APU_INTERRUPT = 0x40; // disable APU IRQ
-	MMC3_MIRROR = 1; // horizontal
-	MMC3_RAM_PROTECT = 0b10000000;
+	nes.APU_INTERRUPT = 0x40; // disable APU IRQ
+	mmc3.MIRROR = 1; // horizontal
+	mmc3.RAM_PROTECT = 0b10000000;
 	
-	game_main();
+	game.start();
 }
 

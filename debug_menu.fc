@@ -1,170 +1,123 @@
 options( bank: -1 );
 
-use common;
-use menu;
-use bg;
+use * from common;
+use mem;
+use my;
 
 var last_checkpoint:int;
-var debug_menu_move_area:void(int);
+var move_area:void(int);
 
-const DEBUG_MENU_PALLET:int[32] = [0x0f,0x27,0x38,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13,
-							 0x19,0x0b,0x2b,0x30, 0x0f,0x06,0x15,0x36, 0x0f,0x13,0x23,0x33, 0x0f,0x11,0x12,0x13];
+var num:int;
+var items:int*[16];
+var cur:int;
+var title:int*;
 
-var debug_menu_num:int;
-var debug_menu_items:int*[16];
-var debug_menu_cur:int;
-var debug_menu_title:int*;
-
-function debug_menu_init():void
+function init():void
 {
 }
 
-function debug_menu_start(name:int*):void
+function begin(name:int*):void
 {
-	debug_menu_title = name;
-	debug_menu_num = 0;
-	debug_menu_cur = 0;
+	title = name;
+	num = 0;
+	cur = 0;
 }
 
-function debug_menu_add(item:int*):void
+function add(item:int*):void
 {
-	debug_menu_items[debug_menu_num] = item;
-	debug_menu_num += 1;
+	items[num] = item;
+	num += 1;
 }
 
-function debug_menu_add_items( n:int, items:int** ):void
+const VRAM:int16 = 0x2400;
+
+function select():int
 {
-	var i:int;
-	for( i, 0, n ){
-		debug_menu_add(items[n]);
-	}
-}
+	ppu.lock();
+	mmc3.MIRROR = 0; // vertical
+	ppu.ctrl1_bak = 0b10100001;
+	ppu.ctrl2_bak = 0b00011110;
+	ppu.scroll1 = 0;
+	ppu.scroll2 = 0;
+	ppu.fill_in_lock( VRAM, 0x0400, 0 );
 
-const DEBUG_MENU_VRAM:int16 = 0x2400;
-
-function debug_menu_select():int
-{
-	ppu_lock();
-	MMC3_MIRROR = 0; // vertical
-	ppu_ctrl1_bak = 0b10100001;
-	ppu_ctrl2_bak = 0b00011110;
-	ppu_scroll1 = 0;
-	ppu_scroll2 = 0;
-	ppu_fill( DEBUG_MENU_VRAM, 0x0400, 0 );
-
-	ppu_put( DEBUG_MENU_VRAM + 32*3 + 2, debug_menu_title, strlen(debug_menu_title) );
+	ppu.put_in_lock( VRAM + 32*3 + 2, title, mem.strlen(title) );
 	
 	var i:int;
-	for(i, 0, debug_menu_num){
-		ppu_put( DEBUG_MENU_VRAM + 32*(i+5) + 4, debug_menu_items[i], strlen(debug_menu_items[i]) );
+	for(i, 0, num){
+		ppu.put_in_lock( VRAM + 32*(i+5) + 4, items[i], mem.strlen(items[i]) );
 	}
-	ppu_unlock();
+	ppu.unlock();
 
 	var pad_up_old = 0;
 	var pad_down_old = 0;
 	var pad_a_old = 0;
 	var pad_b_old = 0;
 	while(1){
-		pad_up_old = pad_up;
-		pad_down_old = pad_down;
-		pad_a_old = pad_a;
-		pad_b_old = pad_b;
-		pad_update();
+		pad.update();
 		
-		if( !pad_up_old && pad_up && debug_menu_cur > 0 ){ debug_menu_cur -= 1; }
-		if( !pad_down_old && pad_down && debug_menu_cur < debug_menu_num-1 ){ debug_menu_cur += 1; }
-		if( !pad_a_old && pad_a ){ return debug_menu_cur; }
-		if( !pad_b_old && pad_b ){ return -1; }
+		if( (pad.pushed & pad.UP) && cur > 0 ){ cur -= 1; }
+		if( (pad.pushed & pad.DOWN) && cur < num-1 ){ cur += 1; }
+		if( (pad.pushed & pad.A) ){ return cur; }
+		if( (pad.pushed & pad.B) ){ return -1; }
 
-		gr_sprite( 3*8-2, 5*8-1+debug_menu_cur*8, 33, 0);
-		wait_vsync();
+		ppu.sprite( 3*8-2, 5*8+cur*8, 33, 0);
+		ppu.wait_vsync();
 	}
 }
 
-function debug_menu_open():void
+function start():void
 {
-	var old0 = mmc3_set_cbank(0,CBANK_TEXT+0);
-	var old1 = mmc3_set_cbank(1,CBANK_TEXT+1);
+	var old0 = mmc3.set_cbank(0,fs.CBANK_TEXT+0);
+	var old1 = mmc3.set_cbank(1,fs.CBANK_TEXT+1);
 	
 	while(1){
-		debug_menu_start( _T("メニュー") );
-		debug_menu_add( _T("チェックポイント") );
-		debug_menu_add( _T("潜水") );
-		debug_menu_add( _T("靴") );
-		debug_menu_add( _T("終了") );
-		switch( debug_menu_select() ){
+		begin( _T("メニュー") );
+		add( _T("チェックポイント") );
+		add( _T("終了") );
+		switch( select() ){
 		case 0:
-			if( debug_menu_do_flag() ){ break; }
-		case 1:
-			debug_menu_do_water_setting();
-		case 2:
-			debug_menu_do_shoes_setting();
-		case 3,-1:
+			if( do_flag() ){ break; }
+		case 1,-1:
 			break;
 		}
 	}
 	
-	ppu_lock();
-	ppu_ctrl1_bak = 0b10100000;
-	ppu_ctrl2_bak = 0b00011110;
-	ppu_scroll1 = 0;
-	ppu_scroll2 = 0;
-	mmc3_set_cbank(0,old0);
-	mmc3_set_cbank(1,old1);
-	ppu_unlock();
-	wait_vsync();
+	ppu.lock();
+	ppu.ctrl1_bak = 0b10100000;
+	ppu.ctrl2_bak = 0b00011110;
+	ppu.scroll1 = 0;
+	ppu.scroll2 = 0;
+	mmc3.set_cbank(0,old0);
+	mmc3.set_cbank(1,old1);
+	ppu.unlock();
+	ppu.wait_vsync();
 }
 
-function debug_menu_do_flag():int
+function do_flag():int
 {
-	debug_menu_start(_T("チェックポイントを選択"));
+	begin(_T("チェックポイントを選択"));
 	var i:int;
-	for( i, 0, MAP_CHECKPOINT_NUM ){
-		debug_menu_add( &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[i]+3] );
+	for( i, 0, fs.MAP_CHECKPOINT_NUM ){
+		add( &fs.MAP_CHECKPOINT_DATA[fs.MAP_CHECKPOINT[i]+3] );
 	}
-	debug_menu_cur = last_checkpoint;
+	cur = last_checkpoint;
 	
-	var n = debug_menu_select();
+	var n = select();
 	if( n == -1 ){ return 0; }
 
 	last_checkpoint = n;
-	var cp = &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[n]];
-	my_x = cp[1]+8;
-	my_y = cp[2]+8;
-	vx = 0;
-	vy = 0;
-	my_vx = 0;
-	my_vy = 0;
+	var cp = &fs.MAP_CHECKPOINT_DATA[fs.MAP_CHECKPOINT[n]];
+	my.x = cp[1]+8;
+	my.y = cp[2]+8;
+	my.vx = 0;
+	my.vy = 0;
+	my.my_vx = 0;
+	my.my_vy = 0;
 	var area = cp[0];
 	
-	debug_menu_move_area( area );
+	move_area( area );
 
 	return 1;
-}
-
-function debug_menu_do_water_setting():void
-{
-	debug_menu_start(_T("潜水設定"));
-	debug_menu_add( _T("無効") );
-	debug_menu_add( _T("潜水") );
-	switch( debug_menu_select() ){
-	case 0:
-		my_water_setting = 0;
-	case 1:
-		my_water_setting = 1;
-	}
-}
-
-function debug_menu_do_shoes_setting():void
-{
-	debug_menu_start(_T("靴"));
-	debug_menu_add( _T("無効") );
-	debug_menu_add( _T("スライムブーツ") );
-	switch( debug_menu_select() ){
-	case 0:
-		my_shoes = 0;
-	case 1:
-		my_shoes = 1;
-	}
 }
 
