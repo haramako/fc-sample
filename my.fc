@@ -31,7 +31,7 @@ var map_flag:int[MAP_FLAG_MAX];
 public function init():void
 {
 	var i:int;
-	for( i, 0, ITEM_MAX ){ items[i] = 1; }
+	// for( i, 0, ITEM_MAX ){ items[i] = 1; }
 	for( i, 0, MAP_FLAG_MAX ){ map_flag[i] = 0; }
 }
 
