@@ -4,17 +4,18 @@ use * from common;
 use rle;
 use game;
 use my;
+use mem;
 
 var data:int[256] options(address:0x6000);
 var enemy:int[256] options(address:0x6100);
 var data_buf:int[256] options(address:0x6200);
 var enemy_num:int;
 
-var on_scroll:void(int,int);
-
 var buf_idx:int;
 var buf:int[256];
 var pal:int[64];
+
+var pallet:int[32];
 
 var cur_area:int;
 
@@ -54,25 +55,56 @@ const TYPE:int[] =
 		0,   0,   0,   0,   0,   0,   0,   0,
 		1,   0,   1,   3,   1,   3,   0,   8];
 
-function init():void
+private:
+
+public function init():void
 {
-	on_scroll = on_scroll_null;
 	cur_area = 0;
 	buf_idx = 0;
 	ppu.on_wait_vsync = ->void(){ buf_idx = 0; };
 }
 
-function cell(x:int, y:int):int
+public function cell(x:int, y:int):int
 {
 	return data[(y/16)*16 + x/16];
 }
 
-function cell_type(x:int, y:int):int
+public function cell_type(x:int, y:int):int
 {
 	return TYPE[data[(y/16)*16 + x/16]];
 }
 
-function on_scroll_null(x:int, y:int):void {}
+function set_pal(x:int, y:int, _pal:int):int
+{
+	var pal_addr:int8 = (y/2)*8 + x/2;
+	var pos = (((y%2)*2) | (x%2))*2;
+	var mask:int = (0b00000011 << pos) ^ 0xff;
+	pal[pal_addr] = (pal[pal_addr] & mask) | (_pal << pos);
+	return pal_addr;
+}
+
+public function put2(x:int, y:int, n:int, pal:int):void
+{
+	data[y*16+x] = n;
+	put(x,y,n,pal);
+}
+
+public function put(x:int, y:int, n:int, _pal:int):void
+{
+	var y16:int16 = y;
+	var addr:int16 = 0x2000 + y16*64 + x*2;
+	var ni = n * 4;
+	buf[buf_idx+0] = ni;
+	buf[buf_idx+1] = ni+2;
+	buf[buf_idx+2] = ni+1;
+	buf[buf_idx+3] = ni+3;
+	ppu.put( addr, &buf[buf_idx], 2, 0 );
+	ppu.put( addr+32, &buf[buf_idx+2], 2, 0 );
+	buf_idx += 4;
+	
+	var pal_addr = set_pal(x,y,_pal);
+	ppu.put( 0x23c0 + pal_addr, &pal[pal_addr], 1, 0 );
+}
 
 function draw_screen():void
 {
@@ -96,8 +128,14 @@ function fetch_area(area:int):void
 	enemy_num = len/6;
 }
 
-function scroll(dir:int):void
+public function scroll(dir:int):void
 {
+	var vx = DIR_VX[dir];
+	var vy = DIR_VY[dir];
+	var new_area = cur_area - vy*fs.MAP_WIDTH - vx;
+	var old_area = cur_area;
+	before_scroll(new_area, old_area);
+	
 	switch(dir){
 	case DIR_UP:
 		scroll_up();
@@ -107,6 +145,72 @@ function scroll(dir:int):void
 		scroll_left();
 	case DIR_RIGHT:
 		scroll_right();
+	}
+	
+	after_scroll(new_area, old_area);
+}
+
+function before_scroll(area:int, old_area:int):void
+{
+	if( !my.items[fs.ITEM_ID_LAMP] && area == 3*fs.MAP_WIDTH+8 ){ light_down(); }
+	if( !my.items[fs.ITEM_ID_LAMP] && area == 1*fs.MAP_WIDTH+4 ){ light_down(); }
+}
+
+function after_scroll(area:int, old_area:int):void
+{
+	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 3*fs.MAP_WIDTH+8 ){ light_up(); }
+	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 1*fs.MAP_WIDTH+4 ){ light_up(); }
+}
+
+const VRAM_PALLET = 0x3fc0;
+
+function pal_down(pal:int*, size:int, pow:int):void
+{
+	var i:int;
+	var n = pow*16;
+	for( i, 0, size ){
+		var c = pal[i];
+		if( c != 0x0d ){
+			c = c - n;
+			if( c > 64 ){ c = 0x0d; }
+			pal[i] = c;
+		}
+	}
+}
+
+function light_down():void
+{
+	var buf = ppu.alloc(16);
+	var i:int;
+	for( i, 0, 4 ){
+		mem.copy( buf, pallet, 16 );
+		if( i >= 1 ){
+			pal_down(buf, 4, 1);
+			pal_down(buf+4, 12, i+1);
+		}else{
+			pal_down(buf, 16, i+1);
+		}
+		ppu.put( VRAM_PALLET, buf, 16, 0 );
+		var j:int;
+		for( j, 0, 4 ){	ppu.wait_vsync_with_flag(2); }
+	}
+}
+
+function light_up():void
+{
+	var buf = ppu.alloc(16);
+	var i:int;
+	for( i, 0, 4 ){
+		mem.copy( buf, pallet, 16 );
+		if( i < 1 ){
+			pal_down(buf, 4, 1);
+			pal_down(buf+4, 12, 3-i);
+		}else{
+			pal_down(buf, 16, 3-i);
+		}
+		ppu.put( VRAM_PALLET, buf, 16, 0 );
+		var j:int;
+		for( j, 0, 4 ){	ppu.wait_vsync_with_flag(2); }
 	}
 }
 
@@ -259,34 +363,3 @@ function draw_map_horizontal(y:int):void
 	buf_idx += 64;
 }
 
-function set_pal(x:int, y:int, _pal:int):int
-{
-	var pal_addr:int8 = (y/2)*8 + x/2;
-	var pos = (((y%2)*2) | (x%2))*2;
-	var mask:int = (0b00000011 << pos) ^ 0xff;
-	pal[pal_addr] = (pal[pal_addr] & mask) | (_pal << pos);
-	return pal_addr;
-}
-
-function put2(x:int, y:int, n:int, pal:int):void
-{
-	data[y*16+x] = n;
-	put(x,y,n,pal);
-}
-
-function put(x:int, y:int, n:int, _pal:int):void
-{
-	var y16:int16 = y;
-	var addr:int16 = 0x2000 + y16*64 + x*2;
-	var ni = n * 4;
-	buf[buf_idx+0] = ni;
-	buf[buf_idx+1] = ni+2;
-	buf[buf_idx+2] = ni+1;
-	buf[buf_idx+3] = ni+3;
-	ppu.put( addr, &buf[buf_idx], 2, 0 );
-	ppu.put( addr+32, &buf[buf_idx+2], 2, 0 );
-	buf_idx += 4;
-	
-	var pal_addr = set_pal(x,y,_pal);
-	ppu.put( 0x23c0 + pal_addr, &pal[pal_addr], 1, 0 );
-}
