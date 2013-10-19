@@ -182,7 +182,7 @@ class TiledConverter
       when 'enemy'
         area, x, y = px2area( obj['x'], obj['y'] )
         type = obj['name'].empty? ? prop['type'] : obj['name']
-        enemy[area] << {type:prop['type'], x:x, y:y, p1:prop['p1'].to_i, p2:prop['p2'].to_i, p3:prop['p3'].to_i }
+        enemy[area] << {type:type, x:x, y:y, p1:prop['p1'].to_i, p2:prop['p2'].to_i, p3:prop['p3'].to_i }
       when 'item'
         area, x, y = px2area( obj['x'], obj['y'] )
         id = ITEM_DATA.find_index{|i| i[0] == obj['name'].downcase}
@@ -224,6 +224,7 @@ class TiledConverter
      ['map', '地図', '迷宮で迷わないためには、地図が必要だ'],
      ['gas_mask', 'ガスマスク', 'ガスにあたっても死なない'],
      ['weight', 'おもり', '水に潜れるようになる'],
+     ['craw', 'かぎ爪', 'はしごに飛び乗れる'],
     ]
 
   def conv_item_data

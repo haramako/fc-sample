@@ -116,7 +116,7 @@ function item_process():void
 		if( item_idx >= 18 ){ item_idx -= 18; }
 
 		if( item_prev != item_idx ){
-			if( item_idx < 8 ){
+			if( item_idx < 9 ){
 				ppu.wait_vsync();
 				var buf = ppu.alloc(64);
 				var buf2 = ppu.alloc(64);
