@@ -130,10 +130,8 @@ function fetch_area(area:int):void
 
 public function scroll(dir:int):void
 {
-	var vx = DIR_VX[dir];
-	var vy = DIR_VY[dir];
-	var new_area = cur_area - vy*fs.MAP_WIDTH - vx;
 	var old_area = cur_area;
+	var new_area = cur_area + DIR_VY[dir]*fs.MAP_WIDTH + DIR_VX[dir];
 	before_scroll(new_area, old_area);
 	
 	switch(dir){
@@ -150,13 +148,13 @@ public function scroll(dir:int):void
 	after_scroll(new_area, old_area);
 }
 
-function before_scroll(area:int, old_area:int):void
+function before_scroll(new_area:int, old_area:int):void
 {
-	if( !my.items[fs.ITEM_ID_LAMP] && area == 3*fs.MAP_WIDTH+8 ){ light_down(); }
-	if( !my.items[fs.ITEM_ID_LAMP] && area == 1*fs.MAP_WIDTH+4 ){ light_down(); }
+	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*fs.MAP_WIDTH+8 ){ light_down(); }
+	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 1*fs.MAP_WIDTH+4 ){ light_down(); }
 }
 
-function after_scroll(area:int, old_area:int):void
+function after_scroll(new_area:int, old_area:int):void
 {
 	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 3*fs.MAP_WIDTH+8 ){ light_up(); }
 	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 1*fs.MAP_WIDTH+4 ){ light_up(); }

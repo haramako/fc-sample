@@ -141,8 +141,20 @@ function slime_process(i:int):void
 	var y = py[i];
 	var dir:sint = p1[i];
 	var vy = p3[i];
+	var back_flag = 0;
 	
-	if( bg.cell_type(x-5,y+8) & bg.TYPE_WALL || bg.cell_type(x+5,y+8) & bg.TYPE_WALL ){
+	if( bg.cell(x,y-7) == 6/*下矢印*/ ){
+		// 下矢印に吸い込まれる
+		back_flag = 32;
+		if( giff < 4 ){
+			if( y % 16 == 6 ){
+				type[i] = 0;
+				return;
+			}else{
+				y += 1;
+			}
+		}
+	}elsif( bg.cell_type(x-5,y+8) & bg.TYPE_WALL || bg.cell_type(x+5,y+8) & bg.TYPE_WALL ){
 		// 地面の上
 		var nx:uint = x+dir*8;
 		if( nx < 8 || nx > 248 || bg.cell_type(nx,y-8) & bg.TYPE_STOP ){
@@ -163,7 +175,7 @@ function slime_process(i:int):void
 	}
 
 	var flip:uint = (1-dir)/2;
-	gr_sprite2( x, y, 128+(anim/16)%2*4, 64*flip | 1);
+	gr_sprite2( x, y, 128+(anim/16)%2*4, 64*flip | back_flag | 1);
 
 	px[i] = x;
 	py[i] = y;
@@ -616,7 +628,7 @@ function switch_process(i:int):void
 function flaged_door_new(i:int):void
 {
 	p2[i] = my.flags[p1[i]];
-	flaged_door_redraw(px[i], py[i], p2[i]);
+	p3[i] = 1;
 }
 
 function flaged_door_process(i:int):void
@@ -626,6 +638,12 @@ function flaged_door_process(i:int):void
 	var flag_num = p1[i];
 	var old_flag = p2[i];
 	var flag = my.flags[flag_num];
+
+	if( p3[i] ){
+		flaged_door_redraw(px[i], py[i], p2[i]);
+		p3[i] = 0;
+	}
+	
 	if( old_flag != flag ){
 		flaged_door_redraw(x, y, flag);
 		p2[i] = flag;
