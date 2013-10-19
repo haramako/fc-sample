@@ -47,15 +47,17 @@ function init():void
 
 function wait_vsync():void
 {
-	wait_vsync_ex(1);
+	wait_vsync_with_flag(1);
 }
 
-function wait_vsync_ex(flag:int):void
+function wait_vsync_with_flag(flag:int):void
 {
 	// PPU_CTRL2 = 0b00010110; // for debug (profiling)
-	while( gr_sprite_idx < 255 ){
-		gr_sprite_buf[gr_sprite_idx] = 255;
-		gr_sprite_idx += 1;
+	if( flag != 2 ){
+		while( gr_sprite_idx < 255 ){
+			gr_sprite_buf[gr_sprite_idx] = 255;
+			gr_sprite_idx += 1;
+		}
 	}
 	vsync_flag = flag;
 	while( vsync_flag ){}

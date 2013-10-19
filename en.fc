@@ -193,7 +193,9 @@ function wow_process(i:int):void
 	while(n){
 		var vx = DIR_VX[dir];
 		var vy = DIR_VY[dir];
-		if( bg.cell_type(x+vx*8,y+vy*8) & bg.TYPE_STOP || check_outside(x,y) ){
+		var xbias = 0; if( vx < 0 ){ xbias = -1; }
+		var ybias = 0; if( vy < 0 ){ ybias = -1; }
+		if( bg.cell_type(x+vx*8+xbias,y+vy*8+ybias) & bg.TYPE_STOP || check_outside(x,y) ){
 			dir = (2+dir)%4;
 		}
 		x += DIR_VX[dir];
