@@ -14,6 +14,11 @@ public const TYPE_BLOCK = 6;
 public const TYPE_FROG = 7;
 public const TYPE_COOKIE = 8;
 public const TYPE_CHEST = 9;
+public const TYPE_LAMP = 10;
+public const TYPE_GAS = 11;
+public const TYPE_GHOST = 12;
+public const TYPE_SWITCH = 13;
+public const TYPE_FLAGED_DOOR = 14;
 
 public const MAX = 16;
 public var type:int[MAX];
@@ -63,11 +68,6 @@ public function new():int
 
 private:
 
-const CHECK_TOP = 1;
-const CHECK_BOTTOM= 2;
-const CHECK_LEFT = 4;
-const CHECK_RIGHT = 8;
-
 function check_block(px:int*, py:int*):int
 {
 	const size = 8;
@@ -78,31 +78,31 @@ function check_block(px:int*, py:int*):int
 	// 下方向
 	if( bg.cell_type(x+4,y+(size-1)) & bg.TYPE_STOP || bg.cell_type(x-4,y+(size-1)) & bg.TYPE_STOP ){
 		*py = (y+size)/16*16 - size;
-		r = CHECK_BOTTOM;
+		r = DIR_MASK_DOWN;
 	}
 
 	// 右方向
 	if( bg.cell_type(x+(size-1),y) & bg.TYPE_STOP ){
 		*px = (x+size)/16*16 - size;
-		r = r | CHECK_RIGHT;
+		r = r | DIR_MASK_RIGHT;
 	}elsif( x >= 240 ){
 		*px = 239;
-		r = r | CHECK_RIGHT;
+		r = r | DIR_MASK_RIGHT;
 	}
 
 	// 左方向
 	if( bg.cell_type(x-size,y) & bg.TYPE_STOP ){
 		*px = (x-size)/16*16 + 16 + size;
-		r = r | CHECK_LEFT;
+		r = r | DIR_MASK_LEFT;
 	}elsif( x < 16 ){
 		*px = 16;
-		r = r | CHECK_LEFT;
+		r = r | DIR_MASK_LEFT;
 	}
 	
 	// 上方向
 	if( bg.cell_type(x+4,y-size) & bg.TYPE_STOP || bg.cell_type(x-4,y-size) & bg.TYPE_STOP ){
 		*py = (y-size)/16*16 + 16 + size;
-		r = r | CHECK_TOP;
+		r = r | DIR_MASK_UP;
 	}
 	
 	return r;
@@ -395,12 +395,12 @@ function frog_process(i:int):void
 		if( dir == 1 ){ x += vx; }else{ x -= vx; }
 		t += 1;
 		var hit = check_block(&x,&y);
-		if( hit & (CHECK_RIGHT | CHECK_LEFT) ){ dir = 4 - dir; }
-		if( hit & CHECK_BOTTOM ){
+		if( hit & (DIR_MASK_RIGHT | DIR_MASK_LEFT) ){ dir = 4 - dir; }
+		if( hit & DIR_MASK_DOWN ){
 			state = 0;
 			t = 30;
 		}
-		if( hit & CHECK_TOP ){ t = 0; }
+		if( hit & DIR_MASK_UP ){ t = 0; }
 		
 		if( check_outside(x,y) ){
 			type[i] = 0;
@@ -576,6 +576,69 @@ function ghost_process(i:int):void
 }
 
 /*********************************************
+ * スイッチ
+ *********************************************/
+
+function switch_new(i:int):void
+{
+	p2[i] = py[i];
+}
+
+function switch_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var flag_num = p1[i];
+	
+	if( my.state == my.STATE_ON_ENEMY && my.on_idx == i ){
+		if( y < p2[i]+8 ){ y += 1; }
+		my.flags[flag_num] = 1;
+	}else{
+		if( y > p2[i] ){ y -= 1; }
+	}
+
+	
+	gr_sprite2( x, y, 64, 0);
+	
+	px[i] = x;
+	py[i] = y;
+}
+
+/*********************************************
+ * 開閉扉スイッチ
+ *********************************************/
+
+function flaged_door_new(i:int):void
+{
+	p2[i] = my.flags[p1[i]];
+	flaged_door_redraw(px[i], py[i], p2[i]);
+}
+
+function flaged_door_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var flag_num = p1[i];
+	var old_flag = p2[i];
+	var flag = my.flags[flag_num];
+	if( old_flag != flag ){
+		flaged_door_redraw(x, y, flag);
+		p2[i] = flag;
+	}
+}
+
+function flaged_door_redraw(x:int, y:int, flag:int):void
+{
+	if( flag ){
+		bg.put2( x/16, y/16, 0, 0 );
+		bg.put2( x/16, y/16+1, 0, 0 );
+	}else{
+		bg.put2( x/16, y/16, 60, 3 );
+		bg.put2( x/16, y/16+1, 60, 3 );
+	}
+}
+
+/*********************************************
  * 関数テーブル
  *********************************************/
 
@@ -591,7 +654,9 @@ public const PROCESS: void(int)[] = [ none_process,
 									  chest_process,
 									  lamp_process,
 									  gas_process,
-									  ghost_process
+									  ghost_process,
+									  switch_process,
+									  flaged_door_process
 									  ];
 
 public const NEW_FUNC: void(int)[] = [ none_process,
@@ -606,5 +671,7 @@ public const NEW_FUNC: void(int)[] = [ none_process,
 									   chest_new,
 									   lamp_new,
 									   gas_new,
-									   ghost_new
+									   ghost_new,
+									   switch_new,
+									   flaged_door_new
 									   ];

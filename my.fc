@@ -21,12 +21,15 @@ var on_x:int;
 var on_y:int;
 var jump_pow:int;
 var prev_in_water:int;
-var items:int[64];
+const ITEM_MAX = 32;
+var items:int[ITEM_MAX];
+const FLAG_MAX = 32;
+var flags:int[FLAG_MAX];
 
 public function init():void
 {
 	var i:int;
-	for( i, 0, 64 ){ items[i] = 1; }
+	for( i, 0, ITEM_MAX ){ items[i] = 1; }
 }
 
 private:
@@ -73,6 +76,11 @@ function check_on_enemy():int
 				y = en.py[i] - 10;
 				return i;
 			}
+		case en.TYPE_SWITCH:
+			if( math.abs(x-en.px[i])<14 && y>=(en.py[i]-16) && y < (en.py[i]-10) ){
+				y = en.py[i] - 16;
+				return i;
+			}
 		}
 	}
 	return -1;
@@ -101,7 +109,7 @@ function check_block():int
 	// 下方向
 	if( get_cell(x+4,y+8) || get_cell(x-4,y+8) ){
 		y = (y+8)/16*16 - 8;
-		r = en.CHECK_BOTTOM;
+		r = en.DIR_MASK_DOWN;
 	}
 
 	// 上方向
@@ -112,23 +120,23 @@ function check_block():int
 		var c = bg.cell_type(x-4+i*8,head_y);
 		if( c == bg.TYPE_WALL ){
 			y = head_y/16*16 + (16 + 5);
-			r = r | en.CHECK_TOP;
+			r = r | en.DIR_MASK_UP;
 		}elsif( (c & bg.TYPE_FLOOR) && mod16 < 8 ){
 			y = head_y/16*16 + (8 + 5);
-			r = r | en.CHECK_TOP;
+			r = r | en.DIR_MASK_UP;
 		}
 	}
 	
 	// 右方向
 	if( get_cell(x+5,y+6) || get_cell(x+5,y+1) || get_cell(x+5,y-4) ){
 		x = (x+6)/16*16 - 6;
-		r = r | en.CHECK_RIGHT;
+		r = r | en.DIR_MASK_RIGHT;
 	}
 
 	// 左方向
 	if( get_cell(x-5,y+6) || get_cell(x-5,y+1) || get_cell(x-5,y-4) ){
 		x = (x-5)/16*16 + 16 + 5;
-		r = r | en.CHECK_LEFT;
+		r = r | en.DIR_MASK_LEFT;
 	}
 	
 	return r;
@@ -210,7 +218,7 @@ public function process():void
 		
 		if( state == STATE_STAND ){
 			// 地上にいる
-			if( (hit & en.CHECK_BOTTOM) == 0){
+			if( (hit & en.DIR_MASK_DOWN) == 0){
 				// 床から落ちた
 				y += 2;
 				state = STATE_JUMP;
@@ -253,7 +261,7 @@ public function process():void
 		if( vy < 0 ){
 			//上昇中
 			if( limited_water && vy < -32 ){ vy = -32; } // 水の中の制限
-			if( hit & en.CHECK_TOP ){
+			if( hit & DIR_MASK_UP ){
 				// 頭をぶつけた
 				vy = 0;
 				jump_pow = 0;
@@ -263,7 +271,7 @@ public function process():void
 			if( vy > 64 ){ vy = 64; }
 			if( limited_water && vy > 32 ){ vy = 32; } // 水の中の制限
 			
-			if( hit & en.CHECK_BOTTOM ){
+			if( hit & DIR_MASK_DOWN ){
 				// 着地
 				vy = 0;
 				state = STATE_STAND;
