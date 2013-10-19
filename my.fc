@@ -290,6 +290,12 @@ public function process():void
 			}
 		}
 		
+		if( items[fs.ITEM_ID_CRAW] && (pad.cur & pad.UP) && get_cell_type(x,y) & bg.TYPE_LADDER ){
+			// はしごに登り始める
+			vx = 0;
+			state = STATE_LADDER;
+		}
+		
 		if( in_water && (pad.cur & (pad.A|pad.UP)) ){
 			vy = -32;
 			jump_pow = 10;
