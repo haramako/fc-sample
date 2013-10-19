@@ -616,7 +616,7 @@ function switch_process(i:int):void
 function flaged_door_new(i:int):void
 {
 	p2[i] = my.flags[p1[i]];
-	flaged_door_redraw(px[i], py[i], p2[i]);
+	p3[i] = 1;
 }
 
 function flaged_door_process(i:int):void
@@ -626,6 +626,12 @@ function flaged_door_process(i:int):void
 	var flag_num = p1[i];
 	var old_flag = p2[i];
 	var flag = my.flags[flag_num];
+
+	if( p3[i] ){
+		flaged_door_redraw(px[i], py[i], p2[i]);
+		p3[i] = 0;
+	}
+	
 	if( old_flag != flag ){
 		flaged_door_redraw(x, y, flag);
 		p2[i] = flag;
