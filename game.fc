@@ -6,6 +6,7 @@ use en;
 use my;
 use debug_menu;
 use event;
+use mem;
 
 const PALLET:int[] = incbin("character.chr.dat");
 
@@ -53,6 +54,7 @@ function start(): void
 
 	// パレットの初期化
 	ppu.put_in_lock( 0x3f00, PALLET, 32 );
+	mem.copy( bg.pallet, PALLET, 32 );
 
 	move_checkpoint(0);
 	my.set_map( bg.cur_area%16, bg.cur_area/16 );
@@ -161,3 +163,4 @@ function move_checkpoint(i:int):void
 	move_area( area );
 	set_last();
 }
+

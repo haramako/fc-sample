@@ -14,10 +14,10 @@ function ppu_clear():void
 	var i:int;
 	for( i, 0, 4 ){
 		ppu.put( ppu.pos(0,i*2)+0x400, bg.data_buf, 64, 0 );
-		ppu.wait_vsync();
+		ppu.wait_vsync_with_flag(2);
 	}
 	ppu.put( 0x27c0, bg.data_buf, 64, 0 );
-	ppu.wait_vsync();
+	ppu.wait_vsync_with_flag(2);
 }
 
 function event_start():void
@@ -29,7 +29,7 @@ function event_start():void
 	tail += fs.copy( tail, fs.ITEM_NAME_BASE+game_event_p1 );
 	tail += mem.strcpy( tail, _T("』を手に入れた") );
 	ppu.put( ppu.pos(6,4)+0x400, str, mem.strlen(str), 0 );
-	ppu.wait_vsync();
+	ppu.wait_vsync_with_flag(2);
 		
 	ppu.irq_setup = irq_setup;
 
@@ -38,13 +38,13 @@ function event_start():void
 		pad.update();
 		if( i > 60 && (pad.pushed & pad.A) ){ break; }
 		i += 1;
-		ppu.wait_vsync();
+		ppu.wait_vsync_with_flag(2);
 	}
 
 	ppu.lock();
 	ppu.irq_setup = ppu.null_func;
 	ppu.unlock();
-	ppu.wait_vsync();
+	ppu.wait_vsync_with_flag(2);
 
 }
 
