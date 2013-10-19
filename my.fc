@@ -202,11 +202,11 @@ public function process():void
 
 		hit = check_block();
 
-		if( (pad.cur & pad.UP) && get_cell_type(x,y) & bg.TYPE_LADDER ){
+		if( (pad.cur & pad.UP) && get_cell_type(x,y) & bg.TYPE_LADDER && math.abs(x%16-8) <= 4 ){
 			// はしごに登り始める
 			vx = 0;
 			state = STATE_LADDER;
-		}elsif( (pad.cur & pad.DOWN) && get_cell_type(x,y+8) & bg.TYPE_LADDER ){
+		}elsif( (pad.cur & pad.DOWN) && get_cell_type(x,y+8) & bg.TYPE_LADDER && math.abs(x%16-8) <= 4 ){
 			// はしごに下り始める
 			state = STATE_LADDER;
 			vx = 0;
@@ -290,10 +290,12 @@ public function process():void
 			}
 		}
 		
-		if( items[fs.ITEM_ID_CRAW] && (pad.cur & pad.UP) && get_cell_type(x,y) & bg.TYPE_LADDER ){
-			// はしごに登り始める
-			vx = 0;
-			state = STATE_LADDER;
+		if( items[fs.ITEM_ID_CRAW] ){
+			if( (pad.cur & pad.UP) && get_cell_type(x,y) & bg.TYPE_LADDER && math.abs(x%16-8) <= 2 ){
+				// はしごに登り始める
+				vx = 0;
+				state = STATE_LADDER;
+			}
 		}
 		
 		if( in_water && (pad.cur & (pad.A|pad.UP)) ){
@@ -304,9 +306,7 @@ public function process():void
 		
 	case STATE_LADDER: // はしご
 		x = (x/16)*16+8;
-		if( (pad.cur & (pad.LEFT|pad.RIGHT)) && !get_cell(x,y) ){
-			state = STATE_JUMP;
-		}elsif( pad.cur & pad.UP ){
+		if( pad.cur & pad.UP ){
 			// 登る
 			if( get_cell_type(x,y-4) != bg.TYPE_WALL ){
 				if( get_cell_type(x,y) & bg.TYPE_LADDER ){
@@ -324,7 +324,12 @@ public function process():void
 			}else{
 				y += 1;
 			}
+		}elsif( (pad.cur & (pad.LEFT|pad.RIGHT)) && !get_cell(x,y) ){
+			vx = 0;
+			vy = 0;
+			state = STATE_JUMP;
 		}
+
 	}
 
 	// 刺
