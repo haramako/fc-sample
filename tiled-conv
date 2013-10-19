@@ -181,6 +181,7 @@ class TiledConverter
         checkpoints[prop['id'].to_i] = {name:obj['name'], area:area, x:x*16, y:y*16}
       when 'enemy'
         area, x, y = px2area( obj['x'], obj['y'] )
+        type = obj['name'].empty? ? prop['type'] : obj['name']
         enemy[area] << {type:prop['type'], x:x, y:y, p1:prop['p1'].to_i, p2:prop['p2'].to_i, p3:prop['p3'].to_i }
       when 'item'
         area, x, y = px2area( obj['x'], obj['y'] )
