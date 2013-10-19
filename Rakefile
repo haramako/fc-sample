@@ -18,3 +18,5 @@ end
 task :clean do
   sh 'rm -rf a.*'
 end
+
+task :guard => :default

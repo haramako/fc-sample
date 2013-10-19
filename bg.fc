@@ -2,6 +2,8 @@ options(bank:-2);
 
 use * from common;
 use rle;
+use game;
+use my;
 
 var data:int[256] options(address:0x6000);
 var enemy:int[256] options(address:0x6100);
@@ -15,8 +17,6 @@ var buf:int[256];
 var pal:int[64];
 
 var cur_area:int;
-var scroll_before_scroll:void();
-var scroll_after_scroll:void();
 
 const PAL:int[] =
 	[0,0,0,0,0,0,0,0,
@@ -48,7 +48,7 @@ const TYPE:int[] =
 	[   0,   0,   0,   0,   0,   0,   0,   0,
 	    0,   0,   0,   0,   0,   0,   0,   0,
 	    0,   0,   0,   0,   0,   0,   0,   0,
-	 0x20,0x20,0x20,0x20,0x20,   0,   0,   0,
+	 0x20,0x20,0x20,0x20,0x20,   0,   0,   1,
 		0,   1,   3,   0,   0,   0,0x13,0x10,
 		4,   4,   4,   4,   4,   0,   0,   0,
 		0,   0,   0,   0,   0,   0,   0,   0,
@@ -57,8 +57,6 @@ const TYPE:int[] =
 function init():void
 {
 	on_scroll = on_scroll_null;
-	scroll_before_scroll = ppu.null_func;
-	scroll_after_scroll = ppu.null_func;
 	cur_area = 0;
 	buf_idx = 0;
 	ppu.on_wait_vsync = ->void(){ buf_idx = 0; };
@@ -98,19 +96,33 @@ function fetch_area(area:int):void
 	enemy_num = len/6;
 }
 
+function scroll(dir:int):void
+{
+	switch(dir){
+	case DIR_UP:
+		scroll_up();
+	case DIR_DOWN:
+		scroll_down();
+	case DIR_LEFT:
+		scroll_left();
+	case DIR_RIGHT:
+		scroll_right();
+	}
+}
+
 function scroll_left():void
 {
 	var x = 15;
-	var i:int;
 	cur_area -= 1;
 	fetch_area(cur_area);
-	scroll_before_scroll();
 	mmc3.MIRROR = 1; // horizontal
-	while(1){
+	loop(){
 		draw_map_vertical(x);
 
+		var i:int;
 		for(i, 0, 2){
-			on_scroll(7,0);
+			my.x += (116+GIFF_TABLE[x])/16;
+			my.draw();
 			ppu.scroll1 = x*16+8-i*8;
 			if( i == 1 ){ ppu.put( 0x23c0 + x/2, &pal[x/2], 8, ppu.ATTRIBUTE ); }
 			ppu.wait_vsync();
@@ -119,22 +131,21 @@ function scroll_left():void
 		if( x == 0 ){ break; }
 		x -= 1;
 	}
-	scroll_after_scroll();
 }
 
 function scroll_right():void
 {
 	var x = 0;
-	var i:int;
 	cur_area += 1;
 	fetch_area(cur_area);
-	scroll_before_scroll();
 	mmc3.MIRROR = 1; // horizontal
-	while(1){
+	loop(){
 		draw_map_vertical(x);
 
+		var i:int;
 		for(i, 0, 2){
-			on_scroll(-7,0);
+			my.x -= (116+GIFF_TABLE[x])/16;
+			my.draw();
 			ppu.scroll1 = x*16+i*8+8;
 			if( i == 1 ){ ppu.put( 0x23c0 + x/2, &pal[x/2], 8, ppu.ATTRIBUTE ); }
 			ppu.wait_vsync();
@@ -143,22 +154,21 @@ function scroll_right():void
 		if( x == 15 ){ break; }
 		x += 1;
 	}
-	scroll_after_scroll();
 }
 
 function scroll_up():void
 {
 	var y = 14;
-	var i:int;
 	cur_area -= fs.MAP_WIDTH;
 	fetch_area(cur_area);
-	scroll_before_scroll();
 	mmc3.MIRROR = 0; // vertical
-	while(1){
+	loop(){
 		draw_map_horizontal(y);
 
+		var i:int;
 		for(i, 0, 2){
-			on_scroll(0,7);
+			my.y += (116+GIFF_TABLE[y])/16;
+			my.draw();
 			ppu.scroll2 = y*16+8-i*8;
 			if( ppu.scroll2 == 240 ){ ppu.scroll2 = 0; }
 			ppu.wait_vsync();
@@ -167,22 +177,21 @@ function scroll_up():void
 		if( y == 0 ){ break; }
 		y -= 1;
 	}
-	scroll_after_scroll();
 }
 
 function scroll_down():void
 {
 	var y = 0;
-	var i:int;
 	cur_area += fs.MAP_WIDTH;
 	fetch_area(cur_area);
-	scroll_before_scroll();
 	mmc3.MIRROR = 0; // vertical
-	while(1){
+	loop(){
 		draw_map_horizontal(y);
 
+		var i:int;
 		for(i, 0, 2){
-			on_scroll(0,-7);
+			my.y -= (116+GIFF_TABLE[y])/16;
+			my.draw();
 			ppu.scroll2 = y*16+i*8+8;
 			if( ppu.scroll2 == 240 ){ ppu.scroll2 = 0; }
 			ppu.wait_vsync();
@@ -191,7 +200,6 @@ function scroll_down():void
 		if( y == 14 ){ break; }
 		y += 1;
 	}
-	scroll_after_scroll();
 }
 
 function put_in_lock(x:int, y:int, n:int):void

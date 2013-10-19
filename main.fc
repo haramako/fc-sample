@@ -5,6 +5,7 @@ include header ( "macro.asm" );
 use * from common;
 use game;
 use en;
+use my;
 
 include('character.chr');
 include('bg_base.chr');
@@ -18,6 +19,7 @@ function main():void
 	ppu.init();
 	bg.init();
 	en.init();
+	my.init();
 
 	nes.APU_INTERRUPT = 0x40; // disable APU IRQ
 	mmc3.MIRROR = 1; // horizontal

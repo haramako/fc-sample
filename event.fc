@@ -45,7 +45,6 @@ function event_start():void
 	ppu.unlock();
 	ppu.wait_vsync();
 
-	calc_item();
 }
 
 function irq_setup():void;
