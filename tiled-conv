@@ -70,7 +70,6 @@ class BankedBuffer
 
     # バンクをまたぐなら
     if ((@buf.size+data.size) / BANK_SIZE) != (@buf.size / BANK_SIZE)
-      # pp [@buf.size, data.size, BANK_SIZE - @buf.size % BANK_SIZE]
       @buf.concat Array.new(BANK_SIZE - @buf.size % BANK_SIZE){0}
     end
 
@@ -100,7 +99,7 @@ class TiledConverter
 
   ENEMY_TYPE = {
     slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8, chest:9, lamp:10, 
-    gas:11, ghost:12, switch:13, flaged_door:14
+    gas:11, ghost:12, switch:13, flaged_door:14, portal:15,
   }
 
   def initialize( filename )
@@ -200,7 +199,13 @@ class TiledConverter
     @en_base = @buf.cur
     enemy.each.with_index do |area,i|
       area = area.map do |en| 
-        type = ENEMY_TYPE[ en[:type].downcase.to_sym ]
+        if /^portal:(.+)/ === en[:type].downcase
+          # ポータルの場合
+          type = (128 | ENEMY_TYPE[ $1.downcase.to_sym ])
+        else
+          type = ENEMY_TYPE[ en[:type].downcase.to_sym ]
+          # それ以外
+        end
         raise unless type
         [type, en[:x], en[:y], en[:p1] % 256, en[:p2] % 256, en[:p3] % 256]
       end

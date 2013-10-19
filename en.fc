@@ -19,6 +19,7 @@ public const TYPE_GAS = 11;
 public const TYPE_GHOST = 12;
 public const TYPE_SWITCH = 13;
 public const TYPE_FLAGED_DOOR = 14;
+public const TYPE_PORTAL = 15;
 
 public const MAX = 16;
 public var type:int[MAX];
@@ -168,8 +169,10 @@ function slime_process(i:int):void
 	py[i] = y;
 	p1[i] = dir;
 	p3[i] = vy;
-	
+
 	check_hit(i,10);
+	
+	if( check_outside(x,y) ){ type[i] = 0; }
 }
 
 /*********************************************
@@ -639,6 +642,46 @@ function flaged_door_redraw(x:int, y:int, flag:int):void
 }
 
 /*********************************************
+ * 開閉扉スイッチ
+ *********************************************/
+
+function portal_new(i:int):void
+{
+	p5[i] = 0;
+}
+
+function portal_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var freq = p3[i];
+	var rest = p5[i];
+	
+	if( anim % 64 == 0 ){
+		if( rest ){
+			rest -= 1;
+		}else{
+			var n = new();
+			if( n != -1 ){
+				type[n] = p4[i];
+				px[n] = x;
+				py[n] = y;
+				p1[n] = p1[i];
+				p2[n] = p2[i];
+				NEW_FUNC[p4[i]](i);
+			}
+			rest = freq;
+		}
+	}
+
+	if( rest == 0 ){
+		gr_sprite2(x, y, 168+anim/4%2*4, 0 );
+	}
+
+	p5[i] = rest;
+}
+
+/*********************************************
  * 関数テーブル
  *********************************************/
 
@@ -656,7 +699,8 @@ public const PROCESS: void(int)[] = [ none_process,
 									  gas_process,
 									  ghost_process,
 									  switch_process,
-									  flaged_door_process
+									  flaged_door_process,
+									  portal_process
 									  ];
 
 public const NEW_FUNC: void(int)[] = [ none_process,
@@ -673,5 +717,6 @@ public const NEW_FUNC: void(int)[] = [ none_process,
 									   gas_new,
 									   ghost_new,
 									   switch_new,
-									   flaged_door_new
+									   flaged_door_new,
+									   portal_new
 									   ];

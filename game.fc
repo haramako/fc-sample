@@ -17,8 +17,14 @@ function init_area_enemy():void
 	var n = 0;
 	for( n, 0, bg.enemy_num ){
 		var idx = n*6;
+		var type = bg.enemy[idx];
 		var i = en.new();
-		en.type[i] = bg.enemy[idx];
+		if( type & 128 ){
+			en.type[i] = en.TYPE_PORTAL;
+			en.p4[i] = type & 127;
+		}else{
+			en.type[i] = type;
+		}
 		en.px[i] = bg.enemy[idx+1] * 16 + 8;
 		en.py[i] = bg.enemy[idx+2] * 16 + 8;
 		en.p1[i] = bg.enemy[idx+3];
