@@ -225,6 +225,7 @@ class TiledConverter
      ['gas_mask', 'ガスマスク', 'ガスにあたっても死なない'],
      ['weight', 'おもり', '水に潜れるようになる'],
      ['craw', 'かぎ爪', 'はしごに飛び乗れる'],
+     ['wing', '天使の羽', 'すきなチェックポイントに飛べる'],
     ]
 
   def conv_item_data

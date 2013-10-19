@@ -55,6 +55,7 @@ function start(): void
 	ppu.put_in_lock( 0x3f00, PALLET, 32 );
 
 	move_checkpoint(0);
+	my.set_map( bg.cur_area%16, bg.cur_area/16 );
 
 	ppu.unlock();
 	
@@ -90,10 +91,10 @@ function start(): void
 			scroll_dir = DIR_UP;
 		}
 		if( scroll_dir != -1 ){
-			my.set_map( bg.cur_area%16, bg.cur_area/16 );
 			bg.scroll( scroll_dir );
 			set_last();
 			init_area_enemy();
+			my.set_map( bg.cur_area%16, bg.cur_area/16 );
 		}
 
 		// イベント
@@ -101,6 +102,8 @@ function start(): void
 			switch( game_event ){
 			case event.ID_GET_ITEM:
 				event.event_start();
+			case event.ID_MOVE_AREA:
+				move_area(game_event_p1);
 			}
 			game_event = 0;
 		}

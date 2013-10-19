@@ -1,6 +1,7 @@
 options( bank_count: 16, bank: -1 );
 
 include header ( "macro.asm" );
+include( "main.asm" );
 
 use * from common;
 use game;

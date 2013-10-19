@@ -3,6 +3,8 @@ options(bank:2, org:0xa000);
 use * from common;
 use mem;
 use my;
+use game;
+use event;
 
 include( "menu.asm" );
 
@@ -28,7 +30,7 @@ public function start():void
 	ppu.fill_in_lock( 0x2400, 4*32, 0 );
 	ppu.put_in_lock( 0x2400+32*2+4, _T("アイテム　　記憶　　　地図　"), 14 );
 
-	init_scene(scene);
+	SCENE_INIT_FUNC[scene]();
 	ppu.unlock();
 
 	loop(){
@@ -36,14 +38,17 @@ public function start():void
 		if( pad.pushed & (pad.B|pad.SELECT) ){ break; }
 		if( pad.pushed & pad.LEFT ){
 			ppu.lock();
-			init_scene((scene+2)%SCENE_MAX);
+			scene = (scene+2)%SCENE_MAX;
+			SCENE_INIT_FUNC[scene]();
 			ppu.unlock();
 		}elsif( pad.pushed & pad.RIGHT ){
 			ppu.lock();
-			init_scene((scene+1)%SCENE_MAX);
+			scene = (scene+1)%SCENE_MAX;
+			SCENE_INIT_FUNC[scene]();
 			ppu.unlock();
 		}elsif( pad.pushed & pad.A ){
-			process_scene();
+			var r = SCENE_PROCESS_FUNC[scene]();
+			if( r ){ break; }
 		}
 		ppu.sprite( 28 + scene * 40     , 11, 40, 0 );
 		ppu.sprite( 28 + scene * 40 + 32, 11, 42, 0 );
@@ -62,25 +67,6 @@ public function start():void
 }
 
 function irq_setup():void;
-
-function init_scene(s:int):void
-{
-	scene = s;
-	switch(scene){
-	case SCENE_ITEM: item_init();
-	case SCENE_MEMORY: memory_init();
-	case SCENE_MAP: map_init();
-	}
-}
-
-function process_scene():void
-{
-	switch(scene){
-	case SCENE_ITEM: item_process();
-	case SCENE_MEMORY: memory_process();
-	case SCENE_MAP: map_process();
-	}
-}
 
 /*********************************************
  * アイテム画面
@@ -103,12 +89,13 @@ function item_init():void
 
 }
 
-function item_process():void
+function item_process():int
 {
 	loop(){
 		pad.update();
 		gr_sprite2( (item_idx%6)*32+40, (item_idx/6)*32+40, 40, 0 );
-		if( pad.pushed & pad.B ){ break; }
+		if( pad.pushed & pad.B ){ return 0; }
+		if( pad.pushed & pad.SELECT ){ return 1; }
 		if( pad.pushed & pad.UP ){ item_idx += 12; }
 		if( pad.pushed & pad.DOWN ){ item_idx += 6; }
 		if( pad.pushed & pad.RIGHT ){ item_idx += 1; }
@@ -192,16 +179,21 @@ function memory_init():void
 	ppu.fill_in_lock( 0x2400+4*32, 0x400-4*32, 0 );
 }
 
-function memory_process():void
+function memory_process():int
 {
 }
 
 /*********************************************
  * 記憶画面
  *********************************************/
+var map_x:int;
+var map_y:int;
+
 function map_init():void
 {
 	ppu.fill_in_lock( 0x2400+4*32, 0x400-4*32, 0 );
+	
+	if( !my.items[fs.ITEM_ID_MAP] ){ return; }
 	
 	var x = 0;
 	var y = 0;
@@ -209,30 +201,62 @@ function map_init():void
 		for( x, 0, 16 ){
 			var m = my.get_map(x,y);
 			if( m ){ m = 13; }
-			if( y*16+x == bg.cur_area ){ m = 15; }
 			ppu.gr_buf[x] = m;
 		}
 		ppu.put_in_lock( (0x2400+8*32+8)+(<int16>y)*32, ppu.gr_buf, 16 );
 	}
 }
 
-function map_process():void
+function map_process():int
 {
+	if( !my.items[fs.ITEM_ID_MAP] ){ return 0; }
+	
+	var ax = bg.cur_area % 16;
+	var ay = bg.cur_area / 16;
+	loop(){
+		pad.update();
+		if( pad.pushed & pad.B ){ return 0; }
+		if( pad.pushed & pad.SELECT ){ return 1; }
+		
+		if( pad.pushed & pad.UP ){ ay = (ay+15)%16; }
+		if( pad.pushed & pad.DOWN ){ ay = (ay+1)%16; }
+		if( pad.pushed & pad.LEFT ){ ax = (ax+15)%16; }
+		if( pad.pushed & pad.RIGHT ){ ax = (ax+1)%16; }
+
+		if( my.items[fs.ITEM_ID_WING] && pad.pushed & pad.A ){
+			var area = ay*16 + ax;
+			game_event = event.ID_MOVE_AREA;
+			game_event_p1 = area;
+			return 1;
+		}
+			
+		ppu.sprite( ax*8 + 64, ay*8 + 64, 46, 1 );
+		map_draw();
+		ppu.wait_vsync();
+	}
 }
 
 function map_draw():void
 {
+	if( !my.items[fs.ITEM_ID_MAP] ){ return; }
+	var ax = bg.cur_area % 16;
+	var ay = bg.cur_area / 16;
+	ppu.sprite( ax*8 + 64, ay*8 + 64, 48, 1 );
+
 	var i:int;
 	for( i, 0, fs.MAP_CHECKPOINT_NUM ){
 		var cp = fs.MAP_CHECKPOINT[i];
 		var area = fs.MAP_CHECKPOINT_DATA[cp];
-		var ax = area % 16;
-		var ay = area / 16;
+		ax = area % 16;
+		ay = area / 16;
 		if( my.get_map(ax,ay) ){
 			ppu.sprite( ax*8 + 64, ay*8 + 64, 44, 0 );
 		}
 	}
+
 }
 
 const SCENE_DRAW_FUNC = [ppu.null_func, ppu.null_func, map_draw];
+const SCENE_INIT_FUNC = [item_init, memory_init, map_init];
+const SCENE_PROCESS_FUNC = [item_process, memory_process, map_process];
 
