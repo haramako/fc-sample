@@ -120,13 +120,13 @@ function check_block():int
 	}
 	
 	// 右方向
-	if( get_cell(x+5,y+6) || get_cell(x+5,y-4) ){
+	if( get_cell(x+5,y+6) || get_cell(x+5,y+1) || get_cell(x+5,y-4) ){
 		x = (x+6)/16*16 - 6;
 		r = r | en.CHECK_RIGHT;
 	}
 
 	// 左方向
-	if( get_cell(x-5,y+6) || get_cell(x-5,y-4) ){
+	if( get_cell(x-5,y+6) || get_cell(x-5,y+1) || get_cell(x-5,y-4) ){
 		x = (x-5)/16*16 + 16 + 5;
 		r = r | en.CHECK_LEFT;
 	}
@@ -167,9 +167,11 @@ public function process():void
 		// 地上
 		
 		// 左右移動
-		vx = 0;
-		if( pad.cur & pad.RIGHT ){ vx = 16; dir = 0; }
-		if( pad.cur & pad.LEFT ){ vx = -16; dir = 1; }
+		if( pad.cur & pad.RIGHT ){ vx += 4; dir = 0; }
+		if( pad.cur & pad.LEFT ){ vx -= 4; dir = 1; }
+		if( !(pad.cur & (pad.RIGHT|pad.LEFT)) ){ vx = 0; }
+		if( vx < -16 ){ vx = -16; }
+		if( vx > 16 ){ vx = 16; }
 
 		var evx = 0, evy = 0;
 		if( state == STATE_ON_ENEMY ){
@@ -201,7 +203,7 @@ public function process():void
 		}elsif( pad.pushed & (pad.A|pad.UP) ){
 			// ジャンプした！
 			y -= 1;
-			vy = -42;
+			vy = -36;
 			jump_pow = 10;
 			state = STATE_JUMP;
 		}
@@ -232,8 +234,8 @@ public function process():void
 		if( vx < -16 ){ vx = -16; }
 		x += (vx+giff)/16;
 		
-		y += (vy+giff) / 16;
 		vy += 2;
+		y += vy / 16;
 		if( limited_water ){ vy -= 4; }
 
 		hit = check_block();

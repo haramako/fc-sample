@@ -110,7 +110,7 @@ function check_block(px:int*, py:int*):int
 
 function check_outside(x:int, y:int):int
 {
-	return ( x >= 240 || x < 16 || y < 16 || y >= 240 );
+	return ( x < 16 || x >= 240 || y < 16 || y >= 240 );
 }
 
 function check_hit(i:int, size:int):void
@@ -193,8 +193,8 @@ function wow_process(i:int):void
 		if( bg.cell_type(x+vx*8,y+vy*8) & bg.TYPE_STOP || check_outside(x,y) ){
 			dir = (2+dir)%4;
 		}
-		x += vx;
-		y += vy;
+		x += DIR_VX[dir];
+		y += DIR_VY[dir];
 
 		var cx = x % 16;
 		var cy = y % 16;
