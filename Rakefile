@@ -7,10 +7,6 @@ task :makoto => ['fs_config.fc','text.chr'] do
   sh "ruby ../bin/fc -d -t nes main.fc"
 end
 
-file 'text.chr' do
-  sh 'ruby ./img2chr.rb'
-end
-
 file 'fs_config.fc' => ['tiled-conv', 'map.json'] do
   sh 'ruby ./tiled-conv map.json > fs_config.fc'
 end

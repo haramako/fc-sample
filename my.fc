@@ -25,11 +25,14 @@ const ITEM_MAX = 32;
 var items:int[ITEM_MAX];
 const FLAG_MAX = 32;
 var flags:int[FLAG_MAX];
+const MAP_FLAG_MAX = 64;
+var map_flag:int[MAP_FLAG_MAX];
 
 public function init():void
 {
 	var i:int;
 	for( i, 0, ITEM_MAX ){ items[i] = 1; }
+	for( i, 0, MAP_FLAG_MAX ){ map_flag[i] = 0; }
 }
 
 private:
@@ -347,3 +350,18 @@ public function draw():void
 	}
 }
 
+public function get_map(x:int, y:int):int
+{
+	var idx = y*2 + x/8;
+	var n = map_flag[idx];
+	var cx = 7 - x % 8;
+	return n & (1 << cx);
+}
+
+public function set_map(x:int, y:int):void
+{
+	var idx = y*2 + x/8;
+	var n = map_flag[idx];
+	var cx = 7 - x % 8;
+	map_flag[idx] = n | (1 << cx);
+}
