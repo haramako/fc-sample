@@ -90,6 +90,7 @@ function start(): void
 			scroll_dir = DIR_UP;
 		}
 		if( scroll_dir != -1 ){
+			my.set_map( bg.cur_area%16, bg.cur_area/16 );
 			bg.scroll( scroll_dir );
 			set_last();
 			init_area_enemy();
@@ -108,7 +109,9 @@ function start(): void
 		if( pad.pushed & pad.START ){
 			debug_menu.start();
 		}elsif( pad.pushed & pad.SELECT ){
+			var old_bank = mmc3.set_pbank(1, PBANK_MENU);
 			menu.start();
+			mmc3.set_pbank( 1, old_bank );
 		}
 	}
   

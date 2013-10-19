@@ -15,6 +15,9 @@ const CBANK_BG_BASE = 8;
 const CBANK_TEXT = 16;
 const CBANK_ITEM = 24;
 
+const PBANK_MENU = 2;
+const PBANK_FS = 4;
+
 const GIFF_TABLE = [0,8,4,12, 2,10,6,14, 1,9,5,13, 3,11,7,15];
 public var anim:int;
 var giff:int;
