@@ -75,7 +75,7 @@ function check_on_enemy():int
 				return i;
 			}
 		case en.TYPE_FROG:
-			if( items[fs.ITEM_ID_BOOTS] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
+			if( items[fs.ITEM_ID_SANDAL] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
 				y = en.py[i] - 10;
 				return i;
 			}

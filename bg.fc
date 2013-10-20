@@ -160,7 +160,7 @@ function after_scroll(new_area:int, old_area:int):void
 	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 1*fs.MAP_WIDTH+4 ){ light_up(); }
 }
 
-const VRAM_PALLET = 0x3fc0;
+const VRAM_PALLET = 0x3f00;
 
 function pal_down(pal:int*, size:int, pow:int):void
 {

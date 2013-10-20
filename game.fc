@@ -82,6 +82,7 @@ function start(): void
 			move_to_last();
 		}
 
+		// スクロール
 		var scroll_dir = -1;
 		if( my.x < 8 ){
 			scroll_dir = DIR_LEFT;
