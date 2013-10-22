@@ -12,7 +12,5 @@ file 'fs_config.fc' => ['map.json'] do
 end
 
 task :clean do
-  sh 'rm -rf a.*'
+  sh 'rm -rf a.* fs_data* fs_config.fc'
 end
-
-task :guard => :default
