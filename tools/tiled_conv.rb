@@ -116,64 +116,75 @@ class TiledConverter
 
   # BGイメージの作成
   def make_bg_image
-    require 'gd2-ffij'
-    img = GD2::Image.import( 'res/character.chr.bmp' )
+    begin
+      require 'gd2-ffij'
+      img = GD2::Image.import( 'res/character.chr.bmp' )
 
-    tset = NesTool::TileSet.new
-    tset.add_from_img( img )
-    tset.reflow!
+      tset = NesTool::TileSet.new
+      tset.add_from_img( img )
+      tset.reflow!
 
-    pal = []
-    img.palette.each do |c|
-      pal[c.index] = c if c.index
-    end
-    pal = pal[0...64]
+      pal = []
+      img.palette.each do |c|
+        pal[c.index] = c if c.index
+      end
+      pal = pal[0...64]
 
-    base_pal = JSON.parse( IO.read('res/nes_palette.json') )
-    pal_data = pal.map do |p|
-      next 13 unless p
-      min_idx = -1
-      min = 999
-      base_pal.each.with_index do |bp,i|
-        d = (p.r - bp[0]).abs + (p.g - bp[1]).abs + (p.b - bp[2]).abs
-        if d < min
-          min = d
-          min_idx = i
-          break if d == 0
+      base_pal = JSON.parse( IO.read('res/nes_palette.json') )
+      pal_set = pal.map do |p|
+        next 13 unless p
+        min_idx = -1
+        min = 999
+        base_pal.each.with_index do |bp,i|
+          d = (p.r - bp[0]).abs + (p.g - bp[1]).abs + (p.b - bp[2]).abs
+          if d < min
+            min = d
+            min_idx = i
+            break if d == 0
+          end
+        end
+        min_idx
+      end
+
+      tile_pals = []
+      tset.tiles.each_slice(128).each do |tiles|
+        tile_pals << tiles.each_slice(4).map{|t| t[0].palette % 4}
+      end
+
+      JSON.dump( {pal_set:pal_set, tile_pals: tile_pals}, open('res/tmp_pal.json','w') ) # 一時的に保存
+
+      common_tiles = tset.tiles.slice!(0,128) # 共通パーツ相当の128タイルを削除する
+      bin = tset.bin
+      IO.write("res/bg0.chr", bin[0...8192])
+      IO.write("res/bg1.chr", bin[8192..-1])
+
+      # 共通パーツの作成
+      common = NesTool::TileSet.new
+      4.times{ common.tiles.concat common_tiles }
+      anim = NesTool::TileSet.new
+      anim.add_from_img( GD2::Image.import('res/anim.bmp') )
+      anim.reflow!
+      [[0,24]].each do |src,dest|
+        src *= 4
+        dest *= 4
+        4.times do |i| 
+          common.tiles[dest+i*128...dest+i*128+4] = anim.tiles[src+i*4...src+i*4+4]
         end
       end
-      min_idx
+      IO.write("res/bg_common.chr", common.bin)
+
+    rescue LoadError
+      json = JSON.parse( IO.read('res/tmp_pal.json') ) 
+      pal_set = json['pal_set']
+      tile_pals = json['tile_pals']
     end
 
-    @pal_set = pal_data
+    @pal_set = pal_set
     @tile_pal_base = @buf.cur
-    tset.tiles.each_slice(128).each do |tiles|
-      @buf.add tiles.each_slice(4).map{|t| t[0].palette % 4}
+    tile_pals.each do |pals|
+      @buf.add pals
     end
 
-    common_tiles = tset.tiles.slice!(0,128) # 共通パーツ相当の128タイルを削除する
-    bin = tset.bin
-    IO.write("res/bg0.chr", bin[0...8192])
-    IO.write("res/bg1.chr", bin[8192..-1])
-
-    # 共通パーツの作成
-    common = NesTool::TileSet.new
-    4.times{ common.tiles.concat common_tiles }
-    anim = NesTool::TileSet.new
-    anim.add_from_img( GD2::Image.import('res/anim.bmp') )
-    anim.reflow!
-    [[0,24]].each do |src,dest|
-      src *= 4
-      dest *= 4
-      4.times do |i| 
-        common.tiles[dest+i*128...dest+i*128+4] = anim.tiles[src+i*4...src+i*4+4]
-      end
-    end
-    IO.write("res/bg_common.chr", common.bin)
-
-  rescue LoadError
-    STDERR.puts 'WARING: make_bg_image failed'
-    STDERR.puts $!
   end
 
   # タイルデータの収集

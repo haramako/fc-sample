@@ -40,8 +40,8 @@ function start(): void
 {
 	// ppu lock状態で入ってくる
 	
-	mmc3.set_cbank( 0, 0 );
-	mmc3.set_cbank( 1, 2 );
+	mmc3.set_cbank( 0, CBANK_BG_COMMON );
+	mmc3.set_cbank( 1, CBANK_BG );
 	mmc3.set_cbank( 2, CBANK_SPRITE+0 );
 	mmc3.set_cbank( 3, CBANK_SPRITE+1 );
 	mmc3.set_cbank( 4, CBANK_SPRITE+2 );
