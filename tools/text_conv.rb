@@ -92,17 +92,16 @@ class TextConverter
   end
 
   def make_image( filename )
-    require 'RMagick'
-    src = Magick::ImageList.new('misaki_gothic.png')[0]
-    dest = Magick::Image.new(128,128)
-    @using.each.with_index do |c,i|
-      cj = c.encode('ISO-2022-JP')
-      cp = cj.codepoints.to_a[3..4].map{|x| x-32 }
-      char = src.crop( (cp[1]-1)*8, (cp[0]-1)*8, 8, 8 )
-      dest.composite!( char, (i%16)*8, (i/16)*8, Magick::OverCompositeOp )
+    require 'gd2-ffij'
+    src = GD2::Image.import('res/misaki_gothic.png')
+    GD2::Image.new(128,128) do |dest|
+      @using.each.with_index do |c,i|
+        cj = c.encode('ISO-2022-JP')
+        cp = cj.codepoints.to_a[3..4].map{|x| x-32 }
+        dest.copy_from( src, (i%16)*8, (i/16)*8, (cp[1]-1)*8, (cp[0]-1)*8, 8, 8 )
+      end
+      dest.export(filename)
     end
-    dest = dest.negate
-    dest.write(filename)
   end
 
 end

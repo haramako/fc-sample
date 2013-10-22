@@ -19,15 +19,7 @@ var pallet:int[32];
 
 var cur_area:int;
 
-const PAL:int[] =
-	[0,0,0,0,0,0,0,0,
-	 0,0,0,0,0,0,0,0,
-	 0,0,0,0,0,0,0,0,
-	 2,2,2,2,2,0,0,0,
-	 1,1,1,0,0,0,0,0,
-	 0,0,0,0,0,0,0,0,
-	 1,1,0,0,0,0,0,0,
-	 0,0,2,2,3,3,0,1];
+var tile_pal:int[64] options(address:0x6300);
 
 const TYPE_WALL = 1 << 0;
 const TYPE_FLOOR = 1 << 1;
@@ -45,15 +37,37 @@ const TYPE_WATER = 1 << 5;
 // 2
 // 4
 // 8
-const TYPE:int[] =
+const TILE_TYPE:int[] =
 	[   0,   0,   0,   0,   0,   0,   0,   0,
-	    0,   0,   0,   0,   0,   0,   0,   0,
-	    0,   0,   0,   0,   0,   0,   0,   0,
+	    0,   1,   3,0x13,0x10,   0,   0,   0,
+	    0,   1,   1,   0,   4,   4,   4,   4,
 	 0x20,0x20,0x20,0x20,0x20,   0,   0,   1,
+
+		// 中
 		0,   1,   3,   0,   0,   0,0x13,0x10,
 		4,   4,   4,   4,   4,   0,   0,   0,
 		0,   0,   0,   0,   0,   0,   0,   0,
-		1,   0,   1,   3,   1,   3,   0,   8];
+		1,   0,   1,   3,   1,   3,   0,   8,
+
+		// 外
+		1,   1,   1,   3,   0,   0,0x13,0x10,
+		1,   1,   1,   0,   0,   0,   0,   0,
+		0,   0,   0,   0,   0,   0,   0,   0,
+		1,   0,   1,   3,   1,   3,   0,   0,
+
+		// 西
+		1,   1,   1,   3,   0,   0,0x13,0x10,
+		1,   1,   1,   0,   0,   0,   0,   0,
+		0,   0,   0,   0,   0,   0,   0,   0,
+		1,   0,   1,   3,   1,   3,   0,   0,
+
+		// 下
+		1,   1,   1,   3,   0,   0,0x13,0x10,
+		1,   1,   1,   0,   0,   0,   0,   0,
+		0,   0,   0,   0,   0,   0,   0,   0,
+		1,   0,   1,   3,   1,   3,   0,   0];
+
+var tile_type:int[64] options( address:0x6340 );
 
 private:
 
@@ -62,6 +76,9 @@ public function init():void
 	cur_area = 0;
 	buf_idx = 0;
 	ppu.on_wait_vsync = ->void(){ buf_idx = 0; };
+	fs.copy( tile_pal, fs.TILE_PAL_BASE+0 );
+	fs.copy( &tile_pal[32], fs.TILE_PAL_BASE+1 );
+	mem.copy( tile_type, TILE_TYPE, 64 );
 }
 
 public function cell(x:int, y:int):int
@@ -71,7 +88,7 @@ public function cell(x:int, y:int):int
 
 public function cell_type(x:int, y:int):int
 {
-	return TYPE[data[(y/16)*16 + x/16]];
+	return tile_type[data[(y/16)*16 + x/16]];
 }
 
 function set_pal(x:int, y:int, _pal:int):int
@@ -132,6 +149,18 @@ public function scroll(dir:int):void
 {
 	var old_area = cur_area;
 	var new_area = cur_area + DIR_VY[dir]*fs.MAP_WIDTH + DIR_VX[dir];
+
+	var pal = fs.AREA_TYPES[new_area];
+	if( pal ){
+		fs.copy( &tile_pal[32], fs.TILE_PAL_BASE+pal );
+		mem.copy( &tile_type[32], &TILE_TYPE[pal*32], 32 );
+		
+		mem.copy( &bg.pallet[4], &fs.PAL_SET[(pal-1)*16+4], 12 );
+		ppu.put( 0x3f04, &bg.pallet[4], 12, 0 );
+		mmc3.set_cbank(1, CBANK_BG+(pal-1)*2);
+		ppu.wait_vsync_with_flag(2);
+	}
+	
 	before_scroll(new_area, old_area);
 	
 	switch(dir){
@@ -316,7 +345,7 @@ function put_in_lock(x:int, y:int, n:int):void
 	ppu.put_in_lock( addr, buf, 2 );
 	ppu.put_in_lock( addr+32, &buf[2], 2 );
 
-	var pal_addr = set_pal(x,y,PAL[n]);
+	var pal_addr = set_pal(x,y,tile_pal[n]);
 	ppu.put_in_lock( 0x23c0 + pal_addr, &pal[pal_addr], 1 );
 }
 
@@ -332,7 +361,7 @@ function draw_map_vertical(x:int):void
 		buf[idx+1] = ni+1;
 		buf[idx+30] = ni+2;
 		buf[idx+31] = ni+3;
-		set_pal(x,y,PAL[n]);
+		set_pal(x,y,tile_pal[n]);
 	}
 	ppu.put( addr, &buf[buf_idx], 30, ppu.VERTICAL);
 	ppu.put( addr+1, &buf[buf_idx+30], 30, ppu.VERTICAL);
@@ -353,7 +382,7 @@ function draw_map_horizontal(y:int):void
 		buf[idx+1] = ni+2;
 		buf[idx+32] = ni+1;
 		buf[idx+33] = ni+3;
-		set_pal(x,y,PAL[n]);
+		set_pal(x,y,tile_pal[n]);
 	}
 	ppu.put( addr, &buf[buf_idx], 64, ppu.HORIZONTAL);
 	var pal_addr = (y/2)*8;

@@ -8,7 +8,7 @@ use debug_menu;
 use event;
 use mem;
 
-const PALLET:int[] = incbin("character.chr.dat");
+const PALLET:int[] = incbin("res/character.chr.dat");
 
 function init_area_enemy():void
 {
@@ -42,10 +42,10 @@ function start(): void
 	
 	mmc3.set_cbank( 0, 0 );
 	mmc3.set_cbank( 1, 2 );
-	mmc3.set_cbank( 2, 4 );
-	mmc3.set_cbank( 3, 5 );
-	mmc3.set_cbank( 4, 6 );
-	mmc3.set_cbank( 5, 7 );
+	mmc3.set_cbank( 2, CBANK_SPRITE+0 );
+	mmc3.set_cbank( 3, CBANK_SPRITE+1 );
+	mmc3.set_cbank( 4, CBANK_SPRITE+2 );
+	mmc3.set_cbank( 5, CBANK_SPRITE+3 );
 	
 	ppu.ctrl1_bak = 0b10100000;
 	ppu.ctrl2_bak = 0b00011110;
@@ -53,8 +53,10 @@ function start(): void
 	ppu.scroll2 = 0;
 
 	// パレットの初期化
-	ppu.put_in_lock( 0x3f00, PALLET, 32 );
-	mem.copy( bg.pallet, PALLET, 32 );
+	ppu.put_in_lock( 0x3f00, fs.PAL_SET, 16 );
+	mem.copy( bg.pallet, fs.PAL_SET, 16 );
+	ppu.put_in_lock( 0x3f10, &PALLET[16], 16 );
+	mem.copy( &bg.pallet[16], &PALLET[16], 16 );
 
 	move_checkpoint(0);
 	my.set_map( bg.cur_area%16, bg.cur_area/16 );
@@ -74,7 +76,7 @@ function start(): void
 		my.process();
 		my.draw();
 
-		mmc3.set_cbank(0,8+(anim/8)%4*2);
+		mmc3.set_cbank(0,CBANK_BG_COMMON+(anim/8)%4*2);
 		ppu.wait_vsync();
 
 		// 死亡

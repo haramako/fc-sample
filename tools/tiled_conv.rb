@@ -6,52 +6,8 @@ require 'json'
 require 'erb'
 require_relative 'rle'
 require_relative 'text_conv'
+require_relative 'nes_tool'
 
-
-class NesImage
-  def initialize(filename)
-    @img = Magick::ImageList.new(filename)[0]
-  end
-
-  def get8x8( img, cx, cy )
-    a = Array.new(8){Array.new(8){0}}
-    8.times do |py|
-      8.times do |px|
-        c = img.pixel_color(cx*8+px, cy*8+py)
-        a[py][px] = if c.red > 0 then 3 else 0 end
-      end
-    end
-    a
-  end
-
-  def px2chr( d )
-    r = [[],[]]
-    8.times do |py|
-      line = [0,0]
-      8.times do |px|
-        line[0] |= ((d[py][px] >> 0)& 1) << (7-px)
-        line[1] |= ((d[py][px] >> 1)& 1) << (7-px)
-      end
-      r[0] << line[0]
-      r[1] << line[1]
-    end
-    r.flatten
-  end
-
-  def to_chr(filename)
-    data = []
-    16.times do |cy|
-      16.times do |cx|
-        c = get8x8(@img,cx,cy)
-        data << px2chr(c)
-      end
-    end
-
-    data.flatten!
-    
-    IO.write(filename, data.pack('c*'))
-  end
-end
 
 # 8KBごとのバンクに分けられたバッファ
 class BankedBuffer
@@ -92,6 +48,7 @@ class BankedBuffer
 
 end
 
+# タイルデータのコンバート
 class TiledConverter
 
   AREA_WIDTH = 16
@@ -101,6 +58,20 @@ class TiledConverter
     slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8, chest:9, lamp:10, 
     gas:11, ghost:12, switch:13, flaged_door:14, portal:15,
   }
+
+  ITEM_DATA = 
+    [
+     ['sandal', 'サンダル', 'すごくやわらかいものなら乗れるかも？'],
+     ['lamp', 'ランプ', '燭台に火を灯す'],
+     ['grobe', 'グローブ', 'これなら、岩を押してもケガしない'],
+     ['boots', 'まきもの', '昔、カエルに乗る忍者がいたそうだ・・・'],
+     ['omamori', 'お守り', 'ひとだまに触っても祟られない'],
+     ['map', '地図', '迷宮で迷わないためには、地図が必要だ'],
+     ['gas_mask', 'ガスマスク', 'ガスにあたっても死なない'],
+     ['weight', 'おもり', '水に潜れるようになる'],
+     ['craw', 'かぎ爪', 'はしごに飛び乗れる'],
+     ['wing', '天使の羽', 'すきなチェックポイントに飛べる'],
+    ]
 
   def initialize( filename )
     data = JSON.parse( File.read(filename) )
@@ -118,29 +89,98 @@ class TiledConverter
     conv_tile( data )
     conv_item( data )
     conv_item_data
-
-    begin
-      @text_conv.make_image('text.png')
-      IO.write('text.txt', @text_conv.using.join)
-      img = NesImage.new('text.png')
-      img.to_chr( 'text.chr' )
-    rescue LoadError
-      STDERR.puts 'WARING: conv make image'
-      STDERR.puts $!
-    end
+    make_font
+    make_bg_image
 
     print ERB.new(DATA.read,nil,'-').result(binding)
 
     @buf.buf.each_slice( BankedBuffer::BANK_SIZE ).with_index do |bin,i|
-      open("fs_data#{i}.bin",'wb'){|f| f.write bin.pack('c*') }
+      open("res/fs_data#{i}.bin",'wb'){|f| f.write bin.pack('c*') }
       open("fs_data#{i}.fc",'w') do |f|
-        f.puts "options( bank: #{4+i} ); const _fs_data#{i} = incbin('fs_data#{i}.bin');"
+        f.puts "options( bank: #{4+i} ); const _fs_data#{i} = incbin('res/fs_data#{i}.bin');"
       end
     end
   end
 
+  # フォント画像の作成
+  def make_font
+    @text_conv.make_image('res/text.png')
+    IO.write('text.txt', @text_conv.using.join)
+    tile_set = NesTool::TileSet.new
+    tile_set.add_from_img( GD2::Image.import('res/text.png'), pal: :monochrome )
+    tile_set.save 'res/text.chr'
+  rescue LoadError
+    STDERR.puts 'WARING: make_font failed'
+    STDERR.puts $!
+  end
+
+  # BGイメージの作成
+  def make_bg_image
+    require 'gd2-ffij'
+    img = GD2::Image.import( 'res/character.chr.bmp' )
+
+    tset = NesTool::TileSet.new
+    tset.add_from_img( img )
+    tset.reflow!
+
+    pal = []
+    img.palette.each do |c|
+      pal[c.index] = c if c.index
+    end
+    pal = pal[0...64]
+
+    base_pal = JSON.parse( IO.read('res/nes_palette.json') )
+    pal_data = pal.map do |p|
+      next 13 unless p
+      min_idx = -1
+      min = 999
+      base_pal.each.with_index do |bp,i|
+        d = (p.r - bp[0]).abs + (p.g - bp[1]).abs + (p.b - bp[2]).abs
+        if d < min
+          min = d
+          min_idx = i
+          break if d == 0
+        end
+      end
+      min_idx
+    end
+
+    @pal_set = pal_data
+    @tile_pal_base = @buf.cur
+    tset.tiles.each_slice(128).each do |tiles|
+      @buf.add tiles.each_slice(4).map{|t| t[0].palette % 4}
+    end
+
+    common_tiles = tset.tiles.slice!(0,128) # 共通パーツ相当の128タイルを削除する
+    bin = tset.bin
+    IO.write("res/bg0.chr", bin[0...8192])
+    IO.write("res/bg1.chr", bin[8192..-1])
+
+    # 共通パーツの作成
+    common = NesTool::TileSet.new
+    4.times{ common.tiles.concat common_tiles }
+    anim = NesTool::TileSet.new
+    anim.add_from_img( GD2::Image.import('res/anim.bmp') )
+    anim.reflow!
+    [[0,24]].each do |src,dest|
+      src *= 4
+      dest *= 4
+      4.times do |i| 
+        common.tiles[dest+i*128...dest+i*128+4] = anim.tiles[src+i*4...src+i*4+4]
+      end
+    end
+    IO.write("res/bg_common.chr", common.bin)
+
+  rescue LoadError
+    STDERR.puts 'WARING: make_bg_image failed'
+    STDERR.puts $!
+  end
+
+  # タイルデータの収集
   def conv_tile( data )
     a = Array.new(@world_width*@world_height*AREA_WIDTH*AREA_HEIGHT)
+
+    # レイヤーを重ねる
     layers = data['layers'].select{|x| x['type'] == 'tilelayer'}.reverse
     a.size.times do |i|
       l = layers.find{|layer| layer['data'][i] != 0 }
@@ -149,19 +189,28 @@ class TiledConverter
     end
 
     @tile_base = @buf.cur
+    @area_types = []
     @world_height.times do |ay|
       @world_width .times do |ax|
+        area_type = 0
         d = []
         15.times do |cy|
           16.times do |cx|
-            d[cy*16+cx] = a[(ay*15+cy)*AREA_WIDTH*@world_width + (ax*16+cx)]
+            cell = a[(ay*15+cy)*AREA_WIDTH*@world_width + (ax*16+cx)]
+            if cell > 32
+              area_type = cell / 32 if area_type == 0
+              cell = cell % 32 + 32
+            end
+            d[cy*16+cx] = cell
           end
         end
         @buf.add rle_compress( d )
+        @area_types << area_type
       end
     end
   end
 
+  # ピクセル数を[エリア番号, エリア内のセルX, エリア内のセルY]に変換する
   def px2area( x, y )
     x = x.to_i/16
     y = (y.to_i/16)-1
@@ -169,6 +218,7 @@ class TiledConverter
     [area, x%AREA_WIDTH, y%AREA_HEIGHT]
   end
 
+  # アイテムデータの収集
   def conv_item( data )
     objs = data['layers'].find{|x| x['name'] == 'objects'}
     checkpoints = []
@@ -213,20 +263,6 @@ class TiledConverter
       @buf.add area
     end
   end
-
-  ITEM_DATA = 
-    [
-     ['sandal', 'サンダル', 'すごくやわらかいものなら乗れるかも？'],
-     ['lamp', 'ランプ', '燭台に火を灯す'],
-     ['grobe', 'グローブ', 'これなら、岩を押してもケガしない'],
-     ['boots', 'まきもの', '昔、カエルに乗る忍者がいたそうだ・・・'],
-     ['omamori', 'お守り', 'ひとだまに触っても祟られない'],
-     ['map', '地図', '迷宮で迷わないためには、地図が必要だ'],
-     ['gas_mask', 'ガスマスク', 'ガスにあたっても死なない'],
-     ['weight', 'おもり', '水に潜れるようになる'],
-     ['craw', 'かぎ爪', 'はしごに飛び乗れる'],
-     ['wing', '天使の羽', 'すきなチェックポイントに飛べる'],
-    ]
 
   def conv_item_data
 
@@ -275,9 +311,11 @@ use fs_data<%=i%>;
 
 const MAP_WIDTH = <%=@world_width%>;
 const MAP_HEIGHT = <%=@world_height%>;
+const AREA_TYPES = <%=@area_types%>;
 
 const TILE_BASE = <%=@tile_base%>;
 const ENEMY_BASE = <%=@en_base%>;
+const TILE_PAL_BASE = <%=@tile_pal_base%>;
 
 const MAP_CHECKPOINT_NUM = <%=@cp_buf.cur%>;
 const MAP_CHECKPOINT = <%=@cp_buf.addrs%>;
@@ -292,3 +330,4 @@ const ITEM_ID_<%=item%> = <%= i %>;
 const _FS_ADDR = <%=@buf.addrs%>;
 const _FS_SIZE = <%=@buf.sizes%>;
 
+const PAL_SET = <%=@pal_set%>;

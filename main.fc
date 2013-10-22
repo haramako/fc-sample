@@ -8,23 +8,27 @@ use game;
 use en;
 use my;
 
-include('character.chr');
-include('bg_base.chr');
-include('text.chr');
-include('item.chr');
+include('res/bg_common.chr');
+include('res/bg0.chr');
+include('res/bg1.chr');
+include('res/sprite.chr');
+include('res/text.chr');
+include('res/item.chr');
 
 function main():void
 {
 	ppu.lock();
 	mmc3.init();
+
+	nes.APU_INTERRUPT = 0x40; // disable APU IRQ
+	mmc3.MIRROR = 1; // horizontal
+	mmc3.RAM_PROTECT = 0b10000000;
+	
 	ppu.init();
 	bg.init();
 	en.init();
 	my.init();
 
-	nes.APU_INTERRUPT = 0x40; // disable APU IRQ
-	mmc3.MIRROR = 1; // horizontal
-	mmc3.RAM_PROTECT = 0b10000000;
 	
 	game.start();
 }

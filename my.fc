@@ -40,7 +40,7 @@ private:
 function get_cell(x:int, y:int):int
 {
 	if( y > 240 ){ return 0; }
-	var c = bg.TYPE[bg.data[(y/16)*16 + x/16]];
+	var c = bg.tile_type[bg.data[(y/16)*16 + x/16]];
 	if( c & bg.TYPE_WALL ){
 		if( c & bg.TYPE_FLOOR ){
 			return (y % 16 < 8);
@@ -54,7 +54,7 @@ function get_cell(x:int, y:int):int
 
 function get_cell_type(x:int, y:int):int
 {
-	return bg.TYPE[bg.data[(y/16)*16 + x/16]];
+	return bg.tile_type[bg.data[(y/16)*16 + x/16]];
 }
 
 function check_on_enemy():int

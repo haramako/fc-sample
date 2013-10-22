@@ -1,6 +1,6 @@
 uint8_p = Type[[:pointer, :uint8]]
 
-require File.dirname(__FILE__)+'/text_conv'
+require File.dirname(__FILE__)+'/tools/text_conv'
 
 conv = TextConverter.new( File.read('text.txt') )
 
