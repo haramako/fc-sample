@@ -6,7 +6,8 @@ use mem;
 include("event.asm");
 
 const ID_GET_ITEM = 1;
-const ID_MOVE_AREA = 2; 
+const ID_MOVE_AREA = 2;
+const ID_MOVE_CHECKPOINT = 3;
 
 function ppu_clear():void
 {

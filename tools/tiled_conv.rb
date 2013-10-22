@@ -311,7 +311,7 @@ class TiledConverter
 end
 
 if ARGV.empty?
-  puts "Convert Tiled json file to binary."
+  puts "Convert Tiled json file to game data."
   puts "usage: ./tile-conv <mapfile.json>"
   exit
 end

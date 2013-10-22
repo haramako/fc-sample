@@ -109,6 +109,8 @@ function start(): void
 				event.event_start();
 			case event.ID_MOVE_AREA:
 				move_area(game_event_p1);
+			case event.ID_MOVE_CHECKPOINT:
+				move_checkpoint(game_event_p1);
 			}
 			game_event = 0;
 		}

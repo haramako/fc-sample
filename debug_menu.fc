@@ -4,6 +4,7 @@ use * from common;
 use mem;
 use my;
 use game;
+use event;
 
 var last_checkpoint:int;
 
@@ -106,7 +107,8 @@ function do_flag():int
 	var n = select();
 	if( n == -1 ){ return 0; }
 
-	game.move_checkpoint(n);
+	game.game_event = event.ID_MOVE_CHECKPOINT;
+	game.game_event_p1 = n;
 
 	return 1;
 }
