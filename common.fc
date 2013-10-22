@@ -19,6 +19,8 @@ const CBANK_ITEM = 40;
 const PBANK_MENU = 2;
 const PBANK_FS = 4;
 
+const VRAM_PALETTE = 0x3f00;
+
 const GIFF_TABLE = [0,8,4,12, 2,10,6,14, 1,9,5,13, 3,11,7,15];
 public var anim:int;
 var giff:int;

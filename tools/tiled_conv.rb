@@ -164,8 +164,13 @@ class TiledConverter
       anim = NesTool::TileSet.new
       anim.add_from_img( GD2::Image.import('res/anim.bmp') )
       anim.reflow!
-      [[0,24]].each do |src,dest|
-        src *= 4
+      [
+       [0,30], # バッテン
+       [0,31], # 見えない壁
+       [1,24], # 水面
+       [0,25], # 水中
+      ].each do |src,dest|
+        src *= 4*4
         dest *= 4
         4.times do |i| 
           common.tiles[dest+i*128...dest+i*128+4] = anim.tiles[src+i*4...src+i*4+4]

@@ -151,6 +151,7 @@ function move_area(area:int):void
 	bg.fetch_area(area);
 	init_area_enemy();
 	ppu.lock();
+	ppu.put_in_lock( VRAM_PALETTE+4, &bg.pallet[4], 12 );
 	bg.draw_screen();
 	ppu.unlock();
 }

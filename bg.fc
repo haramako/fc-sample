@@ -41,7 +41,7 @@ const TILE_TYPE:int[] =
 	[   0,   0,   0,   0,   0,   0,   0,   0,
 	    0,   1,   3,0x13,0x10,   0,   0,   0,
 	    0,   1,   1,   0,   4,   4,   4,   4,
-	 0x20,0x20,0x20,0x20,0x20,   0,   0,   1,
+	 0x20,0x20,0x20,0x20,0x20,   0,   8,   1,
 
 		// 中
 		0,   1,   3,   0,   0,   0,0x13,0x10,
@@ -143,6 +143,16 @@ function fetch_area(area:int):void
 
 	len = fs.copy( enemy, fs.ENEMY_BASE+area );
 	enemy_num = len/6;
+
+	// パレット、タイルデータの切り替え
+	var pal = fs.AREA_TYPES[area];
+	if( pal ){
+		fs.copy( &tile_pal[32], fs.TILE_PAL_BASE+pal );
+		mem.copy( &tile_type[32], &TILE_TYPE[pal*32], 32 );
+		mem.copy( &bg.pallet[4], &fs.PAL_SET[(pal-1)*16+4], 12 );
+		mmc3.set_cbank(1, CBANK_BG+(pal-1)*2);
+	}
+	
 }
 
 public function scroll(dir:int):void
@@ -150,17 +160,6 @@ public function scroll(dir:int):void
 	var old_area = cur_area;
 	var new_area = cur_area + DIR_VY[dir]*fs.MAP_WIDTH + DIR_VX[dir];
 
-	var pal = fs.AREA_TYPES[new_area];
-	if( pal ){
-		fs.copy( &tile_pal[32], fs.TILE_PAL_BASE+pal );
-		mem.copy( &tile_type[32], &TILE_TYPE[pal*32], 32 );
-		
-		mem.copy( &bg.pallet[4], &fs.PAL_SET[(pal-1)*16+4], 12 );
-		ppu.put( 0x3f04, &bg.pallet[4], 12, 0 );
-		mmc3.set_cbank(1, CBANK_BG+(pal-1)*2);
-		ppu.wait_vsync_with_flag(2);
-	}
-	
 	before_scroll(new_area, old_area);
 	
 	switch(dir){
@@ -246,6 +245,8 @@ function scroll_left():void
 	var x = 15;
 	cur_area -= 1;
 	fetch_area(cur_area);
+	ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
+	ppu.wait_vsync_with_flag(2);
 	mmc3.MIRROR = 1; // horizontal
 	loop(){
 		draw_map_vertical(x);
@@ -269,6 +270,8 @@ function scroll_right():void
 	var x = 0;
 	cur_area += 1;
 	fetch_area(cur_area);
+	ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
+	ppu.wait_vsync_with_flag(2);
 	mmc3.MIRROR = 1; // horizontal
 	loop(){
 		draw_map_vertical(x);
@@ -292,6 +295,8 @@ function scroll_up():void
 	var y = 14;
 	cur_area -= fs.MAP_WIDTH;
 	fetch_area(cur_area);
+	ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
+	ppu.wait_vsync_with_flag(2);
 	mmc3.MIRROR = 0; // vertical
 	loop(){
 		draw_map_horizontal(y);
@@ -315,6 +320,8 @@ function scroll_down():void
 	var y = 0;
 	cur_area += fs.MAP_WIDTH;
 	fetch_area(cur_area);
+	ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
+	ppu.wait_vsync_with_flag(2);
 	mmc3.MIRROR = 0; // vertical
 	loop(){
 		draw_map_horizontal(y);
