@@ -5,7 +5,6 @@
 #
 #
 
-require 'gd2-ffij'
 require 'json'
 
 module NesTool
