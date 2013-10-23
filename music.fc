@@ -1,0 +1,2 @@
+options( bank: 13, org: 0x8000 );
+const _data = incbin("music.bin");

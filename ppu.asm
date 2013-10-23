@@ -28,6 +28,10 @@ _interrupt:
 	sta _ppu_vsync_flag
 	sta _ppu_gr_idx
 .else:							; }
+	
+	lda _ppu_locked
+	bne .else3
+
 	lda _ppu_scroll1			; PPU_SCROLL1 = ppu_scroll1;
 	sta _nes_PPU_SCROLL
 	lda _ppu_scroll2			; PPU_SCROLL2 = ppu_scroll2;
@@ -40,10 +44,19 @@ _interrupt:
 	;; setup irq
 	jsr .jsr_irq_setup
 
+.else3:
+
+	jsr .jsr_on_vsync
+
+	inc _common_debug
+
 	rts
 
 .jsr_irq_setup:
 	jmp [_ppu_irq_setup]
+
+.jsr_on_vsync:
+	jmp [_ppu_on_vsync]
 	
 ;;; IRQ割り込み
 ;;; 丁度 113-134 サイクルで終わらせる必要あり
@@ -64,10 +77,10 @@ ppu_put3:
 	rol a
 	;; 	bvc .else1
 	bpl .else1					; }elsif( gr_flag_buf[i] & (1<<6) ){
-	lda #%00000100				;   PPU_CTRL = 1 << 2 // VRAM address increment 32
+	lda #%10000100				;   PPU_CTRL = 1 << 2 // VRAM address increment 32
 	jmp .end1
 .else1:							; }else{
-	lda #%00000000				;   PPU_CTRL = 0 // VRAM address increment 1
+	lda #%10000000				;   PPU_CTRL = 0 // VRAM address increment 1
 .end1:							; }
 	sta _nes_PPU_CTRL1
 
@@ -97,7 +110,7 @@ ppu_put3_custom:
 	rol _ppu_put_size			; ppu_put_size *= 8
 	rol _ppu_put_size
 	rol _ppu_put_size
-	lda #%00000000				; PPU_CTRL = 0 // VRAM address increment 1
+	lda #%10000000				; PPU_CTRL = 0 // VRAM address increment 1
 	sta _nes_PPU_CTRL1
 
 	txa							; (x = i*2 )

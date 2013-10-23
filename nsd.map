@@ -1,0 +1,136 @@
+Modules list:
+-------------
+main.o:
+    CODE              Offs = 000000   Size = 000010
+../../lib/nsd.lib(nsd_init.o):
+    CODE              Offs = 000010   Size = 00000A
+../../lib/nsd.lib(nsd_main.o):
+    CODE              Offs = 00001A   Size = 00007C
+../../lib/nsd.lib(nsd_play_bgm.o):
+    CODE              Offs = 000096   Size = 0000D6
+../../lib/nsd.lib(nsd_stop_bgm.o):
+    CODE              Offs = 00016C   Size = 000020
+../../lib/nsd.lib(nsd_pause_bgm.o):
+    CODE              Offs = 00018C   Size = 00001B
+../../lib/nsd.lib(nsd_resume_bgm.o):
+    CODE              Offs = 0001A7   Size = 000007
+../../lib/nsd.lib(nsd_play_se.o):
+    CODE              Offs = 0001AE   Size = 000038
+../../lib/nsd.lib(nsd_stop_se.o):
+    CODE              Offs = 0001E6   Size = 000024
+../../lib/nsd.lib(nsd_sequence.o):
+    CODE              Offs = 00020A   Size = 00051B
+    RODATA            Offs = 000000   Size = 000090
+../../lib/nsd.lib(nsd_envelope.o):
+    CODE              Offs = 000725   Size = 000227
+../../lib/nsd.lib(nsd_snd.o):
+    CODE              Offs = 00094C   Size = 000236
+    RODATA            Offs = 000090   Size = 000114
+../../lib/nsd.lib(nsd_math.o):
+    CODE              Offs = 000B82   Size = 000069
+../../lib/nsd.lib(nsd_work.o):
+    BSS               Offs = 000000   Size = 000134
+    ZEROPAGE          Offs = 000000   Size = 00002F
+
+
+Segment list:
+-------------
+Name                  Start   End     Size
+--------------------------------------------
+ZEROPAGE              0000D0  0000FE  00002F
+BSS                   006500  006633  000134
+CODE                  00A000  00ABEA  000BEB
+RODATA                00ABEB  00AD8E  0001A4
+
+
+Exports list:
+-------------
+_nsd_div192               00AB82 RLA    _nsd_init                 00A010 RLA    
+_nsd_main                 00A01A RLA    _nsd_mul                  00ABC2 RLA    
+_nsd_pause_bgm            00A18C RLA    _nsd_play                 00A0DB RLA    
+_nsd_play_bgm             00A096 RLA    _nsd_play_se              00A1AE RLA    
+_nsd_resume_bgm           00A1A7 RLA    _nsd_snd_frequency        00AA8F RLA    
+_nsd_snd_init             00A94C RLA    _nsd_snd_keyoff           00A9E0 RLA    
+_nsd_snd_keyon            00A98D RLA    _nsd_snd_sweep            00AA70 RLA    
+_nsd_snd_voice            00AA00 RLA    _nsd_snd_volume           00AA3D RLA    
+_nsd_stop_bgm             00A16C RLA    _nsd_stop_se              00A1E6 RLA    
+nsd_envelop               00A725 RLA    nsd_sequence              00A323 RLA    
+nsd_work                  006500 RLA    nsd_work_zp               0000D0 RLZ    
+
+
+
+Imports list:
+-------------
+_nsd_div192 (nsd_math.o):
+    nsd_snd.o                 nsd_snd.s(19)
+_nsd_init (nsd_init.o):
+    main.o                    main.s(3)
+_nsd_main (nsd_main.o):
+    main.o                    main.s(4)
+_nsd_mul (nsd_math.o):
+    nsd_envelope.o            nsd_envelope.s(14)
+_nsd_pause_bgm (nsd_pause_bgm.o):
+    main.o                    main.s(7)
+_nsd_play (nsd_play_bgm.o):
+    nsd_play_se.o             nsd_play_se.s(11)
+_nsd_play_bgm (nsd_play_bgm.o):
+    main.o                    main.s(5)
+_nsd_play_se (nsd_play_se.o):
+    nsd_sequence.o            nsd_sequence.s(15)
+    main.o                    main.s(9)
+_nsd_resume_bgm (nsd_resume_bgm.o):
+    main.o                    main.s(8)
+_nsd_snd_frequency (nsd_snd.o):
+    nsd_envelope.o            nsd_envelope.s(13)
+_nsd_snd_init (nsd_snd.o):
+    nsd_init.o                nsd_init.s(14)
+_nsd_snd_keyoff (nsd_snd.o):
+    nsd_sequence.o            nsd_sequence.s(12)
+    nsd_stop_se.o             nsd_stop_se.s(16)
+    nsd_pause_bgm.o           nsd_pause_bgm.s(13)
+    nsd_stop_bgm.o            nsd_stop_bgm.s(13)
+_nsd_snd_keyon (nsd_snd.o):
+    nsd_sequence.o            nsd_sequence.s(11)
+_nsd_snd_sweep (nsd_snd.o):
+    nsd_sequence.o            nsd_sequence.s(13)
+_nsd_snd_voice (nsd_snd.o):
+    nsd_envelope.o            nsd_envelope.s(11)
+    nsd_sequence.o            nsd_sequence.s(14)
+_nsd_snd_volume (nsd_snd.o):
+    nsd_envelope.o            nsd_envelope.s(12)
+    nsd_stop_se.o             nsd_stop_se.s(15)
+    nsd_pause_bgm.o           nsd_pause_bgm.s(12)
+    nsd_stop_bgm.o            nsd_stop_bgm.s(12)
+_nsd_stop_bgm (nsd_stop_bgm.o):
+    nsd_play_bgm.o            nsd_play_bgm.s(12)
+    nsd_init.o                nsd_init.s(11)
+    main.o                    main.s(6)
+_nsd_stop_se (nsd_stop_se.o):
+    nsd_play_se.o             nsd_play_se.s(12)
+    nsd_init.o                nsd_init.s(12)
+    main.o                    main.s(10)
+nsd_envelop (nsd_envelope.o):
+    nsd_main.o                nsd_main.s(15)
+nsd_sequence (nsd_sequence.o):
+    nsd_main.o                nsd_main.s(14)
+nsd_work (nsd_work.o):
+    nsd_snd.o                 nsd_snd.s(21)
+    nsd_envelope.o            nsd_envelope.s(15)
+    nsd_sequence.o            nsd_sequence.s(16)
+    nsd_stop_se.o             nsd_stop_se.s(17)
+    nsd_play_se.o             nsd_play_se.s(14)
+    nsd_stop_bgm.o            nsd_stop_bgm.s(16)
+    nsd_play_bgm.o            nsd_play_bgm.s(14)
+nsd_work_zp (nsd_work.o):
+    nsd_math.o                nsd_math.s(12)
+    nsd_snd.o                 nsd_snd.s(22)
+    nsd_envelope.o            nsd_envelope.s(16)
+    nsd_sequence.o            nsd_sequence.s(17)
+    nsd_stop_se.o             nsd_stop_se.s(18)
+    nsd_play_se.o             nsd_play_se.s(15)
+    nsd_resume_bgm.o          nsd_resume_bgm.s(12)
+    nsd_pause_bgm.o           nsd_pause_bgm.s(16)
+    nsd_stop_bgm.o            nsd_stop_bgm.s(17)
+    nsd_play_bgm.o            nsd_play_bgm.s(15)
+    nsd_main.o                nsd_main.s(11)
+

@@ -15,7 +15,7 @@ loadw .macro
 
 ;;; mmc3_cbank select
 ;;;   select: 0-5
-;;;   x     : 8KB bank number
+;;;   x     : 2KB bank number
 ;;; use 11cycle
 mmc3_cbank .macro
 	lda #(\1)
@@ -23,6 +23,16 @@ mmc3_cbank .macro
 	stx _mmc3_BANK_DATA
 	.endm
 
+;;; mmc3_pbank select
+;;;   select: 0-1
+;;;   x     : 8KB bank number
+;;; use 11cycle
+mmc3_pbank .macro
+	lda #(\1+6)
+	sta _mmc3_BANK_SELECT
+	stx _mmc3_BANK_DATA
+	.endm
+	
 ;;; wait N
 ;;; use N*5+1 cycle
 xwait .macro

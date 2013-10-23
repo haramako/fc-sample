@@ -1,0 +1,13 @@
+options( bank: -1 );
+use nsd_inc;
+use music;
+include( "nsd.asm" );
+
+function init():void;
+function main_nsd():void;
+function play_bgm():void;
+function play_se(p:int*):void;
+
+// 0x00d0..0x00ff, 0x6500..0x67ff までは、NSDが使用する
+
+

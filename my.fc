@@ -3,6 +3,7 @@ options( bank:0 );
 use * from common;
 use en;
 use math;
+use nsd;
 
 const STATE_STAND = 0;
 const STATE_JUMP = 2;
@@ -217,6 +218,7 @@ public function process():void
 			vy = -36;
 			jump_pow = 10;
 			state = STATE_JUMP;
+			nsd.play_se( &JUMP_SE[10] );
 		}
 		
 		if( state == STATE_STAND ){
