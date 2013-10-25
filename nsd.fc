@@ -1,6 +1,8 @@
 options( bank: -1 );
 use nsd_inc;
 use music;
+use mmc3;
+use common;
 include( "nsd.asm" );
 
 function init():void;

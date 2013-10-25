@@ -139,7 +139,7 @@ function fetch_area(area:int):void
 	cur_area = area;
 	fs.copy( data_buf, fs.TILE_BASE+area );
 	var len = rle.unpack( data, data_buf );
-	if( len != 16*15 ){ asm( ".db 255" ); } // length check
+	if( len != 16*15 ){ asm( ".byte 2" ); } // length check
 
 	len = fs.copy( enemy, fs.ENEMY_BASE+area );
 	enemy_num = len/6;

@@ -218,7 +218,7 @@ public function process():void
 			vy = -36;
 			jump_pow = 10;
 			state = STATE_JUMP;
-			nsd.play_se( &JUMP_SE[10] );
+			// nsd.play_se( &JUMP_SE[10] );
 		}
 		
 		if( state == STATE_STAND ){

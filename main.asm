@@ -1,3 +1,8 @@
+
+	.export scroll
+	
+.segment "main"
+	
 ;;; scanline中のスクロールを行う
 ;;; x: X座標 y: Y座標
 ;;; See: http://forums.nesdev.com/viewtopic.php?p=64111#p64111

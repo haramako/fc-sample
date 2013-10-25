@@ -1,36 +1,41 @@
+	.export _interrupt
+	.export _interrupt_irq
+	
+.segment "ppu"
+	
 ;; function interrupt():void
 _interrupt:
 
 	lda _ppu_vsync_flag				; if( vsync_flag ){
-	beq .else
+	beq @else
 
 	cmp #1						;   if( vsync_flag == 1 ){
-	bne .else2
+	bne @else2
 	lda #0						;     PPU_SPR_ADDR = 0;
 	lda _nes_PPU_SPR_ADDR
 	lda #7						;     SPRITE_DMA = 7;
 	sta _nes_SPRITE_DMA
 	lda #0						;     gr_sprite_idx = 0;
 	sta _ppu_gr_sprite_idx
-.else2:							;   }
+@else2:							;   }
 
 	lda #0						;   i = 0;
 	sta _ppu_interrupt_i
-.loop:					  
+@loop:					  
 	lda _ppu_interrupt_i			;   while( i < gr_idx ){
 	cmp _ppu_gr_idx
-	bpl .end
+	bpl @end
 	jsr ppu_put3				;     ppu_put3(interrupt_i)
 	inc _ppu_interrupt_i			;     i += 1;
-	jmp .loop					;   }
-.end:		
+	jmp @loop					;   }
+@end:		
 	lda #0						;   vsync_flag = gr_idx = 0
 	sta _ppu_vsync_flag
 	sta _ppu_gr_idx
-.else:							; }
+@else:							; }
 	
 	lda _ppu_locked
-	bne .else3
+	bne @else3
 
 	lda _ppu_scroll1			; PPU_SCROLL1 = ppu_scroll1;
 	sta _nes_PPU_SCROLL
@@ -42,27 +47,25 @@ _interrupt:
 	sta _nes_PPU_CTRL2
 
 	;; setup irq
-	jsr .jsr_irq_setup
+	jsr @jsr_irq_setup
 
-.else3:
+@else3:
 
-	jsr .jsr_on_vsync
-
-	inc _common_debug
+	jsr @jsr_on_vsync
 
 	rts
 
-.jsr_irq_setup:
-	jmp [_ppu_irq_setup]
+@jsr_irq_setup:
+	jmp (_ppu_irq_setup)
 
-.jsr_on_vsync:
-	jmp [_ppu_on_vsync]
+@jsr_on_vsync:
+	jmp (_ppu_on_vsync)
 	
 ;;; IRQ割り込み
 ;;; 丁度 113-134 サイクルで終わらせる必要あり
 ;;; ( irqベクタで24cycle使用しているので、実質89-110サイクル)
 _interrupt_irq:
-	jmp [_ppu_irq_next]
+	jmp (_ppu_irq_next)
 
 ;;; same as ppu_put, but in interrupt
 ppu_put3:
@@ -71,17 +74,17 @@ ppu_put3:
 	sta _ppu_put_size
 
 	lda _ppu_gr_flag_buf,x			; if( gr_flag_buf[i] & (1<<7) ){
-	bpl .else2
+	bpl @else2
 	jmp ppu_put3_custom			;   goto ppu_put3_custom;
-.else2:
+@else2:
 	rol a
 	;; 	bvc .else1
-	bpl .else1					; }elsif( gr_flag_buf[i] & (1<<6) ){
+	bpl @else1					; }elsif( gr_flag_buf[i] & (1<<6) ){
 	lda #%10000100				;   PPU_CTRL = 1 << 2 // VRAM address increment 32
-	jmp .end1
-.else1:							; }else{
+	jmp @end1
+@else1:							; }else{
 	lda #%10000000				;   PPU_CTRL = 0 // VRAM address increment 1
-.end1:							; }
+@end1:							; }
 	sta _nes_PPU_CTRL1
 
 	txa							; (x = i*2 )
@@ -98,12 +101,12 @@ ppu_put3:
 	lda _ppu_gr_from_buf+1,x
 	sta _ppu_put_from+1
 	ldy #0
-.loop:
-    lda [_ppu_put_from],y
+@loop:
+    lda (_ppu_put_from),y
     sta _nes_PPU_DATA
     iny
 	cpy _ppu_put_size
-    bne .loop
+    bne @loop
     rts
 	
 ppu_put3_custom:
@@ -127,7 +130,7 @@ ppu_put3_custom:
 	lda _ppu_gr_from_buf+1,x
 	sta _ppu_put_from+1
 	ldy #0
-.loop:
+@loop:
 	lda _ppu_put_to
 	sta _nes_PPU_ADDR
 	lda _ppu_put_to+1
@@ -136,7 +139,7 @@ ppu_put3_custom:
 	adc #8
 	sta _ppu_put_to+1
 	
-    lda [_ppu_put_from],y
+    lda (_ppu_put_from),y
     sta _nes_PPU_DATA
 	
 	tya							; y += 8
@@ -145,7 +148,7 @@ ppu_put3_custom:
 	tay
 	
 	cpy _ppu_put_size
-    bne .loop
+    bne @loop
     rts
 
 ;;; ppu_put internal
@@ -155,12 +158,12 @@ ppu_put_sub:
         lda _ppu_put_to+0
         sta _nes_PPU_ADDR
         ldy #0
-.loop:
-        lda [_ppu_put_from],y
+@loop:
+        lda (_ppu_put_from),y
         sta _nes_PPU_DATA
         iny
         cpy _ppu_put_size
-        bne .loop
+        bne @loop
         sty $100
         rts
 		
@@ -189,28 +192,28 @@ _ppu_fill_in_lock:
 	;; low loop
 	lda S+4,x
 	ldy S+2,x
-	beq .end1
-.loop1:
+	beq @end1
+@loop1:
 	sta _nes_PPU_DATA
 	dey
-	bne .loop1
-.end1:
+	bne @loop1
+@end1:
 
 	;; high loop
 	stx reg+0					; backup x
 	lda S+3,x
 	tay
-	beq .end2
+	beq @end2
 	lda S+4,x
-.loop2:
+@loop2:
 	ldx #0
-.loop3:
+@loop3:
 	sta _nes_PPU_DATA
 	dex
-	bne .loop3
+	bne @loop3
 	dey
-	bne .loop2
-.end2:
+	bne @loop2
+@end2:
 	ldx reg+0					; restore x
 	
 	rts
@@ -220,18 +223,18 @@ _ppu_fill_in_lock:
 ;;; function gr_pos( x:int, y:int ):int16
 _ppu_pos:
 	lda S+3,x					; if( y < 0 ) y += 30;
-	bpl .end2
+	bpl @end2
 	clc
 	adc #30
 	sta S+3,x
-.end2:	
+@end2:	
 	lda S+3,x					; if( y > 30 ) y -= 30;
 	cmp #30
-	bmi .end
+	bmi @end
 	sec
 	sbc #30
 	sta S+3,x
-.end:	
+@end:	
 	lda S+3,x		; result[0] = x + y * 32
 	asl a
 	asl a
@@ -266,7 +269,7 @@ _ppu_pos:
 _ppu_sprite:
     ldy _ppu_gr_sprite_idx      ; if( gr_sprite_idx >= 252 ){ return; } var p:int = gr_sprite_idx;
     cpy #252
-    bcs .end
+    bcs @end
     lda S+1,x      ; gr_sprite_buf[p] = y;
 	sec
 	sbc #1
@@ -283,6 +286,6 @@ _ppu_sprite:
     sta _ppu_gr_sprite_buf,y
     iny                     ; gr_sprite_idx += 4;
     sty _ppu_gr_sprite_idx
-.end:
+@end:
     rts
         

@@ -1,11 +1,16 @@
 ;;; IRQの設定
+	.include "./macro.asm"
+	.import scroll
+	
+.segment "event"
+	
 _event_irq_setup:
 	irq_set #95
 	
 	ldx _mmc3_cbank_bak+0
-	mmc3_cbank #0
+	mmc3_cbank 0
 	ldx _mmc3_cbank_bak+1
-	mmc3_cbank #1
+	mmc3_cbank 1
 	
 	loadw _ppu_irq_next, event_irq_1
 	rts
@@ -23,9 +28,9 @@ event_irq_1:
 	sta _nes_PPU_CTRL1
 
 	ldx #(_common_CBANK_TEXT+0)
-	mmc3_cbank #0
+	mmc3_cbank 0
 	ldx #(_common_CBANK_TEXT+1)
-	mmc3_cbank #1
+	mmc3_cbank 1
 
 	loadw _ppu_irq_next, event_irq_2
 	rts
@@ -40,9 +45,9 @@ event_irq_2:
 	jsr scroll
 	
 	ldx _mmc3_cbank_bak+0
-	mmc3_cbank #0
+	mmc3_cbank 0
 	ldx _mmc3_cbank_bak+1
-	mmc3_cbank #1
+	mmc3_cbank 1
 
 	lda _ppu_ctrl1_bak
 	sta _nes_PPU_CTRL1

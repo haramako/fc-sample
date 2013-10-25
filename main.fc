@@ -1,4 +1,4 @@
-options( bank_count: 16, bank: -1 );
+options( bank_count: 16, bank: -1, char_banks: 8 );
 
 include header ( "macro.asm" );
 include( "main.asm" );
@@ -21,6 +21,7 @@ function main():void
 	ppu.lock();
 	mmc3.init();
 
+	
 	nes.APU_INTERRUPT = 0x40; // disable APU IRQ
 	mmc3.MIRROR = 1; // horizontal
 	mmc3.RAM_PROTECT = 0b10000000;
@@ -31,12 +32,14 @@ function main():void
 	my.init();
 
 	// play music
+	/*
 	var old_pbank = mmc3.set_pbank(1,PBANK_NSD);
 	nsd.init();
 	mmc3.set_pbank(1,old_pbank);
 	ppu.on_vsync = nsd.main_nsd;
 
 	nsd.play_bgm();
+	*/
 
 	game.start();
 }

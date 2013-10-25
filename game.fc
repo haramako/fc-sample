@@ -51,13 +51,13 @@ function start(): void
 	ppu.ctrl2_bak = 0b00011110;
 	ppu.scroll1 = 0;
 	ppu.scroll2 = 0;
-
+	
 	// パレットの初期化
 	ppu.put_in_lock( 0x3f00, fs.PAL_SET, 16 );
 	mem.copy( bg.pallet, fs.PAL_SET, 16 );
 	ppu.put_in_lock( 0x3f10, &PALLET[16], 16 );
 	mem.copy( &bg.pallet[16], &PALLET[16], 16 );
-
+	
 	move_checkpoint(0);
 	my.set_map( bg.cur_area%16, bg.cur_area/16 );
 

@@ -12,9 +12,9 @@ include( "macro.rb" );
 
 const CBANK_BG_COMMON = 0;
 const CBANK_BG = 8;
-const CBANK_SPRITE = 24;
-const CBANK_TEXT = 32;
-const CBANK_ITEM = 40;
+const CBANK_SPRITE = 22;
+const CBANK_TEXT = 30;
+const CBANK_ITEM = 34;
 
 const PBANK_MENU = 2;
 const PBANK_NSD = 3;
