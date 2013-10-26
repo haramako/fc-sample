@@ -162,6 +162,10 @@ class TiledConverter
       anim.add_from_img( GD2::Image.import('res/anim.bmp') )
       anim.reflow!
       [
+       [0, 4], # 矢印
+       [0, 5],
+       [0, 6],
+       [0, 7],
        [0,30], # バッテン
        [0,31], # 見えない壁
        [1,24], # 水面

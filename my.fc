@@ -62,28 +62,31 @@ function check_on_enemy():int
 {
 	var i:int;
 	for( i, 0, en.MAX ){
-		switch( en.type[i] ){
-		case en.TYPE_ELEVATOR:
-			var size:int;
-			if( en.p3[0] == 1 ){ size = 14; }else{ size = 20; }
-			if( math.abs(x-en.px[i])<size && y>=(en.py[i]-18) && y < (en.py[i]-10) ){
-				y = en.py[i] - 16;
-				return i;
-			}
-		case en.TYPE_SLIME:
-			if( items[fs.ITEM_ID_SANDAL] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
-				y = en.py[i] - 10;
-				return i;
-			}
-		case en.TYPE_FROG:
-			if( items[fs.ITEM_ID_BOOTS] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
-				y = en.py[i] - 10;
-				return i;
-			}
-		case en.TYPE_SWITCH:
-			if( math.abs(x-en.px[i])<14 && y>=(en.py[i]-16) && y < (en.py[i]-10) ){
-				y = en.py[i] - 16;
-				return i;
+		var et = en.type[i];
+		if( et ){
+			switch( en.type[i] ){
+			case en.TYPE_ELEVATOR:
+				var size:int;
+				if( en.p3[0] == 1 ){ size = 14; }else{ size = 20; }
+				if( math.abs(x-en.px[i])<size && y>=(en.py[i]-18) && y < (en.py[i]-10) ){
+					y = en.py[i] - 16;
+					return i;
+				}
+			case en.TYPE_SLIME:
+				if( items[fs.ITEM_ID_SANDAL] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
+					y = en.py[i] - 10;
+					return i;
+				}
+			case en.TYPE_FROG:
+				if( items[fs.ITEM_ID_BOOTS] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
+					y = en.py[i] - 10;
+					return i;
+				}
+			case en.TYPE_SWITCH:
+				if( math.abs(x-en.px[i])<14 && y>=(en.py[i]-16) && y < (en.py[i]-10) ){
+					y = en.py[i] - 16;
+					return i;
+				}
 			}
 		}
 	}
