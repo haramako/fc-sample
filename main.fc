@@ -1,6 +1,5 @@
 options( bank_count: 16, bank: -1, char_banks: 8 );
 
-include header ( "macro.asm" );
 include( "main.asm" );
 
 use * from common;
@@ -38,7 +37,6 @@ function main():void
 	sound.init();
 	ppu.on_vsync = sound.main_nsd;
 	sound.play_bgm(&buf[0x62]);
-
+	
 	game.start();
 }
-

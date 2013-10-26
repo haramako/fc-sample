@@ -127,6 +127,7 @@ module NesTool
   end
 
   class Nsd
+
     NSC = 'nsc'
     CA65 = 'ca65'
     LD65 = 'ld65'
@@ -139,22 +140,38 @@ EOT
     def initiaize
     end
     
+    def sh( *args )
+      require 'open3'
+      command = args.map(&:to_s)
+      puts command.join(" ")
+      Open3.popen2e( *command ) do |i, oe, th|
+        v = th.value
+        if v != 0
+          raise "`#{command}` returns #{v}"
+          puts oe.read
+        end
+        oe.read
+      end
+    end
+
     def convert( filename )
       path = Pathname.new(filename)
+      asm_path = path.sub_ext('.s')
+      obj_path = path.sub_ext('.o')
+      bin_path = path.sub_ext('.bin')
 
       cfg = Tempfile.new('nsc.cfg')
       cfg.write LD65_CONFIG
       cfg.close
 
-      `nsc -a #{filename}`
+      sh NSC, '-a', path
 
-      asm_path = path.sub_ext('.s')
-      print `ca65 #{asm_path}`
+      sh CA65, asm_path
       asm = IO.read(asm_path)
       asm.gsub!( /.segment	"RODATA"\n/ ){ |m| m+"\t.word _nsd_BGM0\n" }
       IO.write asm_path, asm
 
-      print `ld65 -C #{cfg.path} #{path.sub_ext('.o')} -o #{path.sub_ext('.bin')}`
+      sh LD65, '-o', path.sub_ext('.bin'), '-C', cfg.path, obj_path
 
       FileUtils.rm_f [path.sub_ext('.o'), asm_path]
     end

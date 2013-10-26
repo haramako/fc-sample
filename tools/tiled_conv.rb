@@ -96,7 +96,7 @@ class TiledConverter
     fs_config = ERB.new(DATA.read,nil,'-').result(binding)
     IO.write 'fs_config.fc', fs_config
 
-    IO.write "res/fs_data.bin", @buf.bin
+    IO.binwrite "res/fs_data.bin", @buf.bin
   end
 
   # フォント画像の作成
@@ -152,8 +152,8 @@ class TiledConverter
 
       common_tiles = tset.tiles.slice!(0,128) # 共通パーツ相当の128タイルを削除する
       bin = tset.bin
-      IO.write("res/bg0.chr", bin[0...8192])
-      IO.write("res/bg1.chr", bin[8192..-1])
+      IO.binwrite("res/bg0.chr", bin[0...8192])
+      IO.binwrite("res/bg1.chr", bin[8192..-1])
 
       # 共通パーツの作成
       common = NesTool::TileSet.new
@@ -173,7 +173,7 @@ class TiledConverter
           common.tiles[dest+i*128...dest+i*128+4] = anim.tiles[src+i*4...src+i*4+4]
         end
       end
-      IO.write("res/bg_common.chr", common.bin)
+      IO.binwrite("res/bg_common.chr", common.bin)
 
     rescue LoadError
       json = JSON.parse( IO.read('res/tmp_pal.json') ) 
@@ -310,7 +310,7 @@ class TiledConverter
     nsd = NesTool::Nsd.new
     ['4.mml'].each do |f|
       nsd.convert 'res/sound/'+f
-      bin = IO.read( Pathname.new('res/sound/'+f).sub_ext('.bin') ).unpack('c*')
+      bin = IO.binread( Pathname.new('res/sound/'+f).sub_ext('.bin') ).unpack('c*')
       @buf.add bin
     end
   end

@@ -1,9 +1,9 @@
 a.*
-map_data.fc
-hoge.sh
+*.s
+*.o
+_*.inc
 fs_config.fc
 fs_data*
 map-makoto.json
 .DS_Store
-.fc-build
-*.o
+nsc.exe
