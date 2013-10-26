@@ -9,8 +9,7 @@ use my;
 use sound;
 
 include('res/bg_common.chr');
-include('res/bg0.chr');
-include('res/bg1.chr');
+include('res/bg.chr');
 include('res/sprite.chr');
 include('res/text.chr');
 include('res/item.chr');

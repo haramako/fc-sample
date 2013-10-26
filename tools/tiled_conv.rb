@@ -125,7 +125,7 @@ class TiledConverter
       img.palette.each do |c|
         pal[c.index] = c if c.index
       end
-      pal = pal[0...64]
+      pal = pal[0...128]
 
       base_pal = JSON.parse( IO.read('res/nes_palette.json') )
       pal_set = pal.map do |p|
@@ -151,9 +151,19 @@ class TiledConverter
       JSON.dump( {pal_set:pal_set, tile_pals: tile_pals}, open('res/tmp_pal.json','w') ) # 一時的に保存
 
       common_tiles = tset.tiles.slice!(0,128) # 共通パーツ相当の128タイルを削除する
-      bin = tset.bin
-      IO.binwrite("res/bg0.chr", bin[0...8192])
-      IO.binwrite("res/bg1.chr", bin[8192..-1])
+      [
+       [95,63], # 空
+       [191,63], # 空
+       [184,56],
+       [185,57],
+      ].each do |to,from|
+        to -= 32
+        from -= 32
+        4.times do |i|
+          tset.tiles[to*4+i] = tset.tiles[from*4+i]
+        end
+      end
+      IO.binwrite("res/bg.chr", tset.bin)
 
       # 共通パーツの作成
       common = NesTool::TileSet.new
@@ -215,7 +225,7 @@ class TiledConverter
           16.times do |cx|
             cell = a[(ay*15+cy)*AREA_WIDTH*@world_width + (ax*16+cx)]
             if cell > 32
-              area_type = cell / 32 if area_type == 0
+              area_type = cell / 32 if area_type == 0 && cell % 32 != 31 # 31=空は特別
               cell = cell % 32 + 32
             end
             d[cy*16+cx] = cell

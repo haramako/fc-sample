@@ -1,18 +1,13 @@
+MAP_JSON = ENV['map'] || 'map.json'
+
 task :default => 'fs_config.fc' do
   sh "ruby ../bin/fc c -d -t nes main.fc"
   sh 'ca65 data.asm'
   sh "ld65 -o a.nes -m a.map -C ld65.cfg #{Dir.glob('*.o').join(' ')} nsd/lib/NSD.LIB "
 end
 
-task :makoto do
-  sh 'ruby tools/tiled_conv.rb map-makoto.json'
-  sh "ruby ../bin/fc c -d -t nes main.fc"
-  sh 'ca65 data.asm'
-  sh 'ld65 -o a.nes -m a.map -C ld65.cfg .fc-build/*.o data.o nsd/lib/NSD.LIB'
-end
-
-file 'fs_config.fc' => ['map.json'] do
-  sh 'ruby tools/tiled_conv.rb map.json'
+file 'fs_config.fc' => [MAP_JSON] do
+  sh "ruby tools/tiled_conv.rb #{MAP_JSON}"
 end
 
 task :clean do

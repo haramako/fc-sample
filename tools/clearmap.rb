@@ -3,11 +3,20 @@
 require 'pp'
 require 'json'
 
-# map.json のタイル番号１の部分をタイル番号０(透過）に設定する
+# map.json のタイル番号ARGV[0]の部分をARGV[1]に設定する
 
-data = JSON.parse( ARGF.read )
+if ARGV.size < 3
+  puts "usage: ruby clearmap.rb <map.json> <from> <to>"
+  exit
+end
 
+data = JSON.parse( IO.read(ARGV[0]) )
+
+from = ARGV[1].to_i+1
+to = ARGV[2].to_i+1
 m = data['layers'][0]['data']
-m.map!{|x| if x == 0 then 1 else x end }
+num = 0
+m.map!{|x| if x == from then num+=1; to else x end }
 
-print JSON.dump( data )
+IO.write ARGV[0], JSON.dump( data )
+puts "num = #{num}"
