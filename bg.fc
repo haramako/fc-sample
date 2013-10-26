@@ -12,7 +12,7 @@ var data_buf:int[256] options(address:0x6200);
 var enemy_num:int;
 
 var buf_idx:int;
-var buf:int[256];
+var buf:int[256] options(address:0x6500);
 var pal:int[64];
 
 var pallet:int[32];

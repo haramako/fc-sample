@@ -1,2 +1,0 @@
-options( bank: 3 );
-// const NSD_BASE = incbin("nsd.bin");

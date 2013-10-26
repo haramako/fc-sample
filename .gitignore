@@ -6,3 +6,4 @@ fs_data*
 map-makoto.json
 .DS_Store
 .fc-build
+*.o

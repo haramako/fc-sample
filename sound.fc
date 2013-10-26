@@ -1,0 +1,63 @@
+options( bank: -1 );
+use mmc3;
+use * from common;
+
+//include( "nsd.asm" );
+include( "macro.asm" );
+include( "nsd/include/nsd.inc" );
+
+function init():void
+{
+	asm( "jsr _nsd_init" );
+}
+
+function main_nsd():void
+{
+	asm( "jsr _nsd_main" );
+}
+
+function play_bgm(p:int*):void
+{
+	asm( """
+	txa
+	pha
+
+    lda S+0,x
+    pha
+    lda S+1,x
+    pha
+
+	pla
+    tax
+    pla
+	jsr _nsd_play_bgm
+
+	pla
+	tax
+	""");
+}
+
+function play_se(p:int*):void
+{
+	asm( """
+	txa
+	pha
+
+	lda S+0,x
+	pha
+	lda S+1,x
+    pha
+
+	pla
+	tax
+	pla
+	jsr _nsd_play_se
+
+	pla
+	tax
+	""");
+}
+
+// 0x00d0..0x00ff, 0x6500..0x67ff までは、NSDが使用する
+
+

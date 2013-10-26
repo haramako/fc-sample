@@ -7,7 +7,7 @@ use * from common;
 use game;
 use en;
 use my;
-use nsd;
+use sound;
 
 include('res/bg_common.chr');
 include('res/bg0.chr');
@@ -15,6 +15,8 @@ include('res/bg1.chr');
 include('res/sprite.chr');
 include('res/text.chr');
 include('res/item.chr');
+
+var buf:int[256] options( address: 0x7000 );
 
 function main():void
 {
@@ -32,14 +34,10 @@ function main():void
 	my.init();
 
 	// play music
-	/*
-	var old_pbank = mmc3.set_pbank(1,PBANK_NSD);
-	nsd.init();
-	mmc3.set_pbank(1,old_pbank);
-	ppu.on_vsync = nsd.main_nsd;
-
-	nsd.play_bgm();
-	*/
+	fs.copy( buf, fs.SOUND_BASE+0 );
+	sound.init();
+	ppu.on_vsync = sound.main_nsd;
+	sound.play_bgm(&buf[0x62]);
 
 	game.start();
 }

@@ -6,6 +6,9 @@
 #
 
 require 'json'
+require 'pathname'
+require 'tempfile'
+require 'fileutils'
 
 module NesTool
 
@@ -119,6 +122,41 @@ module NesTool
 
     def save( filename )
       IO.write(filename, self.bin)
+    end
+
+  end
+
+  class Nsd
+    NSC = 'nsc'
+    CA65 = 'ca65'
+    LD65 = 'ld65'
+
+    LD65_CONFIG = <<EOT
+MEMORY { ROM: start = $0000, size = $8000, file = %O; }
+SEGMENTS { RODATA: load = ROM, type = ro, define = yes; }
+EOT
+
+    def initiaize
+    end
+    
+    def convert( filename )
+      path = Pathname.new(filename)
+
+      cfg = Tempfile.new('nsc.cfg')
+      cfg.write LD65_CONFIG
+      cfg.close
+
+      `nsc -a #{filename}`
+
+      asm_path = path.sub_ext('.s')
+      print `ca65 #{asm_path}`
+      asm = IO.read(asm_path)
+      asm.gsub!( /.segment	"RODATA"\n/ ){ |m| m+"\t.word _nsd_BGM0\n" }
+      IO.write asm_path, asm
+
+      print `ld65 -C #{cfg.path} #{path.sub_ext('.o')} -o #{path.sub_ext('.bin')}`
+
+      FileUtils.rm_f [path.sub_ext('.o'), asm_path]
     end
 
   end

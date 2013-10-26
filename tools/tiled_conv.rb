@@ -91,15 +91,12 @@ class TiledConverter
     conv_item_data
     make_font
     make_bg_image
+    conv_sound
 
-    print ERB.new(DATA.read,nil,'-').result(binding)
+    fs_config = ERB.new(DATA.read,nil,'-').result(binding)
+    IO.write 'fs_config.fc', fs_config
 
-    @buf.buf.each_slice( BankedBuffer::BANK_SIZE ).with_index do |bin,i|
-      open("res/fs_data#{i}.bin",'wb'){|f| f.write bin.pack('c*') }
-      open("fs_data#{i}.fc",'w') do |f|
-        f.puts "options( bank: #{4+i} ); const _fs_data#{i} = incbin('res/fs_data#{i}.bin');"
-      end
-    end
+    IO.write "res/fs_data.bin", @buf.bin
   end
 
   # フォント画像の作成
@@ -308,6 +305,16 @@ class TiledConverter
     end
   end
 
+  def conv_sound
+    @sound_base = @buf.cur
+    nsd = NesTool::Nsd.new
+    ['4.mml'].each do |f|
+      nsd.convert 'res/sound/'+f
+      bin = IO.read( Pathname.new('res/sound/'+f).sub_ext('.bin') ).unpack('c*')
+      @buf.add bin
+    end
+  end
+
 end
 
 if ARGV.empty?
@@ -321,10 +328,6 @@ TiledConverter.new( ARGV[0] )
 __END__
 options(bank:-2);
 
-<%- @buf.bank_size.times do |i| -%>
-use fs_data<%=i%>;
-<%- end -%>
-
 const MAP_WIDTH = <%=@world_width%>;
 const MAP_HEIGHT = <%=@world_height%>;
 const AREA_TYPES = <%=@area_types%>;
@@ -332,6 +335,7 @@ const AREA_TYPES = <%=@area_types%>;
 const TILE_BASE = <%=@tile_base%>;
 const ENEMY_BASE = <%=@en_base%>;
 const TILE_PAL_BASE = <%=@tile_pal_base%>;
+const SOUND_BASE = <%=@sound_base%>;
 
 const MAP_CHECKPOINT_NUM = <%=@cp_buf.cur%>;
 const MAP_CHECKPOINT = <%=@cp_buf.addrs%>;
