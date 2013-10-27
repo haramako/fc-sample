@@ -121,12 +121,14 @@ class TiledConverter
       tset.add_from_img( img )
       tset.reflow!
 
+      # パレットセットを作成
       pal = []
       img.palette.each do |c|
         pal[c.index] = c if c.index
       end
       pal = pal[0...128]
 
+      # タイルパレットをパレット
       base_pal = JSON.parse( IO.read('res/nes_palette.json') )
       pal_set = pal.map do |p|
         next 13 unless p
