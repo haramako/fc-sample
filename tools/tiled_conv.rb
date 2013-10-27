@@ -39,7 +39,9 @@ class BankedBuffer
   end
 
   def bin
-    @buf.pack('c*')
+    head = @addrs.pack('S<*') + @sizes.pack('S<*')
+    head = head + "\0" * (BANK_SIZE-head.size)
+    head + @buf.pack('c*')
   end
 
   def bank_size
@@ -353,6 +355,10 @@ const MAP_WIDTH = <%=@world_width%>;
 const MAP_HEIGHT = <%=@world_height%>;
 const AREA_TYPES = <%=@area_types%>;
 
+const FILE_MAX = <%=@buf.cur%>;
+var FILE_ADDR:uint16[] options( address:0xa000 );
+var FILE_SIZE:uint16[] options( address:<%=0xa000+@buf.cur*2%> );
+
 const TILE_BASE = <%=@tile_base%>;
 const ENEMY_BASE = <%=@en_base%>;
 const TILE_PAL_BASE = <%=@tile_pal_base%>;
@@ -367,8 +373,5 @@ const ITEM_DESC_BASE = <%=@item_desc_base%>;
 <%- @item_ids.each.with_index do |item,i| -%>
 const ITEM_ID_<%=item%> = <%= i %>;
 <%- end -%>
-
-const _FS_ADDR = <%=@buf.addrs%>;
-const _FS_SIZE = <%=@buf.sizes%>;
 
 const PAL_SET = <%=@pal_set%>;
