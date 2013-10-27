@@ -3260,7 +3260,7 @@
  "tilesets":[
         {
          "firstgid":1,
-         "image":"res\/character.chr.bmp",
+         "image":"res\/character.bmp",
          "imageheight":512,
          "imagewidth":128,
          "margin":0,
