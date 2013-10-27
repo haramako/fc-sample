@@ -20,6 +20,7 @@ var pallet:int[32];
 var cur_area:int;
 
 var tile_pal:int[64] options(address:0x6300);
+var in_dark:int;
 
 const TYPE_WALL = 1 << 0;
 const TYPE_FLOOR = 1 << 1;
@@ -70,7 +71,7 @@ const TILE_TYPE:int[] =
 		// 空
 		1,   1,   1,   3,   0,   0,   0,   0,
 		0,   0,   0,   0,   0,   0,   0,   0,
-		0,   0,   0,   0,   0,   0,   0,   0,
+		1,   1,   1,   0,   4,   4,   4,   4,
 		1,   3,   0,   1,   0,   0,   0,   0];
 
 var tile_type:int[64] options( address:0x6340 );
@@ -81,6 +82,7 @@ public function init():void
 {
 	cur_area = 0;
 	buf_idx = 0;
+	in_dark = 0;
 	ppu.on_wait_vsync = ->void(){ buf_idx = 0; };
 	fs.copy( tile_pal, fs.TILE_PAL_BASE+0 );
 	fs.copy( &tile_pal[32], fs.TILE_PAL_BASE+1 );
@@ -185,14 +187,15 @@ public function scroll(dir:int):void
 
 function before_scroll(new_area:int, old_area:int):void
 {
-	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*fs.MAP_WIDTH+8 ){ light_down(); }
-	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 1*fs.MAP_WIDTH+4 ){ light_down(); }
+	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 5*fs.MAP_WIDTH+9 ){ light_down(); in_dark = 1;}
+	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*fs.MAP_WIDTH+5 ){ light_down(); in_dark = 1;}
+	
 }
 
 function after_scroll(new_area:int, old_area:int):void
 {
-	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 3*fs.MAP_WIDTH+8 ){ light_up(); }
-	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 1*fs.MAP_WIDTH+4 ){ light_up(); }
+	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 5*fs.MAP_WIDTH+9 ){ light_up(); in_dark = 0;}
+	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 3*fs.MAP_WIDTH+5 ){ light_up(); in_dark = 0;}
 }
 
 const VRAM_PALLET = 0x3f00;
@@ -252,8 +255,10 @@ function scroll_left():void
 	var x = 15;
 	cur_area -= 1;
 	fetch_area(cur_area);
-	ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
-	ppu.wait_vsync_with_flag(2);
+	if( !in_dark ){
+		ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
+		ppu.wait_vsync_with_flag(2);
+	}
 	mmc3.MIRROR = 1; // horizontal
 	loop(){
 		draw_map_vertical(x);
@@ -277,8 +282,10 @@ function scroll_right():void
 	var x = 0;
 	cur_area += 1;
 	fetch_area(cur_area);
-	ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
-	ppu.wait_vsync_with_flag(2);
+	if( !in_dark ){
+		ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
+		ppu.wait_vsync_with_flag(2);
+	}
 	mmc3.MIRROR = 1; // horizontal
 	loop(){
 		draw_map_vertical(x);
@@ -302,8 +309,10 @@ function scroll_up():void
 	var y = 14;
 	cur_area -= fs.MAP_WIDTH;
 	fetch_area(cur_area);
-	ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
-	ppu.wait_vsync_with_flag(2);
+	if( !in_dark ){
+		ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
+		ppu.wait_vsync_with_flag(2);
+	}
 	mmc3.MIRROR = 0; // vertical
 	loop(){
 		draw_map_horizontal(y);
@@ -327,8 +336,10 @@ function scroll_down():void
 	var y = 0;
 	cur_area += fs.MAP_WIDTH;
 	fetch_area(cur_area);
-	ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
-	ppu.wait_vsync_with_flag(2);
+	if( !in_dark ){
+		ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
+		ppu.wait_vsync_with_flag(2);
+	}
 	mmc3.MIRROR = 0; // vertical
 	loop(){
 		draw_map_horizontal(y);

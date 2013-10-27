@@ -151,16 +151,17 @@ class TiledConverter
       JSON.dump( {pal_set:pal_set, tile_pals: tile_pals}, open('res/tmp_pal.json','w') ) # 一時的に保存
 
       common_tiles = tset.tiles.slice!(0,128) # 共通パーツ相当の128タイルを削除する
+      # 一部のタイルを置き換える
       [
-       [95,63], # 空
-       [191,63], # 空
-       [184,56],
-       [185,57],
-      ].each do |to,from|
+       [95,63,1], # 空
+       [184,56,8], # 遺跡+空
+      ].each do |to,from,num|
         to -= 32
         from -= 32
-        4.times do |i|
-          tset.tiles[to*4+i] = tset.tiles[from*4+i]
+        num.times do |n|
+          4.times do |i|
+            tset.tiles[(to+n)*4+i] = tset.tiles[(from+n)*4+i]
+          end
         end
       end
       IO.binwrite("res/bg.chr", tset.bin)
@@ -180,6 +181,10 @@ class TiledConverter
        [0,31], # 見えない壁
        [1,24], # 水面
        [0,25], # 水中
+       [2,26], # 水(左落ち)
+       [3,27], # 水(右落ち)
+       [4,28], # 水(垂直)
+       [6,16], # 歯車
       ].each do |src,dest|
         src *= 4*4
         dest *= 4

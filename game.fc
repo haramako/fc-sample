@@ -117,7 +117,9 @@ function start(): void
 		
 		// メニュー
 		if( pad.pushed & pad.START ){
+			var old = mmc3.set_pbank( 1, PBANK_DEBUG_MENU );
 			debug_menu.start();
+			mmc3.set_pbank( 1, old );
 		}elsif( pad.pushed & pad.SELECT ){
 			var old_bank = mmc3.set_pbank(1, PBANK_MENU);
 			menu.start();
