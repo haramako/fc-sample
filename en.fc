@@ -77,13 +77,13 @@ function check_block(px:int*, py:int*):int
 	var r = 0;
 	
 	// 下方向
-	if( bg.cell_type(x+4,y+(size-1)) & bg.TYPE_STOP || bg.cell_type(x-4,y+(size-1)) & bg.TYPE_STOP ){
+	if( bg.cell_type(x+4,y+(size-1)) & bg.TYPE_WALL || bg.cell_type(x-4,y+(size-1)) & bg.TYPE_WALL ){
 		*py = (y+size)/16*16 - size;
 		r = DIR_MASK_DOWN;
 	}
 
 	// 右方向
-	if( bg.cell_type(x+(size-1),y) & bg.TYPE_STOP ){
+	if( bg.cell_type(x+(size-1),y) & bg.TYPE_WALL ){
 		*px = (x+size)/16*16 - size;
 		r = r | DIR_MASK_RIGHT;
 	}elsif( x >= 240 ){
@@ -92,7 +92,7 @@ function check_block(px:int*, py:int*):int
 	}
 
 	// 左方向
-	if( bg.cell_type(x-size,y) & bg.TYPE_STOP ){
+	if( bg.cell_type(x-size,y) & bg.TYPE_WALL ){
 		*px = (x-size)/16*16 + 16 + size;
 		r = r | DIR_MASK_LEFT;
 	}elsif( x < 16 ){
@@ -101,7 +101,7 @@ function check_block(px:int*, py:int*):int
 	}
 	
 	// 上方向
-	if( bg.cell_type(x+4,y-size) & bg.TYPE_STOP || bg.cell_type(x-4,y-size) & bg.TYPE_STOP ){
+	if( bg.cell_type(x+4,y-size) & bg.TYPE_WALL || bg.cell_type(x-4,y-size) & bg.TYPE_WALL ){
 		*py = (y-size)/16*16 + 16 + size;
 		r = r | DIR_MASK_UP;
 	}
@@ -157,7 +157,7 @@ function slime_process(i:int):void
 	}elsif( bg.cell_type(x-5,y+8) & bg.TYPE_WALL || bg.cell_type(x+5,y+8) & bg.TYPE_WALL ){
 		// 地面の上
 		var nx:uint = x+dir*8;
-		if( nx < 8 || nx > 248 || bg.cell_type(nx,y-8) & bg.TYPE_STOP ){
+		if( nx < 16 || nx > 240 || bg.cell_type(nx,y-8) & bg.TYPE_STOP ){
 			dir = -dir;
 		}else{
 			if( (anim%32) < 16 ){
@@ -338,7 +338,8 @@ function block_process(i:int):void
 	if( dir != 0 ){
 		// 左右に動く
 		c = bg.cell_type(x+dir*16,y);
-		if( c == 0 || c == bg.TYPE_SPIKE ){
+		var c_upper = bg.cell(x,y-16);
+		if( (c == 0 || c == bg.TYPE_SPIKE) && (c_upper != 29) ){
 			x += dir*16;
 			redraw = 1;
 			dir = 0;
@@ -363,7 +364,9 @@ function block_process(i:int):void
 	}
 
 	if( redraw ){
-		bg.put2( px[i]/16, py[i]/16, bg.blank_cell, 3 );
+		c = bg.blank_cell;
+		if( bg.cur_area == 13+4*fs.MAP_WIDTH ){ c = 0; } // 例外：塔の中は黒く塗る
+		bg.put2( px[i]/16, py[i]/16, c, 3 );
 		bg.put2( x/16, y/16, 29, 0 );
 		px[i] = x;
 		py[i] = y;
