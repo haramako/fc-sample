@@ -14,6 +14,7 @@ var enemy_num:int;
 var buf_idx:int;
 var buf:int[256] options(address:0x6500);
 var pal:int[64];
+var blank_cell:int; // 空白のセル番号(空と黒を使い分けるため)
 
 var pallet:int[32];
 
@@ -125,6 +126,7 @@ public function put(x:int, y:int, n:int, _pal:int):void
 {
 	var y16:int16 = y;
 	var addr:int16 = 0x2000 + y16*64 + x*2;
+	if( n < 32 && BLANK_CELL[n] ){ n = blank_cell; }
 	var ni = n * 4;
 	buf[buf_idx+0] = ni;
 	buf[buf_idx+1] = ni+2;
@@ -168,6 +170,9 @@ function fetch_area(area:int):void
 		mmc3.set_cbank(1, CBANK_BG+(area_type-1)*2);
 	}
 	
+	blank_cell = 0;
+	if( area_type == 1 || area_type == 5 ){ blank_cell = 63; } // ブランクセルを空に
+	
 }
 
 public function scroll(dir:int):void
@@ -193,9 +198,8 @@ public function scroll(dir:int):void
 
 function before_scroll(new_area:int, old_area:int):void
 {
-	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 5*fs.MAP_WIDTH+9 ){ light_down(); in_dark = 1;}
-	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*fs.MAP_WIDTH+5 ){ light_down(); in_dark = 1;}
-	
+	/* if( !my.items[fs.ITEM_ID_LAMP] && new_area == 5*fs.MAP_WIDTH+9 ){ light_down(); in_dark = 1;} */
+	/* if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*fs.MAP_WIDTH+5 ){ light_down(); in_dark = 1;} */
 }
 
 function after_scroll(new_area:int, old_area:int):void
@@ -366,6 +370,7 @@ function put_in_lock(x:int, y:int, n:int):void
 {
 	var y16:int16 = y;
 	var addr:int16 = 0x2000 + y16*64 + x*2;
+	if( n < 32 && BLANK_CELL[n] ){ n = blank_cell; }
 	var ni = n * 4;
 	buf[0] = ni;
 	buf[1] = ni+2;
@@ -378,12 +383,18 @@ function put_in_lock(x:int, y:int, n:int):void
 	ppu.put_in_lock( 0x23c0 + pal_addr, &pal[pal_addr], 1 );
 }
 
+const BLANK_CELL = [ 0,0,0,0,1,1,1,1,
+					 0,0,0,0,0,0,0,0,
+					 0,0,0,0,0,0,0,0,
+					 0,0,0,0,0,0,1,1];
+
 function draw_map_vertical(x:int):void
 {
 	var addr:int16 = 0x2000 + x*2;
 	var y:int;
 	for( y, 0, 15 ){
 		var n = data[y*16+x];
+		if( n < 32 && BLANK_CELL[n] ){ n = blank_cell; }
 		var ni = n * 4;
 		var idx = buf_idx+y*2;
 		buf[idx] = ni;
@@ -405,6 +416,7 @@ function draw_map_horizontal(y:int):void
 	var x:int;
 	for( x, 0, 16 ){
 		var n = data[y*16+x];
+		if( n < 32 && BLANK_CELL[n] ){ n = blank_cell; }
 		var ni = n * 4;
 		var idx = buf_idx+x*2;
 		buf[idx] = ni;
