@@ -232,7 +232,7 @@ class TiledConverter
           16.times do |cx|
             cell = a[(ay*15+cy)*AREA_WIDTH*@world_width + (ax*16+cx)]
             if cell > 32
-              area_type = cell / 32 if area_type == 0 && cell % 32 != 31 # 31=空は特別
+              area_type = cell / 32 if area_type == 0 and cell % 32 != 31 # 31=空は特別
               cell = cell % 32 + 32
             end
             d[cy*16+cx] = cell

@@ -13,7 +13,7 @@ var enemy_num:int;
 
 var buf_idx:int;
 var buf:int[256] options(address:0x6500);
-var pal:int[32];
+var pal:int[64];
 
 var pallet:int[32];
 
@@ -21,6 +21,7 @@ var cur_area:int;
 
 var tile_pal:int[64] options(address:0x6300);
 var in_dark:int;
+var area_type:int;
 
 const TYPE_WALL = 1 << 0;
 const TYPE_FLOOR = 1 << 1;
@@ -153,20 +154,18 @@ function fetch_area(area:int):void
 	cur_area = area;
 	fs.copy( data_buf, fs.TILE_BASE+area );
 	var len = rle.unpack( data, data_buf );
-	debug[0] = len;
-	//	if( len != 16*15 ){ asm( ".byte 2" ); } // length check
+	if( len != 16*15 ){ asm( ".byte 2" ); } // length check
 
 	len = fs.copy( enemy, fs.ENEMY_BASE+area );
 	enemy_num = len/6;
 
 	// パレット、タイルデータの切り替え
-	var pal = fs.AREA_TYPES[area];
-	if( pal ){
-		debug[0] = pal;
-		fs.copy( &tile_pal[32], fs.TILE_PAL_BASE+pal );
-		mem.copy( &tile_type[32], &TILE_TYPE[pal*32], 32 );
-		mem.copy( &bg.pallet[4], &fs.PAL_SET[(pal-1)*16+4], 12 );
-		mmc3.set_cbank(1, CBANK_BG+(pal-1)*2);
+	area_type = fs.AREA_TYPES[area];
+	if( area_type ){
+		fs.copy( &tile_pal[32], fs.TILE_PAL_BASE+area_type );
+		mem.copy( &tile_type[32], &TILE_TYPE[area_type*32], 32 );
+		mem.copy( &bg.pallet[4], &fs.PAL_SET[(area_type-1)*16+4], 12 );
+		mmc3.set_cbank(1, CBANK_BG+(area_type-1)*2);
 	}
 	
 }
@@ -205,8 +204,6 @@ function after_scroll(new_area:int, old_area:int):void
 	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 3*fs.MAP_WIDTH+5 ){ light_up(); in_dark = 0;}
 }
 
-const VRAM_PALLET = 0x3f00;
-
 function pal_down(pal:int*, size:int, pow:int):void
 {
 	var i:int;
@@ -233,7 +230,7 @@ function light_down():void
 		}else{
 			pal_down(buf, 16, i+1);
 		}
-		ppu.put( VRAM_PALLET, buf, 16, 0 );
+		ppu.put( VRAM_PALETTE, buf, 16, 0 );
 		var j:int;
 		for( j, 0, 4 ){	ppu.wait_vsync_with_flag(2); }
 	}
@@ -251,7 +248,7 @@ function light_up():void
 		}else{
 			pal_down(buf, 16, 3-i);
 		}
-		ppu.put( VRAM_PALLET, buf, 16, 0 );
+		ppu.put( VRAM_PALETTE, buf, 16, 0 );
 		var j:int;
 		for( j, 0, 4 ){	ppu.wait_vsync_with_flag(2); }
 	}
