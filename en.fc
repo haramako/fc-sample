@@ -580,6 +580,7 @@ function ghost_process(i:int):void
 			angle = math.atan(my.y/2-y/2, my.x/2-x/2);
 			state = 1;
 			wait = p1[i];
+			if( my.items[fs.ITEM_ID_OMAMORI] ){ wait = wait/2; }
 		}
 	case 1:
 		x += (math.cos(angle)/8 + giff)/16;
@@ -589,7 +590,7 @@ function ghost_process(i:int):void
 			wait -= 1;
 		}else{
 			state = 0;
-			wait = 128;
+			wait = 64;
 		}
 	}
 
@@ -603,7 +604,6 @@ function ghost_process(i:int):void
 	p4[i] = wait;
 	p5[i] = angle;
 
-	if( !my.items[fs.ITEM_ID_OMAMORI] ){ check_hit(i,8); }
 }
 
 /*********************************************
