@@ -554,40 +554,54 @@ function gas_process(i:int):void
 
 function ghost_new(i:int):void
 {
+	if( p1[i] == 0 ){ p1[i] = 60; }
+	p3[i] = 0;
+	p4[i] = math.rand()/2;
 }
 
 function ghost_process(i:int):void
 {
 	var x = px[i];
 	var y = py[i];
-	var speed = p2[i];
+	var state = p3[i];
+	var wait = p4[i];
+	var angle = p5[i];
 
-	var ok = 0;
-	if( (my.x < x && my.dir == 1) || (my.x > x && my.dir == 0) ){
-		ok = 1;
+	var dy:int;
+	var dir = 0;
+	if( (angle-64)<128 ){ dir = 64; }
+
+	switch( state ){
+	case 0:
+		dy = y+math.sin(wait*4)/16;
+		if( wait ){
+			wait -= 1;
+		}else{
+			angle = math.atan(my.y/2-y/2, my.x/2-x/2);
+			state = 1;
+			wait = p1[i];
+		}
+	case 1:
+		x += (math.cos(angle)/8 + giff)/16;
+		y += (math.sin(angle)/8 + giff)/16;
+		dy = y;
+		if( wait ){
+			wait -= 1;
+		}else{
+			state = 0;
+			wait = 128;
+		}
 	}
 
-	var dir:int;
-	var v = (speed+giff)/16;
-	if( x > my.x ){ dir = 1; }else{ dir = 0; }
-	if( ok ){
-		if( x > my.x ){
-			x -= v;
-		}else{
-			x += v;
-		}
-		if( y > my.y ){
-			y -= v;
-		}else{
-			y += v;
-		}
-		gr_sprite2( x, y, 152+(anim/16)%2*4, (dir*64));
-	}else{
-		gr_sprite2( x, y, 152, (dir*64));
+	if( anim % 2 ){
+		gr_sprite2( x, dy, 152+((anim/8)%2)*4, dir );
 	}
 	
 	px[i] = x;
 	py[i] = y;
+	p3[i] = state;
+	p4[i] = wait;
+	p5[i] = angle;
 
 	if( !my.items[fs.ITEM_ID_OMAMORI] ){ check_hit(i,8); }
 }
@@ -726,7 +740,7 @@ public const PROCESS: void(int)[] = [ none_process,
 public const NEW_FUNC: void(int)[] = [ none_process,
 									   slime_new,
 									   wow_new,
-									   none_process,
+									   elevator_new,
 									   none_process,
 									   none_process,
 									   block_new,

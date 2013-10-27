@@ -1,7 +1,7 @@
 ;;; IRQの設定
 	.include "./macro.asm"
 	
-.segment "menu"
+.segment "CODE" 				; 割り込みのためにCODEセグメントに配置
 	
 _menu_irq_setup:
 	irq_set #31

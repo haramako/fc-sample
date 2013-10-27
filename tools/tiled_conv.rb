@@ -93,6 +93,7 @@ class TiledConverter
     conv_item_data
     make_font
     make_bg_image
+    make_sprite_image
     conv_sound
 
     fs_config = ERB.new(DATA.read,nil,'-').result(binding)
@@ -113,11 +114,22 @@ class TiledConverter
     STDERR.puts $!
   end
 
+  def make_sprite_image
+    require 'gd2-ffij'
+    img = GD2::Image.import( 'res/sprite.bmp' )
+    tset = NesTool::TileSet.new
+    tset.add_from_img( img )
+    tset.reflow!
+    IO.binwrite 'res/sprite.chr', tset.bin
+
+  rescue LoadError
+  end
+
   # BGイメージの作成
   def make_bg_image
     begin
       require 'gd2-ffij'
-      img = GD2::Image.import( 'res/character.chr.bmp' )
+      img = GD2::Image.import( 'res/character.bmp' )
 
       tset = NesTool::TileSet.new
       tset.add_from_img( img )

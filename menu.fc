@@ -113,7 +113,7 @@ function item_process():int
 				text_print( buf2, buf );
 				ppu.put( ppu.pos(4,20)+0x400, buf2, 64, 0 );
 				ppu.wait_vsync();
-				
+
 				buf = ppu.alloc(64);
 				buf2 = ppu.alloc(64);
 				mem.zero( buf2, 64 );
