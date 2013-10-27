@@ -363,7 +363,7 @@ function block_process(i:int):void
 	}
 
 	if( redraw ){
-		bg.put2( px[i]/16, py[i]/16, 0, 0 );
+		bg.put2( px[i]/16, py[i]/16, bg.blank_cell, 3 );
 		bg.put2( x/16, y/16, 29, 0 );
 		px[i] = x;
 		py[i] = y;

@@ -39,7 +39,9 @@ class BankedBuffer
   end
 
   def bin
-    @buf.pack('c*')
+    head = @addrs.pack('S<*') + @sizes.pack('S<*')
+    head = head + "\0" * (BANK_SIZE-head.size)
+    head + @buf.pack('c*')
   end
 
   def bank_size
@@ -121,12 +123,14 @@ class TiledConverter
       tset.add_from_img( img )
       tset.reflow!
 
+      # パレットセットを作成
       pal = []
       img.palette.each do |c|
         pal[c.index] = c if c.index
       end
       pal = pal[0...128]
 
+      # タイルパレットをパレット
       base_pal = JSON.parse( IO.read('res/nes_palette.json') )
       pal_set = pal.map do |p|
         next 13 unless p
@@ -230,7 +234,7 @@ class TiledConverter
           16.times do |cx|
             cell = a[(ay*15+cy)*AREA_WIDTH*@world_width + (ax*16+cx)]
             if cell > 32
-              area_type = cell / 32 if area_type == 0 && cell % 32 != 31 # 31=空は特別
+              area_type = cell / 32 if area_type == 0 and cell % 32 != 31 # 31=空は特別
               cell = cell % 32 + 32
             end
             d[cy*16+cx] = cell
@@ -351,6 +355,10 @@ const MAP_WIDTH = <%=@world_width%>;
 const MAP_HEIGHT = <%=@world_height%>;
 const AREA_TYPES = <%=@area_types%>;
 
+const FILE_MAX = <%=@buf.cur%>;
+var FILE_ADDR:uint16[] options( address:0xa000 );
+var FILE_SIZE:uint16[] options( address:<%=0xa000+@buf.cur*2%> );
+
 const TILE_BASE = <%=@tile_base%>;
 const ENEMY_BASE = <%=@en_base%>;
 const TILE_PAL_BASE = <%=@tile_pal_base%>;
@@ -365,8 +373,5 @@ const ITEM_DESC_BASE = <%=@item_desc_base%>;
 <%- @item_ids.each.with_index do |item,i| -%>
 const ITEM_ID_<%=item%> = <%= i %>;
 <%- end -%>
-
-const _FS_ADDR = <%=@buf.addrs%>;
-const _FS_SIZE = <%=@buf.sizes%>;
 
 const PAL_SET = <%=@pal_set%>;
