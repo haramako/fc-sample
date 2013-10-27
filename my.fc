@@ -97,7 +97,7 @@ function do_grobe():void
 {
 	if( anim % 32 == 0 && vx != 0 && items[fs.ITEM_ID_GROBE]){
 		var block_x = x + math.sign(vx)*9;
-		if( bg.cell( block_x, y ) == 56 || bg.cell( block_x,y) == 29 ){
+		if( bg.cell( block_x,y) == 29 ){
 			var i = en.new();
 			if( i != -1 ){
 				en.type[i] = en.TYPE_BLOCK;

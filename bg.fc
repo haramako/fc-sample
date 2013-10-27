@@ -198,8 +198,8 @@ public function scroll(dir:int):void
 
 function before_scroll(new_area:int, old_area:int):void
 {
-	/* if( !my.items[fs.ITEM_ID_LAMP] && new_area == 5*fs.MAP_WIDTH+9 ){ light_down(); in_dark = 1;} */
-	/* if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*fs.MAP_WIDTH+5 ){ light_down(); in_dark = 1;} */
+	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 5*fs.MAP_WIDTH+9 ){ light_down(); in_dark = 1;}
+	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*fs.MAP_WIDTH+5 ){ light_down(); in_dark = 1;}
 }
 
 function after_scroll(new_area:int, old_area:int):void
