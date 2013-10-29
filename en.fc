@@ -607,6 +607,7 @@ function ghost_process(i:int):void
 	p4[i] = wait;
 	p5[i] = angle;
 
+	check_hit(i,8);
 }
 
 /*********************************************
