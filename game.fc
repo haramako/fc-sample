@@ -93,7 +93,11 @@ function start(): void
 		}elsif( my.y >= 232 ){
 			scroll_dir = DIR_DOWN;
 		}elsif( my.y < 8 ){
-			scroll_dir = DIR_UP;
+			if( my.state == my.STATE_LADDER ){
+				scroll_dir = DIR_UP;
+			}else{
+				my.y = 8;
+			}
 		}
 		if( scroll_dir != -1 ){
 			bg.scroll( scroll_dir );
@@ -106,7 +110,9 @@ function start(): void
 		if( game_event ){
 			switch( game_event ){
 			case event.ID_GET_ITEM:
+				var old_pbank = mmc3.set_pbank(1, PBANK_EVENT);
 				event.event_start();
+				mmc3.set_pbank(1, old_pbank);
 			case event.ID_MOVE_AREA:
 				move_area(game_event_p1);
 			case event.ID_MOVE_CHECKPOINT:

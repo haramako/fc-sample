@@ -207,6 +207,10 @@ function wow_process(i:int):void
 		var vy = DIR_VY[dir];
 		var xbias = 0; if( vx < 0 ){ xbias = -1; }
 		var ybias = 0; if( vy < 0 ){ ybias = -1; }
+		if( y >= 240 || y < 16 ){
+			type[i] = 0;
+			return;
+		}
 		if( bg.cell_type(x+vx*8+xbias,y+vy*8+ybias) & bg.TYPE_STOP || check_outside(x,y) ){
 			dir = (2+dir)%4;
 		}
@@ -557,7 +561,7 @@ function gas_process(i:int):void
 
 function ghost_new(i:int):void
 {
-	if( p1[i] == 0 ){ p1[i] = 60; }
+	if( p1[i] == 0 ){ p1[i] = 30; }
 	p3[i] = 0;
 	p4[i] = math.rand()/2;
 }
@@ -583,11 +587,16 @@ function ghost_process(i:int):void
 			angle = math.atan(my.y/2-y/2, my.x/2-x/2);
 			state = 1;
 			wait = p1[i];
-			if( my.items[fs.ITEM_ID_OMAMORI] ){ wait = wait/2; }
+			if( my.items[fs.ITEM_ID_OMAMORI] ){ wait = wait*2; }
 		}
 	case 1:
-		x += (math.cos(angle)/8 + giff)/16;
-		y += (math.sin(angle)/8 + giff)/16;
+		if( my.items[fs.ITEM_ID_OMAMORI] ){ 
+			x += (math.cos(angle)/8 + giff)/16;
+			y += (math.sin(angle)/8 + giff)/16;
+		}else{
+			x += (math.cos(angle)/4 + giff)/16;
+			y += (math.sin(angle)/4 + giff)/16;
+		}
 		dy = y;
 		if( wait ){
 			wait -= 1;
