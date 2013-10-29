@@ -97,7 +97,7 @@ function do_grobe():void
 {
 	if( anim % 32 == 0 && vx != 0 && items[fs.ITEM_ID_GROBE]){
 		var block_x = x + math.sign(vx)*9;
-		if( bg.cell( block_x, y ) == 56 || bg.cell( block_x,y) == 29 ){
+		if( bg.cell( block_x,y) == 29 ){
 			var i = en.new();
 			if( i != -1 ){
 				en.type[i] = en.TYPE_BLOCK;
@@ -310,6 +310,7 @@ public function process():void
 		}
 		
 	case STATE_LADDER: // はしご
+		vy = 0;
 		x = (x/16)*16+8;
 		if( pad.cur & pad.UP ){
 			// 登る
@@ -330,8 +331,6 @@ public function process():void
 				y += 1;
 			}
 		}elsif( (pad.cur & (pad.LEFT|pad.RIGHT)) && !get_cell(x,y) ){
-			vx = 0;
-			vy = 0;
 			state = STATE_JUMP;
 		}
 

@@ -73,6 +73,14 @@ class TiledConverter
      ['weight', 'おもり', '水に潜れるようになる'],
      ['craw', 'かぎ爪', 'はしごに飛び乗れる'],
      ['wing', '天使の羽', 'すきなチェックポイントに飛べる'],
+     ['blank1', '????', '????'],
+     ['blank2', '????', '????'],
+     ['orb1', '悲しみの宝珠', '悲しみの思いが閉じ込められている'],
+     ['orb2', '怒りの宝珠', '怒りの思いが閉じ込められている'],
+     ['orb3', 'よろこびの宝珠', '喜びの思いが閉じ込められている'],
+     ['orb4', '後悔の宝珠', '後悔の思いが閉じ込められている'],
+     ['orb5', '嫉妬の宝珠', 'はげしい嫉妬が閉じ込められている'],
+     ['orb6', '忘却の宝珠', 'どのような思いも、やがて忘れさられる・・・'],
     ]
 
   def initialize( filename )
@@ -93,6 +101,7 @@ class TiledConverter
     conv_item_data
     make_font
     make_bg_image
+    make_sprite_image
     conv_sound
 
     fs_config = ERB.new(DATA.read,nil,'-').result(binding)
@@ -113,11 +122,22 @@ class TiledConverter
     STDERR.puts $!
   end
 
+  def make_sprite_image
+    require 'gd2-ffij'
+    img = GD2::Image.import( 'res/sprite.bmp' )
+    tset = NesTool::TileSet.new
+    tset.add_from_img( img )
+    tset.reflow!
+    IO.binwrite 'res/sprite.chr', tset.bin
+
+  rescue LoadError
+  end
+
   # BGイメージの作成
   def make_bg_image
     begin
       require 'gd2-ffij'
-      img = GD2::Image.import( 'res/character.chr.bmp' )
+      img = GD2::Image.import( 'res/character.bmp' )
 
       tset = NesTool::TileSet.new
       tset.add_from_img( img )
@@ -159,6 +179,7 @@ class TiledConverter
       [
        [95,63,1], # 空
        [184,56,8], # 遺跡+空
+       [175,174,1], # 空の黒いバツブロック
       ].each do |to,from,num|
         to -= 32
         from -= 32
