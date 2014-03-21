@@ -39,8 +39,7 @@ class BankedBuffer
   end
 
   def bin
-    head = @addrs.pack('S<*') + @sizes.pack('S<*')
-    p @sizes, @addrs, @addrs.pack('S<*'), head[0..100].unpack('c*')
+    head = @addrs.pack('v*') + @sizes.pack('v*')
     head = head + "\0" * (BANK_SIZE-head.size)
     head + @buf.pack('c*')
   end
@@ -354,10 +353,8 @@ class TiledConverter
 
   def conv_sound
     @sound_base = @buf.cur
-    nsd = NesTool::Nsd.new
-    ['4.mml'].each do |f|
-      nsd.convert 'res/sound/'+f
-      bin = IO.binread( Pathname.new('res/sound/'+f).sub_ext('.bin') ).unpack('c*')
+    ['4'].each do |f|
+      bin = IO.binread( 'res/sound/'+f+'.bin' ).unpack('c*')
       @buf.add bin
     end
   end

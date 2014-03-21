@@ -129,9 +129,16 @@ module NesTool
 
   class Nsd
 
-    NSC = 'nsc'
-    CA65 = 'ca65'
-    LD65 = 'ld65'
+    case RbConfig::CONFIG['target_os']
+    when /mswin(?!ce)|mingw|cygwin|bccwin/ 
+      NSC = 'nsc.exe'
+      CA65 = 'ca65.exe'
+      LD65 = 'ld65.exe'
+    else
+      NSC = 'nsc'
+      CA65 = 'ca65'
+      LD65 = 'ld65'
+    end
 
     LD65_CONFIG = <<EOT
 MEMORY { ROM: start = $0000, size = $8000, file = %O; }
