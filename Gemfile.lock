@@ -1,0 +1,21 @@
+GIT
+  remote: file:///Users/makoto/fc
+  revision: 903c3b2e4360810f1d8d483033da7f65c85cfa2a
+  specs:
+    fc (0.0.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ffi (1.9.3)
+    gd2-ffij (0.1.2)
+      ffi (>= 1.0.0)
+    rake (10.1.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  fc!
+  gd2-ffij
+  rake

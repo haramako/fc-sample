@@ -1,3 +1,4 @@
+.bundle
 a.*
 *.s
 *.o
@@ -7,3 +8,5 @@ fs_data*
 map-makoto.json
 .DS_Store
 nsc.exe
+.[#]*
+

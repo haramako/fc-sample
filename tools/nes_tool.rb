@@ -5,6 +5,7 @@
 #
 #
 
+require 'fc/compiler'
 require 'json'
 require 'pathname'
 require 'tempfile'
@@ -179,45 +180,3 @@ EOT
   end
 end
 
-=begin
-include NesTool
-
-img = GD2::Image.import( ARGV[0] )
-
-tset = TileSet.new
-tset.add_from_img( img )
-
-tset.reflow!
-
-pal = []
-img.palette.each do |c|
-  pal[c.index] = c if c.index
-end
-pal = pal[0...64]
-
-base_pal = JSON.parse( IO.read('nes_palette.json') )
-pal_data = pal.map do |p|
-  next 13 unless p
-  min_idx = -1
-  min = 999
-  base_pal.each.with_index do |bp,i|
-    d = (p.r - bp[0]).abs + (p.g - bp[1]).abs + (p.b - bp[2]).abs
-    if d < min
-      min = d
-      min_idx = i
-      break if d == 0
-    end
-  end
-  min_idx
-end
-
-bin = tset.bin
-open('character.chr','wb'){|f| f.write bin[0...8192]}
-open('character2.chr','wb'){|f| f.write bin[8192..-1]}
-
-open('misc.fc', 'w') do |f|
-  pals = tset.tiles.each_slice(4).map{|t| t[0].palette % 4}
-  f.puts "const TILE_PAL = #{pals};"
-  f.puts "const PAL_DATA = #{pal_data};"
-end
-=end

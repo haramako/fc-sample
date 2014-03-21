@@ -40,6 +40,7 @@ class BankedBuffer
 
   def bin
     head = @addrs.pack('S<*') + @sizes.pack('S<*')
+    p @sizes, @addrs, @addrs.pack('S<*'), head[0..100].unpack('c*')
     head = head + "\0" * (BANK_SIZE-head.size)
     head + @buf.pack('c*')
   end
@@ -124,20 +125,22 @@ class TiledConverter
 
   def make_sprite_image
     require 'gd2-ffij'
-    img = GD2::Image.import( 'res/sprite.bmp' )
+    img = GD2::Image.import( 'res/sprite.png' )
     tset = NesTool::TileSet.new
     tset.add_from_img( img )
     tset.reflow!
     IO.binwrite 'res/sprite.chr', tset.bin
 
   rescue LoadError
+    STDERR.puts 'WARING: make_sprite_image failed'
+    STDERR.puts $!
   end
 
   # BGイメージの作成
   def make_bg_image
     begin
       require 'gd2-ffij'
-      img = GD2::Image.import( 'res/character.bmp' )
+      img = GD2::Image.import( 'res/character.png' )
 
       tset = NesTool::TileSet.new
       tset.add_from_img( img )
@@ -150,7 +153,7 @@ class TiledConverter
       end
       pal = pal[0...128]
 
-      # タイルパレットをパレット
+      # タイルパレットを作成
       base_pal = JSON.parse( IO.read('res/nes_palette.json') )
       pal_set = pal.map do |p|
         next 13 unless p
@@ -195,7 +198,7 @@ class TiledConverter
       common = NesTool::TileSet.new
       4.times{ common.tiles.concat common_tiles }
       anim = NesTool::TileSet.new
-      anim.add_from_img( GD2::Image.import('res/anim.bmp') )
+      anim.add_from_img( GD2::Image.import('res/anim.png') )
       anim.reflow!
       [
        [0, 4], # 矢印
