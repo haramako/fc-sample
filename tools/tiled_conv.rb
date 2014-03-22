@@ -105,16 +105,14 @@ class TiledConverter
     
     begin
       require 'gd2-ffij'
-      loaded = true
+      @gd2_loaded = true
     rescue LoadError
       STDERR.puts "WARING: #{$!}"
-      raise
+      STDERR.puts "please install 'gd2-ffij' gem to convert images."
     end
-    if loaded
-      make_font
-      make_bg_image
-      make_sprite_image
-    end
+    make_font
+    make_bg_image
+    make_sprite_image
     
     conv_sound
 
@@ -126,6 +124,7 @@ class TiledConverter
 
   # フォント画像の作成
   def make_font
+    return unless @gd2_loaded
     @text_conv.make_image('res/text.png')
     IO.write('text.txt', @text_conv.using.join)
     tile_set = NesTools::TileSet.new
@@ -134,7 +133,7 @@ class TiledConverter
   end
 
   def make_sprite_image
-    require 'gd2-ffij'
+    return unless @gd2_loaded
     img = GD2::Image.import( 'res/sprite.png' )
     tset = NesTools::TileSet.new
     tset.add_from_img( img )
@@ -144,7 +143,7 @@ class TiledConverter
 
   # BGイメージの作成
   def make_bg_image
-    begin
+    if @gd2_loaded
       require 'gd2-ffij'
       img = GD2::Image.import( 'res/character.png' )
 
@@ -228,7 +227,7 @@ class TiledConverter
       end
       IO.binwrite("res/bg_common.chr", common.bin)
 
-    rescue LoadError
+    else
       json = JSON.parse( IO.read('res/tmp_pal.json') ) 
       pal_set = json['pal_set']
       tile_pals = json['tile_pals']
