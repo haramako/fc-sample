@@ -1,6 +1,7 @@
 require 'pathname'
 require 'tempfile'
 require 'fileutils'
+require 'open3'
 
 module NesTools
   class Nsd
@@ -21,24 +22,14 @@ MEMORY { ROM: start = $0000, size = $8000, file = %O; }
 SEGMENTS { RODATA: load = ROM, type = ro, define = yes; }
 EOT
 
-    def initiaize
-    end
+    attr_accessor :show_command
     
-    def sh( *args )
-      require 'open3'
-      command = args.map(&:to_s)
-      puts command.join(" ")
-      Open3.popen2e( *command ) do |i, oe, th|
-        v = th.value
-        if v != 0
-          raise "`#{command}` returns #{v}"
-          puts oe.read
-        end
-        oe.read
-      end
+    def initialize(&block)
+      @show_command = false
+      yield self if block
     end
 
-    def convert( filename )
+    def convert( filename, output = nil )
       path = Pathname.new(filename)
       asm_path = path.sub_ext('.s')
       obj_path = path.sub_ext('.o')
@@ -55,9 +46,21 @@ EOT
       asm.gsub!( /.segment	"RODATA"\n/ ){ |m| m+"\t.word _nsd_BGM0\n" }
       IO.write asm_path, asm
 
-      sh LD65, '-o', path.sub_ext('.bin'), '-C', cfg.path, obj_path
+      output ||= path.sub_ext('.bin')
+      sh LD65, '-o', output, '-C', cfg.path, obj_path
 
       FileUtils.rm_f [path.sub_ext('.o'), asm_path]
+    end
+
+    private
+    def sh( *args )
+      command = args.map(&:to_s)
+      puts command.join(" ") if @show_command
+      Open3.popen2e( *command ) do |i, oe, th|
+        v = th.value
+        raise "`#{command}` returns #{v}" if v != 0
+        oe.read
+      end
     end
 
   end

@@ -43,11 +43,10 @@ module NesTools
 
     def config
       out = []
-      out << <<EOT
-options(bank:-2);
-var FILE_ADDR:uint16[] options( address:0xa000 );
-var FILE_SIZE:uint16[] options( address:#{0xa000+@file_count*2} );
-EOT
+      out << "options(bank:-2);"
+      out << "var FILE_ADDR:uint16[] options( address:0xa000 );"
+      out << "var FILE_SIZE:uint16[] options( address:#{0xa000+@file_count*2} );"
+      
       @tag_addr.each do |k,v|
         out << "const #{k} = #{@tag_addr[k]};"
       end

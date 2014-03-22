@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << File.expand_path(__FILE__+'/../../lib')
+require 'nes_tools'
+NesTools::Command.run
