@@ -88,20 +88,6 @@ class TiledConverter
   def initialize( filename )
     data = JSON.parse( File.read(filename) )
 
-    w = data['width'].to_i
-    h = data['height'].to_i
-    raise if w % AREA_WIDTH != 0 or h % AREA_HEIGHT != 0
-    @fs = NesTools::Fs.new
-    @world_width = w / AREA_WIDTH
-    @world_height = h / AREA_HEIGHT
-
-    @text_conv = NesTools::TextConverter.new
-
-    conv_text
-    conv_tile( data )
-    conv_item( data )
-    conv_item_data
-    
     begin
       require 'gd2-ffij'
       @gd2_loaded = true
@@ -109,6 +95,21 @@ class TiledConverter
       STDERR.puts "WARING: #{$!}"
       STDERR.puts "please install 'gd2-ffij' gem to convert images."
     end
+    
+    w = data['width'].to_i
+    h = data['height'].to_i
+    raise if w % AREA_WIDTH != 0 or h % AREA_HEIGHT != 0
+    @fs = NesTools::Fs.new
+    @world_width = w / AREA_WIDTH
+    @world_height = h / AREA_HEIGHT
+
+    @text_conv = NesTools::TextConverter.new('res/images/misaki_gothic.png')
+
+    conv_text
+    conv_tile( data )
+    conv_item( data )
+    conv_item_data
+    
     make_font
     make_bg_image
     make_sprite_image
@@ -124,27 +125,27 @@ class TiledConverter
   # フォント画像の作成
   def make_font
     return unless @gd2_loaded
-    @text_conv.make_image('res/text.png')
+    @text_conv.make_image('res/images/text.png')
     IO.write('text.txt', @text_conv.using.join)
     tile_set = NesTools::TileSet.new
-    tile_set.add_from_img( GD2::Image.import('res/text.png'), pal: :monochrome )
-    tile_set.save 'res/text.chr'
+    tile_set.add_from_img( GD2::Image.import('res/images/text.png'), pal: :monochrome )
+    tile_set.save 'res/images/text.chr'
   end
 
   def make_sprite_image
     return unless @gd2_loaded
-    img = GD2::Image.import( 'res/sprite.png' )
+    img = GD2::Image.import( 'res/images/sprite.png' )
     tset = NesTools::TileSet.new
     tset.add_from_img( img )
     tset.reflow!
-    IO.binwrite 'res/sprite.chr', tset.bin
+    IO.binwrite 'res/images/sprite.chr', tset.bin
   end
 
   # BGイメージの作成
   def make_bg_image
     if @gd2_loaded
       require 'gd2-ffij'
-      img = GD2::Image.import( 'res/character.png' )
+      img = GD2::Image.import( 'res/images/character.png' )
 
       tset = NesTools::TileSet.new
       tset.add_from_img( img )
@@ -158,7 +159,7 @@ class TiledConverter
       pal = pal[0...128]
 
       # タイルパレットを作成
-      base_pal = JSON.parse( IO.read('res/nes_palette.json') )
+      base_pal = JSON.parse( IO.read('res/images/nes_palette.json') )
       pal_set = pal.map do |p|
         next 13 unless p
         min_idx = -1
@@ -179,7 +180,7 @@ class TiledConverter
         tile_pals << tiles.each_slice(4).map{|t| t[0].palette % 4}
       end
 
-      JSON.dump( {pal_set:pal_set, tile_pals: tile_pals}, open('res/tmp_pal.json','w') ) # 一時的に保存
+      JSON.dump( {pal_set:pal_set, tile_pals: tile_pals}, open('res/images/tmp_pal.json','w') ) # 一時的に保存
 
       common_tiles = tset.tiles.slice!(0,128) # 共通パーツ相当の128タイルを削除する
       # 一部のタイルを置き換える
@@ -196,13 +197,13 @@ class TiledConverter
           end
         end
       end
-      IO.binwrite("res/bg.chr", tset.bin)
+      IO.binwrite("res/images/bg.chr", tset.bin)
 
       # 共通パーツの作成
       common = NesTools::TileSet.new
       4.times{ common.tiles.concat common_tiles }
       anim = NesTools::TileSet.new
-      anim.add_from_img( GD2::Image.import('res/anim.png') )
+      anim.add_from_img( GD2::Image.import('res/images/anim.png') )
       anim.reflow!
       [
        [0, 4], # 矢印
@@ -224,10 +225,10 @@ class TiledConverter
           common.tiles[dest+i*128...dest+i*128+4] = anim.tiles[src+i*4...src+i*4+4]
         end
       end
-      IO.binwrite("res/bg_common.chr", common.bin)
+      IO.binwrite("res/images/bg_common.chr", common.bin)
 
     else
-      json = JSON.parse( IO.read('res/tmp_pal.json') ) 
+      json = JSON.parse( IO.read('res/images/tmp_pal.json') ) 
       pal_set = json['pal_set']
       tile_pals = json['tile_pals']
     end

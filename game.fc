@@ -8,7 +8,7 @@ use debug_menu;
 use event;
 use mem;
 
-const PALLET:int[] = incbin("res/character.chr.dat");
+const PALLET:int[] = incbin("res/images/character.chr.dat");
 
 function init_area_enemy():void
 {

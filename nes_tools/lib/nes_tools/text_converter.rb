@@ -68,8 +68,15 @@ module NesTools
     }
 
     attr_reader :using
+    attr_reader :font_image
 
-    def initialize( _using = nil)
+    def initialize( _font_image = nil, _using = nil)
+      if _font_image
+        require 'gd2-ffij'
+        @font_image = ::GD2::Image.import(_font_image)
+      else
+        @font_image = nil
+      end
       @convert_char = CONVERT_CHAR.clone
       if _using
         @using = _using.chars.to_a
@@ -93,13 +100,11 @@ module NesTools
     end
 
     def make_image( filename )
-      require 'gd2-ffij'
-      src = GD2::Image.import('res/misaki_gothic.png')
       GD2::Image.new(128,128) do |dest|
         @using.each.with_index do |c,i|
           cj = c.encode('ISO-2022-JP')
           cp = cj.codepoints.to_a[3..4].map{|x| x-32 }
-          dest.copy_from( src, (i%16)*8, (i/16)*8, (cp[1]-1)*8, (cp[0]-1)*8, 8, 8 )
+          dest.copy_from( @font_image, (i%16)*8, (i/16)*8, (cp[1]-1)*8, (cp[0]-1)*8, 8, 8 )
         end
         dest.export(filename)
       end

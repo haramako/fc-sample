@@ -8,11 +8,11 @@ use en;
 use my;
 use sound;
 
-include('res/bg_common.chr');
-include('res/bg.chr');
-include('res/sprite.chr');
-include('res/text.chr');
-include('res/item.chr');
+include('res/images/bg_common.chr');
+include('res/images/bg.chr');
+include('res/images/sprite.chr');
+include('res/images/text.chr');
+include('res/images/item.chr');
 
 var buf:int[256] options( address: 0x7000 );
 
