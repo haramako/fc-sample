@@ -1,12 +1,11 @@
 .bundle
 a.*
-*.s
-*.o
-_*.inc
+.fc-build
 fs_config.fc
-fs_data*
+resource.fc
+res/fs_data.bin
 map-makoto.json
 .DS_Store
 nsc.exe
 .[#]*
-resource.fc
+
