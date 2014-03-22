@@ -6,7 +6,6 @@ $LOAD_PATH << 'nes_tools/lib'
 require 'pp'
 require 'json'
 require 'erb'
-require_relative 'text_conv'
 require 'nes_tools'
 
 
@@ -96,7 +95,7 @@ class TiledConverter
     @world_width = w / AREA_WIDTH
     @world_height = h / AREA_HEIGHT
 
-    @text_conv = TextConverter.new
+    @text_conv = NesTools::TextConverter.new
 
     conv_text
     conv_tile( data )

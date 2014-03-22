@@ -10,4 +10,5 @@ module NesTools
   autoload :Tile, 'nes_tools/tile'
   autoload :TileSet, 'nes_tools/tile'
   autoload :Fs, 'nes_tools/fs'
+  autoload :TextConverter, 'nes_tools/text_converter'
 end
