@@ -99,8 +99,8 @@ function do_flag():int
 {
 	begin(_T("チェックポイントを選択"));
 	var i:int;
-	for( i, 0, fs.MAP_CHECKPOINT_NUM ){
-		add( &fs.MAP_CHECKPOINT_DATA[fs.MAP_CHECKPOINT[i]+3] );
+	for( i, 0, MAP_CHECKPOINT_NUM ){
+		add( &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[i]+3] );
 	}
 	cur = last_checkpoint;
 	

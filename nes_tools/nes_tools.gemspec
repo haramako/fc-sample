@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = NesTools::VERSION
   spec.authors       = ["HARADA Makoto"]
   spec.email         = ["haramako@gmail.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.summary       = %q{NES development tools.}
+  spec.description   = %q{NES development tools.}
   spec.homepage      = ""
   spec.license       = "MIT"
 

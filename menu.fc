@@ -193,7 +193,7 @@ function map_init():void
 {
 	ppu.fill_in_lock( 0x2400+4*32, 0x400-4*32, 0 );
 	
-	if( !my.items[fs.ITEM_ID_MAP] ){ return; }
+	if( !my.items[ITEM_ID_MAP] ){ return; }
 	
 	var x = 0;
 	var y = 0;
@@ -210,7 +210,7 @@ function map_init():void
 
 function map_process():int
 {
-	if( !my.items[fs.ITEM_ID_MAP] ){ return 0; }
+	if( !my.items[ITEM_ID_MAP] ){ return 0; }
 	
 	var ax = bg.cur_area % 16;
 	var ay = bg.cur_area / 16;
@@ -224,7 +224,7 @@ function map_process():int
 		if( pad.pushed & pad.LEFT ){ ax = (ax+15)%16; }
 		if( pad.pushed & pad.RIGHT ){ ax = (ax+1)%16; }
 
-		if( my.items[fs.ITEM_ID_WING] && pad.pushed & pad.A ){
+		if( my.items[ITEM_ID_WING] && pad.pushed & pad.A ){
 			var area = ay*16 + ax;
 			game_event = event.ID_MOVE_AREA;
 			game_event_p1 = area;
@@ -239,15 +239,15 @@ function map_process():int
 
 function map_draw():void
 {
-	if( !my.items[fs.ITEM_ID_MAP] ){ return; }
+	if( !my.items[ITEM_ID_MAP] ){ return; }
 	var ax = bg.cur_area % 16;
 	var ay = bg.cur_area / 16;
 	ppu.sprite( ax*8 + 64, ay*8 + 64, 48, 1 );
 
 	var i:int;
-	for( i, 0, fs.MAP_CHECKPOINT_NUM ){
-		var cp = fs.MAP_CHECKPOINT[i];
-		var area = fs.MAP_CHECKPOINT_DATA[cp];
+	for( i, 0, MAP_CHECKPOINT_NUM ){
+		var cp = MAP_CHECKPOINT[i];
+		var area = MAP_CHECKPOINT_DATA[cp];
 		ax = area % 16;
 		ay = area / 16;
 		if( my.get_map(ax,ay) ){

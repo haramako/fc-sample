@@ -53,8 +53,8 @@ function start(): void
 	ppu.scroll2 = 0;
 	
 	// パレットの初期化
-	ppu.put_in_lock( 0x3f00, fs.PAL_SET, 16 );
-	mem.copy( bg.pallet, fs.PAL_SET, 16 );
+	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
+	mem.copy( bg.pallet, PAL_SET, 16 );
 	ppu.put_in_lock( 0x3f10, &PALLET[16], 16 );
 	mem.copy( &bg.pallet[16], &PALLET[16], 16 );
 	
@@ -168,7 +168,7 @@ function move_area(area:int):void
 
 function move_checkpoint(i:int):void
 {
-	var cp = &fs.MAP_CHECKPOINT_DATA[fs.MAP_CHECKPOINT[i]];
+	var cp = &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[i]];
 	my.x = cp[1]+8;
 	my.y = cp[2]+8;
 	my.vx = 0;

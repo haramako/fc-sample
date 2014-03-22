@@ -162,11 +162,11 @@ function fetch_area(area:int):void
 	enemy_num = len/6;
 
 	// パレット、タイルデータの切り替え
-	area_type = fs.AREA_TYPES[area];
+	area_type = AREA_TYPES[area];
 	if( area_type ){
 		fs.copy( &tile_pal[32], fs.TILE_PAL_BASE+area_type );
 		mem.copy( &tile_type[32], &TILE_TYPE[area_type*32], 32 );
-		mem.copy( &bg.pallet[4], &fs.PAL_SET[(area_type-1)*16+4], 12 );
+		mem.copy( &bg.pallet[4], &PAL_SET[(area_type-1)*16+4], 12 );
 		mmc3.set_cbank(1, CBANK_BG+(area_type-1)*2);
 	}
 	
@@ -178,7 +178,7 @@ function fetch_area(area:int):void
 public function scroll(dir:int):void
 {
 	var old_area = cur_area;
-	var new_area = cur_area + DIR_VY[dir]*fs.MAP_WIDTH + DIR_VX[dir];
+	var new_area = cur_area + DIR_VY[dir]*MAP_WIDTH + DIR_VX[dir];
 
 	before_scroll(new_area, old_area);
 	
@@ -198,14 +198,14 @@ public function scroll(dir:int):void
 
 function before_scroll(new_area:int, old_area:int):void
 {
-	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 5*fs.MAP_WIDTH+9 ){ light_down(); in_dark = 1;}
-	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*fs.MAP_WIDTH+5 ){ light_down(); in_dark = 1;}
+	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 5*MAP_WIDTH+9 ){ light_down(); in_dark = 1;}
+	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*MAP_WIDTH+5 ){ light_down(); in_dark = 1;}
 }
 
 function after_scroll(new_area:int, old_area:int):void
 {
-	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 5*fs.MAP_WIDTH+9 ){ light_up(); in_dark = 0;}
-	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 3*fs.MAP_WIDTH+5 ){ light_up(); in_dark = 0;}
+	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 5*MAP_WIDTH+9 ){ light_up(); in_dark = 0;}
+	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 3*MAP_WIDTH+5 ){ light_up(); in_dark = 0;}
 }
 
 function pal_down(pal:int*, size:int, pow:int):void
@@ -315,7 +315,7 @@ function scroll_right():void
 function scroll_up():void
 {
 	var y = 14;
-	cur_area -= fs.MAP_WIDTH;
+	cur_area -= MAP_WIDTH;
 	fetch_area(cur_area);
 	if( !in_dark ){
 		ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );
@@ -342,7 +342,7 @@ function scroll_up():void
 function scroll_down():void
 {
 	var y = 0;
-	cur_area += fs.MAP_WIDTH;
+	cur_area += MAP_WIDTH;
 	fetch_area(cur_area);
 	if( !in_dark ){
 		ppu.put( VRAM_PALETTE+4, &bg.pallet[4], 12, 0 );

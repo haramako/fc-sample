@@ -92,7 +92,7 @@ class TiledConverter
     w = data['width'].to_i
     h = data['height'].to_i
     raise if w % AREA_WIDTH != 0 or h % AREA_HEIGHT != 0
-    @buf = BankedBuffer.new
+    @fs = NesTools::Fs.new
     @world_width = w / AREA_WIDTH
     @world_height = h / AREA_HEIGHT
 
@@ -118,11 +118,10 @@ class TiledConverter
     
     conv_sound
 
-    fs_config = ERB.new(DATA.read,nil,'-').result(binding)
-    IO.write 'fs_config.fc', fs_config
-    IO.write 'hoge.json', JSON.dump(@buf.datas)
+    IO.binwrite "res/fs_data.bin", @fs.bin
+    IO.write 'resource.fc', ERB.new(DATA.read,nil,'-').result(binding)
+    IO.write 'fs_config.fc', @fs.config
 
-    IO.binwrite "res/fs_data.bin", @buf.bin
   end
 
   # フォント画像の作成
@@ -236,9 +235,9 @@ class TiledConverter
     end
 
     @pal_set = pal_set
-    @tile_pal_base = @buf.cur
+    @fs.tag :TILE_PAL_BASE
     tile_pals.each do |pals|
-      @buf.add pals
+      @fs.add pals
     end
 
   end
@@ -255,7 +254,7 @@ class TiledConverter
       a[i] = l['data'][i] - 1
     end
 
-    @tile_base = @buf.cur
+    @fs.tag :TILE_BASE
     @area_types = []
     @world_height.times do |ay|
       @world_width .times do |ax|
@@ -271,7 +270,7 @@ class TiledConverter
             d[cy*16+cx] = cell
           end
         end
-        @buf.add NesTools::Compress::Rle.compress( d )
+        @fs.add NesTools::Compress::Rle.compress( d )
         @area_types << area_type
       end
     end
@@ -314,7 +313,7 @@ class TiledConverter
       @cp_buf.add [ cp[:area], cp[:x], cp[:y], name, 0].flatten
     end
 
-    @en_base = @buf.cur
+    @fs.tag :ENEMY_BASE
     enemy.each.with_index do |area,i|
       area = area.map do |en| 
         if /^portal:(.+)/ === en[:type].downcase
@@ -327,7 +326,7 @@ class TiledConverter
         raise unless type
         [type, en[:x], en[:y], en[:p1] % 256, en[:p2] % 256, en[:p3] % 256]
       end
-      @buf.add area
+      @fs.add area
     end
   end
 
@@ -338,14 +337,14 @@ class TiledConverter
       @item_ids << item[0].upcase
     end
 
-    @item_name_base = @buf.cur
+    @fs.tag :ITEM_NAME_BASE
     ITEM_DATA.each do |item|
-      @buf.add @text_conv.conv(item[1])
+      @fs.add @text_conv.conv(item[1])
     end
 
-    @item_desc_base = @buf.cur
+    @fs.tag :ITEM_DESC_BASE
     ITEM_DATA.each do |item|
-      @buf.add @text_conv.conv(item[2])
+      @fs.add @text_conv.conv(item[2])
     end
 
   end
@@ -360,10 +359,10 @@ class TiledConverter
   end
 
   def conv_sound
-    @sound_base = @buf.cur
+    @fs.tag :SOUND_BASE
     ['4'].each do |f|
       bin = IO.binread( 'res/sound/'+f+'.bin' ).unpack('c*')
-      @buf.add bin
+      @fs.add bin
     end
   end
 
@@ -378,29 +377,15 @@ end
 TiledConverter.new( ARGV[0] )
 
 __END__
-options(bank:-2);
-
 const MAP_WIDTH = <%=@world_width%>;
 const MAP_HEIGHT = <%=@world_height%>;
 const AREA_TYPES = <%=@area_types%>;
-
-const FILE_MAX = <%=@buf.cur%>;
-var FILE_ADDR:uint16[] options( address:0xa000 );
-var FILE_SIZE:uint16[] options( address:<%=0xa000+@buf.cur*2%> );
-
-const TILE_BASE = <%=@tile_base%>;
-const ENEMY_BASE = <%=@en_base%>;
-const TILE_PAL_BASE = <%=@tile_pal_base%>;
-const SOUND_BASE = <%=@sound_base%>;
 
 const MAP_CHECKPOINT_NUM = <%=@cp_buf.cur%>;
 const MAP_CHECKPOINT = <%=@cp_buf.addrs%>;
 const MAP_CHECKPOINT_DATA = <%=@cp_buf.buf%>;
 
-const ITEM_NAME_BASE = <%=@item_name_base%>;
-const ITEM_DESC_BASE = <%=@item_desc_base%>;
 <%- @item_ids.each.with_index do |item,i| -%>
 const ITEM_ID_<%=item%> = <%= i %>;
 <%- end -%>
-
 const PAL_SET = <%=@pal_set%>;

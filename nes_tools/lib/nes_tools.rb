@@ -9,4 +9,5 @@ module NesTools
   autoload :Nsd, 'nes_tools/nsd'
   autoload :Tile, 'nes_tools/tile'
   autoload :TileSet, 'nes_tools/tile'
+  autoload :Fs, 'nes_tools/fs'
 end

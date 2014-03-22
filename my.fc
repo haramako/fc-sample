@@ -73,12 +73,12 @@ function check_on_enemy():int
 					return i;
 				}
 			case en.TYPE_SLIME:
-				if( items[fs.ITEM_ID_SANDAL] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
+				if( items[ITEM_ID_SANDAL] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
 					y = en.py[i] - 10;
 					return i;
 				}
 			case en.TYPE_FROG:
-				if( items[fs.ITEM_ID_BOOTS] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
+				if( items[ITEM_ID_BOOTS] && math.abs(x-en.px[i])<14 && y>=(en.py[i]-12) && y < (en.py[i]-2) ){
 					y = en.py[i] - 10;
 					return i;
 				}
@@ -95,7 +95,7 @@ function check_on_enemy():int
 
 function do_grobe():void
 {
-	if( anim % 32 == 0 && vx != 0 && items[fs.ITEM_ID_GROBE]){
+	if( anim % 32 == 0 && vx != 0 && items[ITEM_ID_GROBE]){
 		var block_x = x + math.sign(vx)*9;
 		if( bg.cell( block_x,y) == 29 ){
 			var i = en.new();
@@ -172,7 +172,7 @@ public function process():void
 		if( anim % 2 ){	return; }
 	}
 	prev_in_water = in_water;
-	var limited_water = in_water && (items[fs.ITEM_ID_WEIGHT]==0);
+	var limited_water = in_water && (items[ITEM_ID_WEIGHT]==0);
 	
 	my_anim += 1;
 
@@ -295,7 +295,7 @@ public function process():void
 			}
 		}
 		
-		if( items[fs.ITEM_ID_CRAW] ){
+		if( items[ITEM_ID_CRAW] ){
 			if( (pad.cur & pad.UP) && get_cell_type(x,y) & bg.TYPE_LADDER && math.abs(x%16-8) <= 2 ){
 				// はしごに登り始める
 				vx = 0;
