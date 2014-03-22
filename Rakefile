@@ -19,5 +19,5 @@ end
 
 task :clean do
   FileUtils.rm_rf Dir.glob(["castle.nes", "castle.map",
-                            ".fc-build", "src/fs_config.fc", "src/resource.fc", "res/fs_data.bin"])
+                            "src/.fc-build", "src/fs_config.fc", "src/resource.fc", "res/fs_data.bin"])
 end
