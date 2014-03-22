@@ -4,7 +4,7 @@ use * from common;
 
 //include( "nsd.asm" );
 include( "macro.asm" );
-include( "nsd/include/nsd.inc" );
+include( "../nsd/include/nsd.inc" );
 
 function init():void
 {

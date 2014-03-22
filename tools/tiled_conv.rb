@@ -117,8 +117,8 @@ class TiledConverter
     conv_sound
 
     IO.binwrite "res/fs_data.bin", @fs.bin
-    IO.write 'resource.fc', ERB.new(DATA.read,nil,'-').result(binding)
-    IO.write 'fs_config.fc', @fs.config
+    IO.write 'src/resource.fc', ERB.new(DATA.read,nil,'-').result(binding)
+    IO.write 'src/fs_config.fc', @fs.config
 
   end
 
@@ -349,7 +349,7 @@ class TiledConverter
   end
 
   def conv_text
-    Dir.glob('*.fc') do |f|
+    Dir.glob('src/*.fc') do |f|
       d = []
       txt = File.open(f,'rb:UTF-8'){|f| f.read }
       txt.gsub(/_T\(\"(.*?)\"\)/){ d << $1 }

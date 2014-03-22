@@ -65,5 +65,5 @@ FC_STACK: .res $80
 
 	
 .segment "fs_data"
-	.incbin "res/fs_data.bin"
+	.incbin "../res/fs_data.bin"
 
