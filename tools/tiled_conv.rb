@@ -1,24 +1,26 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 
+$LOAD_PATH << 'nes_tools/lib'
+
 require 'pp'
 require 'json'
 require 'erb'
-require_relative 'rle'
 require_relative 'text_conv'
-require_relative 'nes_tool'
+require 'nes_tools'
 
 
 # 8KBごとのバンクに分けられたバッファ
 class BankedBuffer
   BANK_SIZE = 0x2000
 
-  attr_reader :buf, :sizes, :addrs
+  attr_reader :buf, :sizes, :addrs, :datas
 
   def initialize
     @buf = []
     @sizes = []
     @addrs = []
+    @datas = []
   end
 
   def add( data )
@@ -29,6 +31,7 @@ class BankedBuffer
       @buf.concat Array.new(BANK_SIZE - @buf.size % BANK_SIZE){0}
     end
 
+    @datas << data
     @addrs << @buf.size
     @sizes << data.size
     @buf.concat data
@@ -99,13 +102,25 @@ class TiledConverter
     conv_tile( data )
     conv_item( data )
     conv_item_data
-    make_font
-    make_bg_image
-    make_sprite_image
+    
+    begin
+      require 'gd2-ffij'
+      loaded = true
+    rescue LoadError
+      STDERR.puts "WARING: #{$!}"
+      raise
+    end
+    if loaded
+      make_font
+      make_bg_image
+      make_sprite_image
+    end
+    
     conv_sound
 
     fs_config = ERB.new(DATA.read,nil,'-').result(binding)
     IO.write 'fs_config.fc', fs_config
+    IO.write 'hoge.json', JSON.dump(@buf.datas)
 
     IO.binwrite "res/fs_data.bin", @buf.bin
   end
@@ -114,25 +129,18 @@ class TiledConverter
   def make_font
     @text_conv.make_image('res/text.png')
     IO.write('text.txt', @text_conv.using.join)
-    tile_set = NesTool::TileSet.new
+    tile_set = NesTools::TileSet.new
     tile_set.add_from_img( GD2::Image.import('res/text.png'), pal: :monochrome )
     tile_set.save 'res/text.chr'
-  rescue LoadError
-    STDERR.puts 'WARING: make_font failed'
-    STDERR.puts $!
   end
 
   def make_sprite_image
     require 'gd2-ffij'
     img = GD2::Image.import( 'res/sprite.png' )
-    tset = NesTool::TileSet.new
+    tset = NesTools::TileSet.new
     tset.add_from_img( img )
     tset.reflow!
     IO.binwrite 'res/sprite.chr', tset.bin
-
-  rescue LoadError
-    STDERR.puts 'WARING: make_sprite_image failed'
-    STDERR.puts $!
   end
 
   # BGイメージの作成
@@ -141,7 +149,7 @@ class TiledConverter
       require 'gd2-ffij'
       img = GD2::Image.import( 'res/character.png' )
 
-      tset = NesTool::TileSet.new
+      tset = NesTools::TileSet.new
       tset.add_from_img( img )
       tset.reflow!
 
@@ -194,9 +202,9 @@ class TiledConverter
       IO.binwrite("res/bg.chr", tset.bin)
 
       # 共通パーツの作成
-      common = NesTool::TileSet.new
+      common = NesTools::TileSet.new
       4.times{ common.tiles.concat common_tiles }
-      anim = NesTool::TileSet.new
+      anim = NesTools::TileSet.new
       anim.add_from_img( GD2::Image.import('res/anim.png') )
       anim.reflow!
       [
@@ -263,7 +271,7 @@ class TiledConverter
             d[cy*16+cx] = cell
           end
         end
-        @buf.add rle_compress( d )
+        @buf.add NesTools::Compress::Rle.compress( d )
         @area_types << area_type
       end
     end

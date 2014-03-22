@@ -92,6 +92,7 @@ class TextConverter
   end
 
   def make_image( filename )
+    require 'gd2-ffij'
     src = GD2::Image.import('res/misaki_gothic.png')
     GD2::Image.new(128,128) do |dest|
       @using.each.with_index do |c,i|
