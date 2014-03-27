@@ -2,6 +2,7 @@ options( bank: -1 );
 
 use * from common;
 use mem;
+use menu;
 
 include("event.asm");
 
@@ -11,7 +12,7 @@ const ID_MOVE_CHECKPOINT = 3;
 
 function ppu_clear():void
 {
-	mem.set( bg.data_buf, 256, 0 );
+	mem.set( bg.data_buf, 0, 64 );
 	var i:int;
 	for( i, 0, 4 ){
 		ppu.put( ppu.pos(0,i*2)+0x400, bg.data_buf, 64, 0 );
@@ -29,7 +30,10 @@ function event_start():void
 	tail += mem.strcpy( tail, _T("『") );
 	tail += fs.copy( tail, fs.ITEM_NAME_BASE+game_event_p1 );
 	tail += mem.strcpy( tail, _T("』を手に入れた") );
-	ppu.put( ppu.pos(6,4)+0x400, str, mem.strlen(str), 0 );
+	var buf = ppu.alloc(64);
+	mem.zero(buf, 64);
+	menu.text_print( buf, str );
+	ppu.put( ppu.pos(6,2)+0x400, buf, 64, 0 );
 	ppu.wait_vsync_with_flag(2);
 		
 	ppu.irq_setup = irq_setup;
@@ -42,9 +46,7 @@ function event_start():void
 		ppu.wait_vsync_with_flag(2);
 	}
 
-	ppu.lock();
 	ppu.irq_setup = ppu.null_func;
-	ppu.unlock();
 	ppu.wait_vsync_with_flag(2);
 
 }

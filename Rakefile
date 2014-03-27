@@ -1,15 +1,18 @@
-ENV['PATH'] += ':./nes_tools/bin'
+ENV['PATH'] += File::PATH_SEPARATOR+'./nes_tools/bin'
 MAP_JSON = ENV['map'] || 'map.json'
+images = Dir.glob('res/images/*.png')
 sounds = Dir.glob('res/sound/*.bin')
 fc_files = Dir.glob('src/*.fc') + ['src/fs_config.fc']
 
 task :default => fc_files do
-  sh "cd src; fcc compile -d -t nes main.fc"
-  sh 'cd src; ca65 data.asm -o .fc-build/data.o'
+  Dir.chdir('src') do
+    sh "fcc compile -d -t nes main.fc"
+    sh 'ca65 data.asm -o .fc-build/data.o'
+  end
   sh "ld65 -o castle.nes -m castle.map -C ld65.cfg #{Dir.glob('src/.fc-build/*.o').join(' ')} nsd/lib/NSD.LIB "
 end
 
-file 'src/fs_config.fc' => [MAP_JSON] + sounds do
+file 'src/fs_config.fc' => [MAP_JSON] + images + sounds do
   sh "ruby tools/tiled_conv.rb #{MAP_JSON}"
 end
 

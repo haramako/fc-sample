@@ -20,6 +20,7 @@ public const TYPE_GHOST = 12;
 public const TYPE_SWITCH = 13;
 public const TYPE_FLAGED_DOOR = 14;
 public const TYPE_PORTAL = 15;
+public const TYPE_CHECKPOINT = 16;
 
 public const MAX = 16;
 public var type:int[MAX];
@@ -116,8 +117,10 @@ function check_outside(x:int, y:int):int
 
 function check_hit(i:int, size:int):void
 {
-	if( math.abs(px[i] - my.x) < size && math.abs(py[i] - my.y) < size ){
-		ppu.wait(10);
+	if( math.abs(px[i] - my.x) < size && math.abs(py[i] - my.y) < size && my.state != my.STATE_DYING && my.state != my.STATE_DIE ){
+		my.state = my.STATE_DYING;
+		my.wait = 0;
+		// ppu.wait(10);
 	}
 }
 
@@ -534,16 +537,32 @@ function gas_process(i:int):void
 	var dir = p1[i];
 	var speed = p2[i];
 
-	var v = (speed+giff)/16;
-	switch( dir ){
-	case 0: y -= v;
-	case 1: x += v;
-	case 2: y += v;
-	case 3: x -= v;
-	}
-	var hit = check_block(&x,&y);
-	if( hit ){ dir = (2+dir)%4; }
+	var n = (speed+giff)/16;
+	while(n){
+		var vx = DIR_VX[dir];
+		var vy = DIR_VY[dir];
+		var xbias = 0; if( vx < 0 ){ xbias = -1; }
+		var ybias = 0; if( vy < 0 ){ ybias = -1; }
+		if( y >= 240 || y < 16 ){
+			type[i] = 0;
+			return;
+		}
+		if( bg.cell_type(x+vx*8+xbias,y+vy*8+ybias) & bg.TYPE_STOP || check_outside(x,y) ){
+			dir = (2+dir)%4;
+		}
+		x += DIR_VX[dir];
+		y += DIR_VY[dir];
 
+		var cx = x % 16;
+		var cy = y % 16;
+		if( x % 16 == 8 && y % 16 == 8 ){
+			var c = bg.cell(x, y);
+			if( c >= 4 && c < 8 ){ dir = c - 4; }
+		}
+		
+		n -= 1;
+	}
+	
 	gr_sprite2( x+math.sin(anim*8)/64, y+math.cos(anim*8)/64, 144+(anim/8)%2*4, 2 );
 
 	px[i] = x;
@@ -729,6 +748,41 @@ function portal_process(i:int):void
 }
 
 /*********************************************
+ * チェックポイント
+ *********************************************/
+
+function checkpoint_new(i:int):void
+{
+	p2[i] = 0;
+}
+
+function checkpoint_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var state = p2[i];
+	var wait = p3[i];
+
+	switch( state ){
+	case 0:
+		if( math.abs(x - my.x) < 12 && math.abs(y - my.y) < 12 ){
+			state = 1;
+			wait = 0;
+			my.save(p1[i]);
+		}
+	case 1:
+		wait += 1;
+		if( wait > 60 ){ state = 2; }
+		gr_sprite2(x, y-8, 168+anim/4%2*4, 0 );
+	case 2:
+		wait += 1;
+	}
+	
+	p2[i] = state;
+	p3[i] = wait;
+}
+
+/*********************************************
  * 関数テーブル
  *********************************************/
 
@@ -747,7 +801,8 @@ public const PROCESS: void(int)[] = [ none_process,
 									  ghost_process,
 									  switch_process,
 									  flaged_door_process,
-									  portal_process
+									  portal_process,
+									  checkpoint_process
 									  ];
 
 public const NEW_FUNC: void(int)[] = [ none_process,
@@ -765,5 +820,6 @@ public const NEW_FUNC: void(int)[] = [ none_process,
 									   ghost_new,
 									   switch_new,
 									   flaged_door_new,
-									   portal_new
+									   portal_new,
+									   checkpoint_new
 									   ];
