@@ -60,7 +60,7 @@ class TiledConverter
 
   ENEMY_TYPE = {
     slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8, chest:9, lamp:10, 
-    gas:11, ghost:12, switch:13, flaged_door:14, portal:15,
+    gas:11, ghost:12, switch:13, flaged_door:14, portal:15, checkpoint:16,
   }
 
   ITEM_DATA = 
@@ -103,7 +103,11 @@ class TiledConverter
     @world_width = w / AREA_WIDTH
     @world_height = h / AREA_HEIGHT
 
-    @text_conv = NesTools::TextConverter.new('res/images/misaki_gothic.png')
+    if @gd2_loaded
+      @text_conv = NesTools::TextConverter.new('res/images/misaki_gothic.png')
+    else
+      @text_conv = NesTools::TextConverter.new()
+    end
 
     conv_text
     conv_tile( data )
@@ -294,6 +298,7 @@ class TiledConverter
       when 'checkpoint'
         area, x, y = px2area( obj['x'], obj['y'] )
         checkpoints[prop['id'].to_i] = {name:obj['name'], area:area, x:x*16, y:y*16}
+        enemy[area] << {type:'checkpoint', x:x, y:y, p1:prop['id'].to_i, p2:0, p3:0 }
       when 'enemy'
         area, x, y = px2area( obj['x'], obj['y'] )
         type = obj['name'].empty? ? prop['type'] : obj['name']

@@ -81,7 +81,20 @@ function start(): void
 
 		// 死亡
 		if( my.state == my.STATE_DIE ){
-			move_to_last();
+			var i:int;
+			for( i, 0, 4 ){
+				var buf = ppu.alloc(16);
+				mem.copy( buf, bg.pallet, 16 );
+				bg.pal_down(buf, 16, i);
+				ppu.put( VRAM_PALETTE, buf, 16, 0 );
+				var j:int;
+				for( j, 0, 10 ){	ppu.wait_vsync_with_flag(2); }
+			}
+			if( my.items[ITEM_ID_ORB6] ){
+				move_to_last();
+			}else{
+				move_checkpoint(my.last_checkpoint);
+			}
 		}
 
 		// スクロール
@@ -161,7 +174,7 @@ function move_area(area:int):void
 	bg.fetch_area(area);
 	init_area_enemy();
 	ppu.lock();
-	ppu.put_in_lock( VRAM_PALETTE+4, &bg.pallet[4], 12 );
+	ppu.put_in_lock( VRAM_PALETTE, bg.pallet, 16 );
 	bg.draw_screen();
 	ppu.unlock();
 }
@@ -169,10 +182,15 @@ function move_area(area:int):void
 function move_checkpoint(i:int):void
 {
 	var cp = &MAP_CHECKPOINT_DATA[MAP_CHECKPOINT[i]];
+	my.state = my.STATE_STAND;
 	my.x = cp[1]+8;
 	my.y = cp[2]+8;
 	my.vx = 0;
 	my.vy = 0;
+	mem.copy( my.items, my.saved_items, my.ITEM_MAX);
+	mem.copy( my.flags, my.saved_flags, my.FLAG_MAX);
+	mem.copy( my.map_flag, my.saved_map_flag, my.MAP_FLAG_MAX);
+	
 	var area = cp[0];
 	move_area( area );
 	set_last();

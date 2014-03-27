@@ -4,11 +4,13 @@ use * from common;
 use en;
 use math;
 use sound;
+use mem;
 
 const STATE_STAND = 0;
 const STATE_JUMP = 2;
 const STATE_LADDER = 3; // はしご
 const STATE_ON_ENEMY = 4;
+const STATE_DYING = 5;
 const STATE_DIE = 255;
 
 var x:int, y:int;
@@ -22,6 +24,9 @@ var on_x:int;
 var on_y:int;
 var jump_pow:int;
 var prev_in_water:int;
+var wait:int;
+var last_checkpoint:int;
+
 const ITEM_MAX = 32;
 var items:int[ITEM_MAX];
 const FLAG_MAX = 32;
@@ -29,11 +34,20 @@ var flags:int[FLAG_MAX];
 const MAP_FLAG_MAX = 64;
 var map_flag:int[MAP_FLAG_MAX];
 
+var saved_items:int[ITEM_MAX];
+var saved_flags:int[FLAG_MAX];
+var saved_map_flag:int[MAP_FLAG_MAX];
+
 public function init():void
 {
 	var i:int;
 	for( i, 0, ITEM_MAX ){ items[i] = 1; }
 	for( i, 0, MAP_FLAG_MAX ){ map_flag[i] = 0; }
+	
+	last_checkpoint = 0;
+	mem.copy( saved_items, items, ITEM_MAX);
+	mem.copy( saved_flags, flags, FLAG_MAX);
+	mem.copy( saved_map_flag, map_flag, MAP_FLAG_MAX);
 }
 
 private:
@@ -333,14 +347,19 @@ public function process():void
 		}elsif( (pad.cur & (pad.LEFT|pad.RIGHT)) && !get_cell(x,y) ){
 			state = STATE_JUMP;
 		}
-
+		
+	case STATE_DYING:
+		wait += 1;
+		if( wait > 16*8 ){ state = STATE_DIE; }
+	case STATE_DIE:
+		state = STATE_DIE;
 	}
 
 	// 刺
 	var c = get_cell_type(x,y);
-	if( c & bg.TYPE_SPIKE ){
-		ppu.wait(100);
-		state = STATE_DIE;
+	if( c & bg.TYPE_SPIKE && state != STATE_DYING && state != STATE_DIE ){
+		state = STATE_DYING;
+		wait = 0;
 	}
 
 }
@@ -349,7 +368,7 @@ public function draw():void
 {
 	var a:int;
 	switch( state ){
-	case STATE_STAND, STATE_ON_ENEMY, STATE_DIE:
+	case STATE_STAND, STATE_ON_ENEMY:
 		a = ((my_anim/16)%2)*4;
 		if( vx == 0 ){ a = 0; }
 		gr_sprite2( x, y, a, 64*dir );
@@ -362,6 +381,11 @@ public function draw():void
 	case STATE_LADDER:
 		a = (my_anim/16)%2;
 		gr_sprite2( x, y, 16, 64*a );
+	case STATE_DYING:
+		if( anim % 2 ){
+			a = (wait/16)%2;
+			gr_sprite2( x, y, 20+a*4, 0);
+		}
 	}
 }
 
@@ -379,4 +403,12 @@ public function set_map(x:int, y:int):void
 	var n = map_flag[idx];
 	var cx = 7 - x % 8;
 	map_flag[idx] = n | (1 << cx);
+}
+
+public function save(checkpoint_id:int):void
+{
+	last_checkpoint = checkpoint_id;
+	mem.copy( saved_items, items, ITEM_MAX);
+	mem.copy( saved_flags, flags, FLAG_MAX);
+	mem.copy( saved_map_flag, map_flag, MAP_FLAG_MAX);
 }
