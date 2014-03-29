@@ -1,0 +1,52 @@
+use my;
+use * from en;
+
+/*********************************************
+ * ウィルオーウィスプ
+ *********************************************/
+function wow_new(i:int):void
+{
+}
+
+function wow_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var dir = p1[i];
+	var speed = p2[i];
+
+	var n = (speed+giff)/16;
+	while(n){
+		var vx = DIR_VX[dir];
+		var vy = DIR_VY[dir];
+		var xbias = 0; if( vx < 0 ){ xbias = -1; }
+		var ybias = 0; if( vy < 0 ){ ybias = -1; }
+		if( y >= 240 || y < 16 ){
+			type[i] = 0;
+			return;
+		}
+		if( bg.cell_type(x+vx*8+xbias,y+vy*8+ybias) & bg.TYPE_STOP || check_outside(x,y) ){
+			dir = (2+dir)%4;
+		}
+		x += DIR_VX[dir];
+		y += DIR_VY[dir];
+
+		var cx = x % 16;
+		var cy = y % 16;
+		if( x % 16 == 8 && y % 16 == 8 ){
+			var c = bg.cell(x, y);
+			if( c >= 4 && c < 8 ){ dir = c - 4; }
+		}
+		
+		n -= 1;
+	}
+
+
+	gr_sprite2( x+math.rand()%4-2, y+math.rand()%4-2, 136+(anim/4)%2*4, anim%2 );
+
+	px[i] = x;
+	py[i] = y;
+	p1[i] = dir;
+	
+	check_hit(i,8);
+}

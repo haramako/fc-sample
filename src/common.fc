@@ -1,14 +1,5 @@
 options(bank:-1);
 
-use nes;
-use ppu;
-use fs;
-use bg;
-use pad;
-use mmc3;
-use math;
-use * from resource;
-
 include( "macro.rb" );
 
 const CBANK_BG_COMMON = 0;
@@ -20,6 +11,7 @@ const CBANK_ITEM = 34;
 const PBANK_MENU = 2;
 const PBANK_EVENT = 2;
 const PBANK_DEBUG_MENU = 2;
+const PBANK_EN1 = 3;
 const PBANK_FS = 4;
 
 const VRAM_PALETTE = 0x3f00;
@@ -60,3 +52,11 @@ const DIR_MASK_LEFT = 1 << DIR_LEFT;
 const JUMP_SE = [0x00, 0x41, 0x4b, 0x55, 0x60, 0x6a, 0x74, 0x7f, 0x09, 0xc8,
 				 0x01, 0x00, 0x04, 0x00, 0x12, 0xf1, 0xff, 0xa7, 0x0c, 0x00];
 
+use nes;
+use ppu;
+use fs;
+use bg;
+use pad;
+use mmc3;
+use math;
+use * from resource;

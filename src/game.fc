@@ -31,7 +31,7 @@ function init_area_enemy():void
 		en.p1[i] = bg.enemy[idx+3];
 		en.p2[i] = bg.enemy[idx+4];
 		en.p3[i] = bg.enemy[idx+5];
-		en.NEW_FUNC[en.type[i]](i);
+		en.setup(i);
 	}
 }
 
@@ -136,9 +136,9 @@ function start(): void
 		
 		// メニュー
 		if( pad.pushed & pad.START ){
-			var old = mmc3.set_pbank( 1, PBANK_DEBUG_MENU );
+			var old_bank = mmc3.set_pbank( 1, PBANK_DEBUG_MENU );
 			debug_menu.start();
-			mmc3.set_pbank( 1, old );
+			mmc3.set_pbank( 1, old_bank );
 		}elsif( pad.pushed & pad.SELECT ){
 			var old_bank = mmc3.set_pbank(1, PBANK_MENU);
 			menu.start();

@@ -63,7 +63,7 @@ _interrupt:
 	
 ;;; IRQ割り込み
 ;;; 丁度 113-134 サイクルで終わらせる必要あり
-;;; ( irqベクタで24cycle使用しているので、実質89-110サイクル)
+;;; ( irqベクタ(JMP込み)で24cycle使用しているので、実質89-110サイクル)
 _interrupt_irq:
 	jmp (_ppu_irq_next)
 

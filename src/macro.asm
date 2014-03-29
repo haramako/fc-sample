@@ -43,7 +43,7 @@
 
 ;;; irq_set counter
 ;;; set IRQ for MMC3.
-;;; use 18cycle( if \1 is zeropage )
+;;; use 18cycle( if \1 is immediate, case zeropage 19cycle, case absolute 20cycle)
 .macro irq_set n
 	lda n
 	sta _mmc3_IRQ_LATCH
