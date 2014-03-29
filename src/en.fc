@@ -3,6 +3,7 @@ options( bank: 1 );
 use * from common;
 use my;
 use event;
+use mem;
 
 public const TYPE_NONE = 0;
 public const TYPE_SLIME = 1;
@@ -53,10 +54,14 @@ public function clear():void
 
 public function process():void
 {
+	var old_pbank = mmc3.pbank_bak[0];
 	var i:int;
 	for( i, 0, MAX ){
-		PROCESS[type[i]](i);
+		var t = type[i];
+		mmc3.set_pbank(0, EN_BANKS[t]);
+		PROCESS[t](i);
 	}
+	mmc3.set_pbank(0,old_pbank);
 }
 
 public function new():int
@@ -68,9 +73,17 @@ public function new():int
 	return 255;
 }
 
+public function setup(i:int):void
+{
+	var t = type[i];
+	var old_pbank = mmc3.set_pbank(0, EN_BANKS[t]);
+	NEW_FUNC[t](i);
+	mmc3.set_pbank(0, old_pbank);
+}
+
 private:
 
-function check_block(px:int*, py:int*):int
+public function check_block(px:int*, py:int*):int
 {
 	const size = 8;
 	var x = *px;
@@ -110,12 +123,12 @@ function check_block(px:int*, py:int*):int
 	return r;
 }
 
-function check_outside(x:int, y:int):int
+public function check_outside(x:int, y:int):int
 {
 	return ( x < 16 || x >= 240 || y < 16 || y >= 240 );
 }
 
-function check_hit(i:int, size:int):void
+public function check_hit(i:int, size:int):void
 {
 	if( math.abs(px[i] - my.x) < size && math.abs(py[i] - my.y) < size && my.state != my.STATE_DYING && my.state != my.STATE_DIE ){
 		my.state = my.STATE_DYING;
@@ -193,6 +206,7 @@ function slime_process(i:int):void
 /*********************************************
  * ウィルオーウィスプ
  *********************************************/
+/*
 function wow_new(i:int):void
 {
 }
@@ -239,6 +253,7 @@ function wow_process(i:int):void
 	
 	check_hit(i,8);
 }
+*/
 
 /*********************************************
  * エレベーター
@@ -768,7 +783,7 @@ function checkpoint_process(i:int):void
 		if( math.abs(x - my.x) < 12 && math.abs(y - my.y) < 12 ){
 			state = 1;
 			wait = 0;
-			my.save(p1[i]);
+			save(p1[i]);
 		}
 	case 1:
 		wait += 1;
@@ -782,11 +797,41 @@ function checkpoint_process(i:int):void
 	p3[i] = wait;
 }
 
+function save(checkpoint_id:int):void
+{
+	my.last_checkpoint = checkpoint_id;
+	mem.copy( my.saved_items, my.items, my.ITEM_MAX);
+	mem.copy( my.saved_flags, my.flags, my.FLAG_MAX);
+	mem.copy( my.saved_map_flag, my.map_flag, my.MAP_FLAG_MAX);
+}
+
+
 /*********************************************
  * 関数テーブル
  *********************************************/
 
-public const PROCESS: void(int)[] = [ none_process,
+use * from en1;
+
+const EN_BANKS: int[] = [ 0,
+						  0,
+						  PBANK_EN1,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0,
+						  0
+						  ];
+
+const PROCESS: void(int)[] = [ none_process,
 									  slime_process,
 									  wow_process,
 									  elevator_process,
@@ -805,7 +850,7 @@ public const PROCESS: void(int)[] = [ none_process,
 									  checkpoint_process
 									  ];
 
-public const NEW_FUNC: void(int)[] = [ none_process,
+const NEW_FUNC: void(int)[] = [ none_process,
 									   slime_new,
 									   wow_new,
 									   elevator_new,

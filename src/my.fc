@@ -405,10 +405,3 @@ public function set_map(x:int, y:int):void
 	map_flag[idx] = n | (1 << cx);
 }
 
-public function save(checkpoint_id:int):void
-{
-	last_checkpoint = checkpoint_id;
-	mem.copy( saved_items, items, ITEM_MAX);
-	mem.copy( saved_flags, flags, FLAG_MAX);
-	mem.copy( saved_map_flag, map_flag, MAP_FLAG_MAX);
-}
