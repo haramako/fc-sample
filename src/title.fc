@@ -1,0 +1,5 @@
+use * from common;
+
+public function title():void
+{
+}
