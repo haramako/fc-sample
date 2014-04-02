@@ -67,3 +67,68 @@ function bird_process(i:int):void
 	
 	//if( check_outside(x,y) ){ type[i] = 0; }
 }
+
+/*********************************************
+ * 石像
+ *********************************************/
+
+function statue_new(i:int):void
+{
+	if( p2[i] == 0 ){ p2[i] = 120; }
+}
+
+function statue_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var dir = p1[i];
+	var time = p2[i];
+	var wait = p3[i];
+
+	if( wait < (time-20) ){
+	}elsif( wait < time ){
+		gr_sprite2(x+DIR_VX[dir]*8, y, 168+anim/2%2*4, 0);
+	}else{
+		var fire = new();
+		type[fire] = TYPE_STATUE_FIRE;
+		px[fire] = x + DIR_VX[dir]*8;
+		py[fire] = y;
+		p1[fire] = dir;
+		setup(fire);
+		wait = 0;
+	}
+	wait += 1;
+	
+	//gr_sprite2(x, y, 136+anim/2%2*4, 0);
+
+	p3[i] = wait;
+}
+
+/*********************************************
+ * 石像の弾
+ *********************************************/
+
+function statue_fire_new(i:int):void
+{
+}
+
+function statue_fire_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var dir = p1[i];
+	
+	x += DIR_VX[dir]*2;
+	if( bg.cell_type(x,y) & bg.TYPE_WALL ){
+		type[i] = 0;
+		return;
+	}
+
+	gr_sprite2(x, y, 168, anim/2%2);
+	
+	px[i] = x;
+	check_hit(i, 8);
+	if( check_outside(x,y) ){ type[i] = 0; }
+}
+
+

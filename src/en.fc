@@ -22,6 +22,9 @@ public const TYPE_SWITCH = 13;
 public const TYPE_FLAGED_DOOR = 14;
 public const TYPE_PORTAL = 15;
 public const TYPE_CHECKPOINT = 16;
+public const TYPE_BIRD = 17;
+public const TYPE_STATUE = 18;
+public const TYPE_STATUE_FIRE = 19;
 
 public const MAX = 16;
 public var type:int[MAX];
@@ -166,6 +169,8 @@ const EN_BANKS: int[] = [ PBANK_EN1,
 						  PBANK_EN1,
 						  PBANK_EN1,
 						  PBANK_EN1,
+						  PBANK_EN2,
+						  PBANK_EN2,
 						  PBANK_EN2
 						  ];
 
@@ -186,8 +191,10 @@ const PROCESS: void(int)[] = [ none_process,
 							   flaged_door_process,
 							   portal_process,
 							   checkpoint_process,
-							   bird_process
-									  ];
+							   bird_process,
+							   statue_process,
+							   statue_fire_process
+							   ];
 
 const NEW_FUNC: void(int)[] = [ none_process,
 								slime_new,
@@ -206,5 +213,7 @@ const NEW_FUNC: void(int)[] = [ none_process,
 								flaged_door_new,
 								portal_new,
 								checkpoint_new,
-								bird_new
+								bird_new,
+								statue_new,
+								statue_fire_new
 								];
