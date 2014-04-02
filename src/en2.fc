@@ -1,0 +1,69 @@
+use my;
+use * from en;
+
+/*********************************************
+ * 鳥
+ *********************************************/
+
+function bird_new(i:int):void
+{
+	if( p2[i] == 0 ){ p2[i] = 16; }
+	p3[i] = 0;
+	p4[i] = px[i];
+	p5[i] = py[i];
+}
+
+function bird_process(i:int):void
+{
+	var x:int, y:int, dx:int, dy:int;
+	var orig_x = p4[i];
+	var orig_y = p5[i];
+	var dir = p1[i];
+	var speed = p2[i];
+	var time = p3[i];
+
+	if( time < 128 ){
+		var t = time * 2;
+		dx = (math.cos(t)/4) - 32;
+		dy = -(math.sin(t)/4);
+	}else{
+		var t = time * 2;
+		dx = -(math.cos(t)/4) + 32;
+		dy = -(math.sin(t)/4);
+	}
+	switch( dir ){
+	case 0:
+		x = orig_x + dx;
+		y = orig_y + dy;
+	case 1:
+		x = orig_x - dx;
+		y = orig_y - dy;
+	case 2:
+		x = orig_x + dy;
+		y = orig_y + dx;
+	case 3:
+		x = orig_x - dy;
+		y = orig_y - dx;
+	}
+	time += (giff+speed)/16;
+
+	var a = (anim/8) % 2;
+	var d = py[i];
+	if( px[i] > x ){
+		d = 0;
+	}elsif( px[i] < x ){
+		d = 64;
+	}
+			
+	gr_sprite2( x, y, 176+a*4, 1|d);
+	
+	px[i] = x;
+	py[i] = y;
+	p3[i] = time;
+
+	check_hit(i,10);
+
+	py[i] = d;
+	
+	//if( check_outside(x,y) ){ type[i] = 0; }
+}
