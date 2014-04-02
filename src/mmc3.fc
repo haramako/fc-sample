@@ -49,11 +49,13 @@ function init():void
 function set_cbank( pos:int, bank:int ):int
 {
 	var old = cbank_bak[pos];
-	asm("sei");
-	BANK_SELECT = pos;
-	BANK_DATA = bank;
-	cbank_bak[pos] = bank;
-	asm("cli");
+	if( 1 || old != bank ){
+		asm("sei");
+		BANK_SELECT = pos;
+		BANK_DATA = bank;
+		cbank_bak[pos] = bank;
+		asm("cli");
+	}
 	return old;
 }
 
@@ -68,10 +70,12 @@ function set_cbank( pos:int, bank:int ):int
 function set_pbank( pos:int, bank:int ):int
 {
 	var old = pbank_bak[pos];
-	asm("sei");
-	BANK_SELECT = pos+6;
-	BANK_DATA = bank;
-	pbank_bak[pos] = bank;
-	asm("cli");
+	if( 1 || old != bank ){
+		asm("sei");
+		BANK_SELECT = pos+6;
+		BANK_DATA = bank;
+		pbank_bak[pos] = bank;
+		asm("cli");
+	}
 	return old;
 }

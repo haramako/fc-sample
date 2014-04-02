@@ -12,7 +12,8 @@ const PBANK_MENU = 2;
 const PBANK_EVENT = 2;
 const PBANK_DEBUG_MENU = 2;
 const PBANK_EN1 = 3;
-const PBANK_FS = 4;
+const PBANK_EN2 = 4;
+const PBANK_FS = 5;
 
 const VRAM_PALETTE = 0x3f00;
 

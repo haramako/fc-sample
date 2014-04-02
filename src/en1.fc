@@ -2,6 +2,66 @@ use my;
 use * from en;
 
 /*********************************************
+ * スライム
+ *********************************************/
+
+function slime_new(i:int):void
+{
+}
+
+function slime_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var dir:sint = p1[i];
+	var vy = p3[i];
+	var back_flag = 0;
+	
+	if( bg.cell(x,y-7) == 6/*下矢印*/ ){
+		// 下矢印に吸い込まれる
+		back_flag = 32;
+		if( giff < 4 ){
+			if( y % 16 == 6 ){
+				type[i] = 0;
+				return;
+			}else{
+				y += 1;
+			}
+		}
+	}elsif( bg.cell_type(x-5,y+8) & bg.TYPE_WALL || bg.cell_type(x+5,y+8) & bg.TYPE_WALL ){
+		// 地面の上
+		var nx:uint = x+dir*8;
+		if( nx < 16 || nx > 240 || bg.cell_type(nx,y-8) & bg.TYPE_STOP ){
+			dir = -dir;
+		}else{
+			if( (anim%32) < 16 ){
+				if( giff < 10 ){ x += dir; }
+			}else{
+				if( giff < 6 ){ x += dir; }
+			}
+		}
+		vy = 0;
+	}else{
+		// 落ちる
+		vy += anim % 2;
+		if( vy > 12 ){ vy = 12; }
+		y = y + (vy+giff)/16;
+	}
+
+	var flip:uint = (1-dir)/2;
+	gr_sprite2( x, y, 128+(anim/16)%2*4, 64*flip | back_flag | 1);
+
+	px[i] = x;
+	py[i] = y;
+	p1[i] = dir;
+	p3[i] = vy;
+
+	check_hit(i,10);
+	
+	if( check_outside(x,y) ){ type[i] = 0; }
+}
+
+/*********************************************
  * ウィルオーウィスプ
  *********************************************/
 function wow_new(i:int):void
@@ -49,4 +109,556 @@ function wow_process(i:int):void
 	p1[i] = dir;
 	
 	check_hit(i,8);
+}
+
+/*********************************************
+ * エレベーター
+ *********************************************/
+function elevator_new(i:int):void
+{
+	if( p2[i] == 0 ){ p2[i] = 8; }
+	if( p3[i] == 0 ){ px[i] += 8; }
+}
+
+function elevator_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var dir = p1[i];
+	var speed = p2[i];
+
+	var n = (speed+giff)/16;
+	while(n){
+		var vx = DIR_VX[dir];
+		var vy = DIR_VY[dir];
+		var size:int;
+		if( p3[i] == 1 ){ size = vx * 8; }else{ size = vx * 16; }
+		if( bg.cell_type(x+size,y+vy*8) & bg.TYPE_STOP || check_outside(x,y) ){
+			dir = (2+dir)%4;
+		}
+		x += vx;
+		y += vy;
+
+		n -= 1;
+	}
+	
+	if( p3[i] == 1 ){
+		ppu.sprite( x-8, y-8, 64, 0);
+		ppu.sprite( x  , y-8, 64, 64);
+	}else{
+		gr_sprite2( x-8, y, 64, 0);
+		gr_sprite2( x+8, y, 64, 64);
+	}
+	
+	px[i] = x;
+	py[i] = y;
+	p1[i] = dir;
+}
+
+/*********************************************
+ * 水の中の泡
+ *********************************************/
+function bubble_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	
+	x = x + math.rand()/128*2 - 1;
+	y = y - (giff/8);
+
+	ppu.sprite( x-4, y-8, 34, 0);
+	
+	if( py[i] < 16 || (bg.cell_type(x,y-8) & bg.TYPE_WATER) == 0 ){
+		type[i] = 0;
+	}
+	
+	px[i] = x;
+	py[i] = y;
+}
+
+/*********************************************
+ * 水に入った時の飛沫
+ *********************************************/
+function splash_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var life = p1[i];
+
+	if( anim % 2 ){
+		gr_sprite2( x-4, y-8, 36, 0);
+	}
+	
+	if( life ){
+		life -= 1;
+	}else{
+		type[i] = 0;
+	}
+	
+	p1[i] = life;
+}
+
+/*********************************************
+ * 押せる岩
+ *********************************************/
+function block_new(i:int):void
+{
+}
+
+function block_process(i:int):void
+{
+	if( anim % 8 != 0 ){ return; }
+	var x = px[i];
+	var y = py[i];
+	var dir:sint = p1[i];
+	var redraw = 0;
+	var c:int;
+
+	if( dir != 0 ){
+		// 左右に動く
+		c = bg.cell_type(x+dir*16,y);
+		var c_upper = bg.cell(x,y-16);
+		if( (c == 0 || c == bg.TYPE_SPIKE) && (c_upper != 29) ){
+			x += dir*16;
+			redraw = 1;
+			dir = 0;
+		}else{
+			type[i] = 0;
+			return;
+		}
+	}else{
+		// 落下中
+		c = bg.cell_type(x,y+16);
+		if( c == 0 || c == bg.TYPE_SPIKE ){
+			y += 16;
+			if( y >= 240 ){
+				bg.put2( px[i]/16, py[i]/16, 0, 0 );
+				type[i] = 0;
+				return;
+			}
+			redraw = 1;
+		}else{
+			type[i] = 0;
+		}
+	}
+
+	if( redraw ){
+		c = bg.blank_cell;
+		if( bg.cur_area == 13+4*MAP_WIDTH ){ c = 0; } // 例外：塔の中は黒く塗る
+		bg.put2( px[i]/16, py[i]/16, c, 3 );
+		bg.put2( x/16, y/16, 29, 0 );
+		px[i] = x;
+		py[i] = y;
+	}
+
+	px[i] = x;
+	py[i] = y;
+	p1[i] = dir;
+}
+
+/*********************************************
+ * カエル
+ *********************************************/
+function frog_new(i:int):void
+{
+	if( p3[i] == 0 ){ p3[i] = 32; }
+	p4[i] = 0;
+	p5[i] = 30;
+}
+
+function frog_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var dir = p1[i];
+	var speed = p2[i];
+	var pow = p3[i];
+	var state = p4[i];
+	var t:sint = p5[i];
+	var anim = 0;
+
+
+	switch( state ){
+	case 0:
+		// stand
+		if( t ){
+			t -= 1;
+		}else{
+			state = 1;
+			t = -pow;
+		}
+	case 1:
+		// jump
+		y += (t+giff)/16;
+		var vx = (pow/4+giff)/16;
+		if( dir == 1 ){ x += vx; }else{ x -= vx; }
+		t += 1;
+		var hit = check_block(&x,&y);
+		if( hit & (DIR_MASK_RIGHT | DIR_MASK_LEFT) ){ dir = 4 - dir; }
+		if( hit & DIR_MASK_DOWN ){
+			state = 0;
+			t = 30;
+		}
+		if( hit & DIR_MASK_UP ){ t = 0; }
+		
+		if( check_outside(x,y) ){
+			type[i] = 0;
+			return;
+		}
+	}
+	
+	var flip = 0;
+	if( dir == 3 ){ flip = 1; }
+	gr_sprite2( x, y, 160+state*4, 64*flip+2);
+	
+	px[i] = x;
+	py[i] = y;
+	p1[i] = dir;
+	p4[i] = state;
+	p5[i] = t;
+	
+	check_hit(i,8);
+}
+
+/*********************************************
+ * クッキー
+ *********************************************/
+function cookie_new(i:int):void
+{
+	if( p3[i] == 0 ){ p3[i] = 2; }
+	p4[i] = px[i];
+	p5[i] = py[i];
+}
+
+function cookie_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var angle = p1[i];
+	var speed = p2[i];
+	var size = p3[i];
+
+	angle += speed;
+	x = p4[i] + (math.cos(angle)>>size);
+	y = p5[i] + (math.sin(angle)>>size);
+
+	gr_sprite2( x+math.rand()%4-2, y+math.rand()%4-2, 136+(anim/4)%2*4, anim%2 );
+
+	px[i] = x;
+	py[i] = y;
+	p1[i] = angle;
+	
+	check_hit(i,8);
+}
+
+/*********************************************
+ * 宝箱
+ *********************************************/
+function chest_new(i:int):void
+{
+	if( my.items[p1[i]] ){
+		type[i] = 0;
+	}
+}
+
+function chest_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+
+	if( math.abs(my.x-x) < 16 && math.abs(my.y-y) < 16 ){
+		game_event = event.ID_GET_ITEM;
+		game_event_p1 = p1[i];
+		
+		my.items[p1[i]] = 1;
+		type[i] = 0;
+		return;
+	}
+	
+	gr_sprite2( x, y, 96, 0 );
+
+}
+
+/*********************************************
+ * ランプの灯火
+ *********************************************/
+function lamp_new(i:int):void
+{
+}
+
+function lamp_process(i:int):void
+{
+	if( my.items[ITEM_ID_LAMP] ){
+		gr_sprite2(px[i], py[i]+4, 136+(anim/2)%2*4, 1);
+	}else{
+		type[i] = 0;
+	}
+}
+
+/*********************************************
+ * ガスさん
+ *********************************************/
+function gas_new(i:int):void
+{
+}
+
+function gas_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var dir = p1[i];
+	var speed = p2[i];
+
+	var n = (speed+giff)/16;
+	while(n){
+		var vx = DIR_VX[dir];
+		var vy = DIR_VY[dir];
+		var xbias = 0; if( vx < 0 ){ xbias = -1; }
+		var ybias = 0; if( vy < 0 ){ ybias = -1; }
+		if( y >= 240 || y < 16 ){
+			type[i] = 0;
+			return;
+		}
+		if( bg.cell_type(x+vx*8+xbias,y+vy*8+ybias) & bg.TYPE_STOP || check_outside(x,y) ){
+			dir = (2+dir)%4;
+		}
+		x += DIR_VX[dir];
+		y += DIR_VY[dir];
+
+		var cx = x % 16;
+		var cy = y % 16;
+		if( x % 16 == 8 && y % 16 == 8 ){
+			var c = bg.cell(x, y);
+			if( c >= 4 && c < 8 ){ dir = c - 4; }
+		}
+		
+		n -= 1;
+	}
+	
+	gr_sprite2( x+math.sin(anim*8)/64, y+math.cos(anim*8)/64, 144+(anim/8)%2*4, 2 );
+
+	px[i] = x;
+	py[i] = y;
+	p1[i] = dir;
+
+	if( !my.items[ITEM_ID_GAS_MASK] ){
+		check_hit(i,8);
+	}
+}
+
+/*********************************************
+ * ゴースト
+ *********************************************/
+
+function ghost_new(i:int):void
+{
+	if( p1[i] == 0 ){ p1[i] = 30; }
+	p3[i] = 0;
+	p4[i] = math.rand()/2;
+}
+
+function ghost_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var state = p3[i];
+	var wait = p4[i];
+	var angle = p5[i];
+
+	var dy:int;
+	var dir = 0;
+	if( (angle-64)<128 ){ dir = 64; }
+
+	switch( state ){
+	case 0:
+		dy = y+math.sin(wait*4)/16;
+		if( wait ){
+			wait -= 1;
+		}else{
+			angle = math.atan(my.y/2-y/2, my.x/2-x/2);
+			state = 1;
+			wait = p1[i];
+			if( my.items[ITEM_ID_OMAMORI] ){ wait = wait*2; }
+		}
+	case 1:
+		if( my.items[ITEM_ID_OMAMORI] ){ 
+			x += (math.cos(angle)/8 + giff)/16;
+			y += (math.sin(angle)/8 + giff)/16;
+		}else{
+			x += (math.cos(angle)/4 + giff)/16;
+			y += (math.sin(angle)/4 + giff)/16;
+		}
+		dy = y;
+		if( wait ){
+			wait -= 1;
+		}else{
+			state = 0;
+			wait = 64;
+		}
+	}
+
+	if( anim % 2 ){
+		gr_sprite2( x, dy, 152+((anim/8)%2)*4, dir );
+	}
+	
+	px[i] = x;
+	py[i] = y;
+	p3[i] = state;
+	p4[i] = wait;
+	p5[i] = angle;
+
+	check_hit(i,8);
+}
+
+/*********************************************
+ * スイッチ
+ *********************************************/
+
+function switch_new(i:int):void
+{
+	p2[i] = py[i];
+}
+
+function switch_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var flag_num = p1[i];
+	
+	if( my.state == my.STATE_ON_ENEMY && my.on_idx == i ){
+		if( y < p2[i]+8 ){ y += 1; }
+		my.flags[flag_num] = 1;
+	}else{
+		if( y > p2[i] ){ y -= 1; }
+	}
+
+	
+	ppu.sprite( x-8, y-8, 64, 0);
+	ppu.sprite( x  , y-8, 64, 64);
+	
+	px[i] = x;
+	py[i] = y;
+}
+
+/*********************************************
+ * 開閉扉スイッチ
+ *********************************************/
+
+function flaged_door_new(i:int):void
+{
+	p2[i] = my.flags[p1[i]];
+	p3[i] = 1;
+}
+
+function flaged_door_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var flag_num = p1[i];
+	var old_flag = p2[i];
+	var flag = my.flags[flag_num];
+
+	if( p3[i] ){
+		flaged_door_redraw(px[i], py[i], p2[i]);
+		p3[i] = 0;
+	}
+	
+	if( old_flag != flag ){
+		flaged_door_redraw(x, y, flag);
+		p2[i] = flag;
+	}
+}
+
+function flaged_door_redraw(x:int, y:int, flag:int):void
+{
+	if( flag ){
+		bg.put2( x/16, y/16, 0, 0 );
+		bg.put2( x/16, y/16+1, 0, 0 );
+	}else{
+		bg.put2( x/16, y/16, 38, 0 );
+		bg.put2( x/16, y/16+1, 38, 0 );
+	}
+}
+
+/*********************************************
+ * 開閉扉スイッチ
+ *********************************************/
+
+function portal_new(i:int):void
+{
+	p5[i] = 0;
+}
+
+function portal_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var freq = p3[i];
+	var rest = p5[i];
+	
+	if( anim % 64 == 0 ){
+		if( rest ){
+			rest -= 1;
+		}else{
+			var n = new();
+			if( n != -1 ){
+				type[n] = p4[i];
+				px[n] = x;
+				py[n] = y;
+				p1[n] = p1[i];
+				p2[n] = p2[i];
+				setup(i);
+			}
+			rest = freq;
+		}
+	}
+
+	if( rest == 0 ){
+		gr_sprite2(x, y, 168+anim/4%2*4, 0 );
+	}
+
+	p5[i] = rest;
+}
+
+/*********************************************
+ * チェックポイント
+ *********************************************/
+
+function checkpoint_new(i:int):void
+{
+	p2[i] = 0;
+}
+
+function checkpoint_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var state = p2[i];
+	var wait = p3[i];
+
+	switch( state ){
+	case 0:
+		if( math.abs(x - my.x) < 12 && math.abs(y - my.y) < 12 ){
+			state = 1;
+			wait = 0;
+			save(p1[i]);
+		}
+	case 1:
+		wait += 1;
+		if( wait > 60 ){ state = 2; }
+		gr_sprite2(x, y-8, 168+anim/4%2*4, 0 );
+	case 2:
+		wait += 1;
+	}
+	
+	p2[i] = state;
+	p3[i] = wait;
+}
+
+function save(checkpoint_id:int):void
+{
+	my.last_checkpoint = checkpoint_id;
+	mem.copy( my.saved_items, my.items, my.ITEM_MAX);
+	mem.copy( my.saved_flags, my.flags, my.FLAG_MAX);
+	mem.copy( my.saved_map_flag, my.map_flag, my.MAP_FLAG_MAX);
 }

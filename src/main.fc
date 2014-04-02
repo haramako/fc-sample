@@ -1,4 +1,4 @@
-options( bank_count: 16, bank: -1, char_banks: 8 );
+options( bank_count: 32, bank: -1, char_banks: 8 );
 
 include( "main.asm" );
 

@@ -61,6 +61,7 @@ class TiledConverter
   ENEMY_TYPE = {
     slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8, chest:9, lamp:10, 
     gas:11, ghost:12, switch:13, flaged_door:14, portal:15, checkpoint:16,
+    bird:17,
   }
 
   ITEM_DATA = 
