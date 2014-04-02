@@ -74,8 +74,10 @@ function start(): void
 		
 		pad.update();
 		en.process();
+		var old_pbank = mmc3.set_pbank(1, PBANK_MY);
 		my.process();
 		my.draw();
+		mmc3.set_pbank(1, old_pbank);
 
 		mmc3.set_cbank(0,CBANK_BG_COMMON+(anim/8)%4*2);
 		ppu.wait_vsync();

@@ -61,7 +61,13 @@ function bird_process(i:int):void
 	py[i] = y;
 	p3[i] = time;
 
-	check_hit(i,10);
+	if( math.abs(x - my.x) < 8 && math.abs(y - my.y) < 8 && my.state != my.STATE_DYING && my.state != my.STATE_DIE && my.state != my.STATE_DAMAGE){
+		my.state = my.STATE_DAMAGE;
+		my.vy = -16;
+		my.vx = (my.dir*2-1) * 16;
+		my.jump_pow = 0;
+	}
+	// check_hit(i,10);
 
 	py[i] = d;
 	
