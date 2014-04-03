@@ -39,7 +39,7 @@ var saved_items:int[ITEM_MAX];
 var saved_flags:int[FLAG_MAX];
 var saved_map_flag:int[MAP_FLAG_MAX];
 
-public function init():void
+public function init():void options(segment:"game")
 {
 	var i:int;
 	for( i, 0, ITEM_MAX ){ items[i] = 1; }
