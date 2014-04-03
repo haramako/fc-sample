@@ -8,19 +8,19 @@ use mem;
 
 var data:int[256] options(address:0x6000);
 var enemy:int[256] options(address:0x6100);
-var data_buf:int[256] options(address:0x6200);
+var data_buf:int[512] options(address:0x6200);
 var enemy_num:int;
 
 var buf_idx:int;
 var buf:int[256] options(address:0x6500);
-var pal:int[64];
+var pal:int[64] options(address:0x6440);
 var blank_cell:int; // 空白のセル番号(空と黒を使い分けるため)
 
 var pallet:int[32];
 
 var cur_area:int;
 
-var tile_pal:int[64] options(address:0x6300);
+var tile_pal:int[64] options(address:0x6400);
 var in_dark:int;
 var area_type:int;
 
@@ -82,7 +82,7 @@ const TILE_TYPE:int[] =
 		1,   1,   1,   0,   0,   0,   0,0x20,
 		0,   0,   0,   0,   0,   0,   0,0x20];
 
-var tile_type:int[64] options( address:0x6340 );
+var tile_type:int[64] options( address:0x6480 );
 
 private:
 
