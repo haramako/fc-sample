@@ -67,7 +67,7 @@ public function process():void
 	mmc3.set_pbank(0,old_pbank);
 }
 
-public function new():int
+public function new():int options(segment:"CODE")
 {
 	var i:int;
 	for( i, 0, MAX ){

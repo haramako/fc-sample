@@ -171,7 +171,7 @@ function fetch_area(area:int):void
 	}
 	
 	blank_cell = 0;
-	if( area_type == 2 || area_type == 5 ){ blank_cell = 63; } // ブランクセルを空に
+	if( area_type == 2 || area_type == 5 ){ blank_cell = 15; } // ブランクセルを空に
 	
 }
 
