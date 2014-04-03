@@ -10,7 +10,8 @@ const STATE_STAND = 0;
 const STATE_JUMP = 2;
 const STATE_LADDER = 3; // はしご
 const STATE_ON_ENEMY = 4;
-const STATE_DYING = 5;
+const STATE_DAMAGE = 5;
+const STATE_DYING = 6;
 const STATE_DIE = 255;
 
 var x:int, y:int;
@@ -38,7 +39,7 @@ var saved_items:int[ITEM_MAX];
 var saved_flags:int[FLAG_MAX];
 var saved_map_flag:int[MAP_FLAG_MAX];
 
-public function init():void
+public function init():void options(segment:"game")
 {
 	var i:int;
 	for( i, 0, ITEM_MAX ){ items[i] = 1; }
@@ -253,6 +254,28 @@ public function process():void
 			}
 		}
 		
+	case STATE_DAMAGE: // 吹っ飛び中
+		x += (vx+giff)/16;
+		vy += 2;
+		y += vy / 16;
+		hit = check_block();
+		if( vy < 0 ){
+			//上昇中
+			if( hit & DIR_MASK_UP ){
+				// 頭をぶつけた
+				vy = 0;
+				jump_pow = 0;
+			}
+		}else{
+			// 下降中
+			if( vy > 64 ){ vy = 64; }
+			if( hit & DIR_MASK_DOWN ){
+				// 着地
+				vy = 0;
+				state = STATE_STAND;
+			}
+		}
+		
 	case STATE_JUMP: // ジャンプ中
 		// 空中にいる
 		var vvx = 1;
@@ -364,7 +387,7 @@ public function process():void
 
 }
 
-public function draw():void
+public function draw():void options(segment:"game")
 {
 	var a:int;
 	switch( state ){
@@ -372,7 +395,7 @@ public function draw():void
 		a = ((my_anim/16)%2)*4;
 		if( vx == 0 ){ a = 0; }
 		gr_sprite2( x, y, a, 64*dir );
-	case STATE_JUMP:
+	case STATE_JUMP, STATE_DAMAGE:
 		if( vy > 128 ){
 			gr_sprite2( x, y, 8, 64*dir );
 		}else{
@@ -389,7 +412,7 @@ public function draw():void
 	}
 }
 
-public function get_map(x:int, y:int):int
+public function get_map(x:int, y:int):int options(segment:"game")
 {
 	var idx = y*2 + x/8;
 	var n = map_flag[idx];
@@ -397,7 +420,7 @@ public function get_map(x:int, y:int):int
 	return n & (1 << cx);
 }
 
-public function set_map(x:int, y:int):void
+public function set_map(x:int, y:int):void options(segment:"game")
 {
 	var idx = y*2 + x/8;
 	var n = map_flag[idx];
