@@ -1,5 +1,66 @@
 use * from common;
 
-public function title():void
+public function start():void
 {
+	mmc3.set_cbank( 0, CBANK_BG_COMMON );
+	mmc3.set_cbank( 1, CBANK_BG );
+	mmc3.set_cbank( 2, CBANK_SPRITE+0 );
+	mmc3.set_cbank( 3, CBANK_SPRITE+1 );
+	mmc3.set_cbank( 4, CBANK_SPRITE+2 );
+	mmc3.set_cbank( 5, CBANK_SPRITE+3 );
+	
+	ppu.ctrl1_bak = 0b10100000;
+	ppu.ctrl2_bak = 0b00011110;
+	ppu.scroll1 = 0;
+	ppu.scroll2 = 0;
+	
+	mmc3.set_cbank( 0, CBANK_TEXT );
+	mmc3.set_cbank( 1, CBANK_TEXT+2 );
+
+	ppu.fill_in_lock(0x2000, 256*4, 0);
+	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
+	
+	ppu.put_in_lock( ppu.pos(13,8), _T("CASTLE"), 6);
+	ppu.put_in_lock( ppu.pos(10,26),_T("VERSION 0.0.1"), 13 );
+	put_text_in_lock( ppu.pos(13,14),_T("つづける") );
+	put_text_in_lock( ppu.pos(13,16),_T("はじめから") );
+	put_text_in_lock( ppu.pos(13,18),_T("クレジット") );
+
+	ppu.unlock();
+
+	var cursor = 0;
+
+	while(1){
+		pad.update();
+		if( pad.pushed & pad.UP ){ cursor = (cursor + 2) % 3; }
+		if( pad.pushed & pad.DOWN ){ cursor = (cursor + 1) % 3; }
+		if( pad.pushed & (pad.A | pad.START) ){ return; }
+
+		ppu.sprite( 10*8, cursor*16+(14*8), 4, 0 );
+		ppu.wait_vsync();
+	}
+}
+
+function put_text_in_lock(addr:int16, s:int*):void
+{
+	text_print( ppu.gr_buf, s );
+	ppu.put_in_lock( addr, ppu.gr_buf, 64 );
+}
+
+function text_print(p:int*, str:int*):int
+{
+	var i = 0;
+	var pi = 0;
+	while(1){
+		var c = str[i];
+		if( c == 0 ){ break; }
+		if( c == 2 || c == 3){
+			p[pi-1] = c;
+		}else{
+			p[pi+32] = c;
+			pi += 1;
+		}
+		i += 1;
+	}
+	return 0;
 }

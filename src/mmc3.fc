@@ -46,7 +46,7 @@ function init():void
  *   5: 0x1C00-0x1FFF ( 1KB )
  * bank: 1KB bank
  */
-function set_cbank( pos:int, bank:int ):int
+function set_cbank( pos:int, bank:int ):int options(fastcall:true)
 {
 	var old = cbank_bak[pos];
 	if( 1 || old != bank ){
@@ -67,7 +67,7 @@ function set_cbank( pos:int, bank:int ):int
  *   1: 0xA000-0xBFFF ( 8KB )
  * bank: 8KB bank
  */
-function set_pbank( pos:int, bank:int ):int
+function set_pbank( pos:int, bank:int ):int options(fastcall:true)
 {
 	var old = pbank_bak[pos];
 	if( 1 || old != bank ){

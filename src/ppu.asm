@@ -222,35 +222,35 @@ _ppu_fill_in_lock:
 		
 ;;; function gr_pos( x:int, y:int ):int16
 _ppu_pos:
-	lda S+3,x					; if( y < 0 ) y += 30;
+	lda FC_FASTCALL_REG+3					; if( y < 0 ) y += 30;
 	bpl @end2
 	clc
 	adc #30
-	sta S+3,x
+	sta FC_FASTCALL_REG+3
 @end2:	
-	lda S+3,x					; if( y > 30 ) y -= 30;
+	lda FC_FASTCALL_REG+3					; if( y > 30 ) y -= 30;
 	cmp #30
 	bmi @end
 	sec
 	sbc #30
-	sta S+3,x
+	sta FC_FASTCALL_REG+3
 @end:	
-	lda S+3,x		; result[0] = x + y * 32
+	lda FC_FASTCALL_REG+3		; result[0] = x + y * 32
 	asl a
 	asl a
 	asl a
 	asl a
 	asl a
 	clc
-	adc S+2,x
-	sta S+0,x
-	lda S+3,x       ; result[1] = 0x20 + y / 8
+	adc FC_FASTCALL_REG+2
+	sta FC_FASTCALL_REG+0
+	lda FC_FASTCALL_REG+3       ; result[1] = 0x20 + y / 8
 	lsr a
 	lsr a
 	lsr a
 	clc
 	adc #$20
-	sta S+1,x
+	sta FC_FASTCALL_REG+1
 	rts
 		
 		
@@ -270,19 +270,19 @@ _ppu_sprite:
     ldy _ppu_gr_sprite_idx      ; if( gr_sprite_idx >= 252 ){ return; } var p:int = gr_sprite_idx;
     cpy #252
     bcs @end
-    lda S+1,x      ; gr_sprite_buf[p] = y;
+    lda FC_FASTCALL_REG+1      ; gr_sprite_buf[p] = y;
 	sec
 	sbc #1
     sta _ppu_gr_sprite_buf,y   
     iny                     ; gr_sprite_buf[p+1] = pat;
-    lda S+2,x
+    lda FC_FASTCALL_REG+2
 	ora #1
     sta _ppu_gr_sprite_buf,y
     iny                     ; gr_sprite_buf[p+2] = mode;
-    lda S+3,x
+    lda FC_FASTCALL_REG+3
     sta _ppu_gr_sprite_buf,y
     iny                     ; gr_sprite_buf[p+3] = x;
-    lda S+0,x
+    lda FC_FASTCALL_REG+0
     sta _ppu_gr_sprite_buf,y
     iny                     ; gr_sprite_idx += 4;
     sty _ppu_gr_sprite_idx

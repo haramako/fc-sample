@@ -111,7 +111,8 @@ function item_process():int
 				var size = fs.copy( buf, fs.ITEM_NAME_BASE+item_idx );
 				buf[size] = 0;
 				text_print( buf2, buf );
-				ppu.put( ppu.pos(4,20)+0x400, buf2, 64, 0 );
+				var addr = ppu.pos(4,20)+0x400;
+				ppu.put( addr, buf2, 64, 0 );
 				ppu.wait_vsync();
 
 				buf = ppu.alloc(64);
@@ -120,7 +121,8 @@ function item_process():int
 				size = fs.copy( buf, fs.ITEM_DESC_BASE+item_idx );
 				buf[size] = 0;
 				text_print( buf2, buf );
-				ppu.put( ppu.pos(8,22)+0x400, buf2, 64, 0 );
+				addr = ppu.pos(8,22)+0x400;
+				ppu.put( addr, buf2, 64, 0 );
 				ppu.wait_vsync();
 			}
 			item_prev = item_idx;

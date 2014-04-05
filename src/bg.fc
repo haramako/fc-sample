@@ -97,17 +97,17 @@ public function init():void
 	mem.copy( tile_type, TILE_TYPE, 64 );
 }
 
-public function cell(x:int, y:int):int
+public function cell(x:int, y:int):int options(fastcall:true)
 {
 	return data[(y/16)*16 + x/16];
 }
 
-public function cell_type(x:int, y:int):int
+public function cell_type(x:int, y:int):int options(fastcall:true)
 {
 	return tile_type[data[(y/16)*16 + x/16]];
 }
 
-function set_pal(x:int, y:int, _pal:int):int
+function set_pal(x:int, y:int, _pal:int):int options(fastcall:true)
 {
 	var pal_addr:int8 = (y/2)*8 + x/2;
 	var pos = (((y%2)*2) | (x%2))*2;
@@ -208,7 +208,7 @@ function after_scroll(new_area:int, old_area:int):void
 	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 3*MAP_WIDTH+5 ){ light_up(); in_dark = 0;}
 }
 
-function pal_down(pal:int*, size:int, pow:int):void
+function pal_down(pal:int*, size:int, pow:int):void options(fastcall:true)
 {
 	var i:int;
 	var n = pow*16;

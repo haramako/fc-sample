@@ -67,7 +67,7 @@ public function process():void
 	mmc3.set_pbank(0,old_pbank);
 }
 
-public function new():int options(segment:"CODE")
+public function new():int options(segment:"CODE", fastcall:true)
 {
 	var i:int;
 	for( i, 0, MAX ){
@@ -92,7 +92,7 @@ public function check_block(px:int*, py:int*):int
 	var x = *px;
 	var y = *py;
 	var r = 0;
-	
+
 	// 下方向
 	if( bg.cell_type(x+4,y+(size-1)) & bg.TYPE_WALL || bg.cell_type(x-4,y+(size-1)) & bg.TYPE_WALL ){
 		*py = (y+size)/16*16 - size;
@@ -126,7 +126,7 @@ public function check_block(px:int*, py:int*):int
 	return r;
 }
 
-public function check_outside(x:int, y:int):int
+public function check_outside(x:int, y:int):int options(fastcall:true)
 {
 	return ( x < 16 || x >= 240 || y < 16 || y >= 240 );
 }
