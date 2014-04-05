@@ -1,4 +1,4 @@
-options( bank_count: 32, bank: -1, char_banks: 8 );
+//options( bank_count: 32, bank: -1, char_banks: 8 );
 
 include( "main.asm" );
 
@@ -7,6 +7,7 @@ use game;
 use en;
 use my;
 use sound;
+use title;
 
 include('../res/images/bg_common.chr');
 include('../res/images/bg.chr');
@@ -21,7 +22,6 @@ function main():void
 	ppu.lock();
 	mmc3.init();
 
-	
 	nes.APU_INTERRUPT = 0x40; // disable APU IRQ
 	mmc3.MIRROR = 1; // horizontal
 	mmc3.RAM_PROTECT = 0b10000000;
@@ -35,7 +35,15 @@ function main():void
 	fs.copy( buf, fs.SOUND_BASE+0 );
 	sound.init();
 	ppu.on_vsync = sound.main_nsd;
-	sound.play_bgm(&buf[0x62]);
+	// sound.play_bgm(&buf[0x62]);
+	
+	asm( "cli" );
+
+	if( !DEBUG ){
+		var old_pbank = mmc3.set_pbank(1, PBANK_TITLE);
+		title.start();
+		mmc3.set_pbank(1, old_pbank);
+	}
 	
 	game.start();
 }

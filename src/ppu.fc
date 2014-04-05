@@ -88,7 +88,7 @@ function put_in_lock(addr:int16, _from:int*, size:int ):void;
 
 function fill_in_lock(addr:int16, size:int16, n:int):void;
 
-function put(addr:int16, _from:int*, size:int, flag:int ):void
+function put(addr:int16, _from:int*, size:int, flag:int ):void options(fastcall:true)
 {
 	while( gr_idx >= GR_MAX ){
 		vsync_flag = 2;
@@ -101,16 +101,16 @@ function put(addr:int16, _from:int*, size:int, flag:int ):void
 	gr_idx += 1;
 }
 
-function alloc(size:int):int*
+function alloc(size:int):int* options(fastcall:true)
 {
 	var old = gr_buf_idx;
 	gr_buf_idx += size;
 	return &gr_buf[old];
 }
 
-function pos( x:int, y:int ):int16;
+function pos( x:int, y:int ):int16 options(fastcall:true);
 
-function sprite( x:int, y:int, pat:int, mode:int ):void;
+function sprite( x:int, y:int, pat:int, mode:int ):void options(fastcall:true);
 
 function wait(n:int):void
 {

@@ -86,7 +86,7 @@ module NesTools
     end
 
     def conv( str )
-      str = str.tr('A-Za-z0-9','Ａ-Ｚａ-ｚ０-９')
+      str = str.tr('A-Za-z0-9.','Ａ-Ｚａ-ｚ０-９．')
       str = str.chars.map {|c| @convert_char[c] || c }.join
       str = str.chars.map do |c| 
         i = @using.find_index(c)

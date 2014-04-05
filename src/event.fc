@@ -15,7 +15,8 @@ function ppu_clear():void
 	mem.set( bg.data_buf, 0, 64 );
 	var i:int;
 	for( i, 0, 4 ){
-		ppu.put( ppu.pos(0,i*2)+0x400, bg.data_buf, 64, 0 );
+		var addr = ppu.pos(0,i*2)+0x400;
+		ppu.put( addr, bg.data_buf, 64, 0 );
 		ppu.wait_vsync_with_flag(2);
 	}
 	ppu.put( 0x27c0, bg.data_buf, 64, 0 );
@@ -33,7 +34,8 @@ function event_start():void
 	var buf = ppu.alloc(64);
 	mem.zero(buf, 64);
 	menu.text_print( buf, str );
-	ppu.put( ppu.pos(6,2)+0x400, buf, 64, 0 );
+	var addr = ppu.pos(6,2)+0x400;
+	ppu.put( addr, buf, 64, 0 );
 	ppu.wait_vsync_with_flag(2);
 		
 	ppu.irq_setup = irq_setup;
