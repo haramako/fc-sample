@@ -35,20 +35,16 @@ var flags:int[FLAG_MAX];
 const MAP_FLAG_MAX = 64;
 var map_flag:int[MAP_FLAG_MAX];
 
-var saved_items:int[ITEM_MAX];
-var saved_flags:int[FLAG_MAX];
-var saved_map_flag:int[MAP_FLAG_MAX];
+const SAVE_DATA_DEBUG_MODE = 0;
+const SAVE_DATA_LAST_CHECKPOINT = 2;
+var saved_version:int options(segment:"SAVEDATA");
+var saved_data:int[15] options(segment:"SAVEDATA");
+var saved_items:int[ITEM_MAX] options(segment:"SAVEDATA");
+var saved_flags:int[FLAG_MAX] options(segment:"SAVEDATA");
+var saved_map_flag:int[MAP_FLAG_MAX] options(segment:"SAVEDATA");
 
 public function init():void options(segment:"game")
 {
-	var i:int;
-	for( i, 0, ITEM_MAX ){ items[i] = 1; }
-	for( i, 0, MAP_FLAG_MAX ){ map_flag[i] = 0; }
-	
-	last_checkpoint = 0;
-	mem.copy( saved_items, items, ITEM_MAX);
-	mem.copy( saved_flags, flags, FLAG_MAX);
-	mem.copy( saved_map_flag, map_flag, MAP_FLAG_MAX);
 }
 
 private:

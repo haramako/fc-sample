@@ -7,6 +7,7 @@ use my;
 use debug_menu;
 use event;
 use mem;
+use savedata;
 
 const PALLET:int[] = incbin("../res/images/character.chr.dat");
 
@@ -58,7 +59,7 @@ function start(): void
 	ppu.put_in_lock( 0x3f10, &PALLET[16], 16 );
 	mem.copy( &bg.pallet[16], &PALLET[16], 16 );
 	
-	move_checkpoint(0);
+	move_checkpoint(my.last_checkpoint);
 	my.set_map( bg.cur_area%16, bg.cur_area/16 );
 
 	ppu.unlock();
@@ -94,6 +95,7 @@ function start(): void
 			if( my.items[ITEM_ID_ORB6] ){
 				move_to_last();
 			}else{
+				savedata.load();
 				move_checkpoint(my.last_checkpoint);
 			}
 		}
@@ -188,10 +190,6 @@ function move_checkpoint(i:int):void
 	my.y = cp[2]+8;
 	my.vx = 0;
 	my.vy = 0;
-	mem.copy( my.items, my.saved_items, my.ITEM_MAX);
-	mem.copy( my.flags, my.saved_flags, my.FLAG_MAX);
-	mem.copy( my.map_flag, my.saved_map_flag, my.MAP_FLAG_MAX);
-	
 	var area = cp[0];
 	move_area( area );
 	set_last();

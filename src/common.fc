@@ -2,7 +2,10 @@ options(bank:-1);
 
 include( "macro.rb" );
 
-const DEBUG = 1;
+const DEBUG = 0;
+var debug_mode:int;
+
+const SAVE_DATA_VERSION = 11;
 
 const CBANK_BG_COMMON = 0;
 const CBANK_BG = 8;
@@ -22,7 +25,7 @@ const PBANK_FS = 7;
 const VRAM_PALETTE = 0x3f00;
 
 const GIFF_TABLE = [0,8,4,12, 2,10,6,14, 1,9,5,13, 3,11,7,15];
-public var anim:int;
+var anim:int;
 var giff:int;
 
 var debug:int[8] options(address:0x70);

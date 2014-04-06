@@ -1,5 +1,6 @@
-use my;
 use * from en;
+use my;
+use savedata;
 
 /*********************************************
  * スライム
@@ -245,6 +246,7 @@ function block_process(i:int):void
 	if( redraw ){
 		c = bg.blank_cell;
 		if( bg.cur_area == 13+4*MAP_WIDTH ){ c = 0; } // 例外：塔の中は黒く塗る
+		if( bg.cur_area == 7+2*MAP_WIDTH ){ c = 15; } // 例外：空は黒く塗る
 		bg.put2( px[i]/16, py[i]/16, c, 3 );
 		bg.put2( x/16, y/16, 29, 0 );
 		px[i] = x;
@@ -641,7 +643,8 @@ function checkpoint_process(i:int):void
 		if( math.abs(x - my.x) < 12 && math.abs(y - my.y) < 12 ){
 			state = 1;
 			wait = 0;
-			save(p1[i]);
+			my.last_checkpoint = p1[i];
+			savedata.save();
 		}
 	case 1:
 		wait += 1;
@@ -655,10 +658,3 @@ function checkpoint_process(i:int):void
 	p3[i] = wait;
 }
 
-function save(checkpoint_id:int):void
-{
-	my.last_checkpoint = checkpoint_id;
-	mem.copy( my.saved_items, my.items, my.ITEM_MAX);
-	mem.copy( my.saved_flags, my.flags, my.FLAG_MAX);
-	mem.copy( my.saved_map_flag, my.map_flag, my.MAP_FLAG_MAX);
-}

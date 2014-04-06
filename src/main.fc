@@ -8,6 +8,7 @@ use en;
 use my;
 use sound;
 use title;
+use savedata;
 
 include('../res/images/bg_common.chr');
 include('../res/images/bg.chr');
@@ -30,12 +31,16 @@ function main():void
 	bg.init();
 	en.init();
 	my.init();
+	savedata.init();
+	savedata.load();
 
 	// play music
 	fs.copy( buf, fs.SOUND_BASE+0 );
 	sound.init();
 	ppu.on_vsync = sound.main_nsd;
 	// sound.play_bgm(&buf[0x62]);
+
+	debug_mode = ( my.saved_version == SAVE_DATA_VERSION && my.saved_data[0] == 1);
 	
 	asm( "cli" );
 
