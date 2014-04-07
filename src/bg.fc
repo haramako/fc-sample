@@ -225,6 +225,8 @@ function before_scroll(new_area:int, old_area:int):void
 {
 	if( !my.items[fs.ITEM_ID_LAMP] ){
 		if( new_area == 10+6*MAP_WIDTH
+			|| new_area ==  0+6*MAP_WIDTH
+			|| new_area ==  9+5*MAP_WIDTH
 			|| new_area ==  2+8*MAP_WIDTH
 			|| new_area ==  8+9*MAP_WIDTH ){
 			light_down(); in_dark = 1;
@@ -236,6 +238,8 @@ function after_scroll(new_area:int, old_area:int):void
 {
 	if( !my.items[fs.ITEM_ID_LAMP] ){
 		if( old_area == 10+6*MAP_WIDTH
+			|| old_area ==  0+5*MAP_WIDTH
+			|| old_area ==  9+5*MAP_WIDTH
 			|| old_area ==  2+8*MAP_WIDTH
 			|| old_area ==  8+9*MAP_WIDTH
 			){

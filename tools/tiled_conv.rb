@@ -144,6 +144,32 @@ class TiledConverter
     tset.add_from_img( img )
     tset.reflow!
     IO.binwrite 'res/images/sprite.chr', tset.bin
+    nes_pal = pal_to_nes(img)
+    IO.binwrite 'res/images/sprite.nespal', nes_pal.pack('c*')
+  end
+
+  def pal_to_nes( img )
+    pal = []
+    img.palette.each do |c|
+      pal[c.index] = c if c.index
+    end
+    pal = pal[0...128]
+    
+    base_pal = JSON.parse( IO.read('res/images/nes_palette.json') )
+    pal.map do |p|
+      next 13 unless p
+      min_idx = -1
+      min = 999
+      base_pal.each.with_index do |bp,i|
+        d = (p.r - bp[0]).abs + (p.g - bp[1]).abs + (p.b - bp[2]).abs
+        if d < min
+          min = d
+          min_idx = i
+          break if d == 0
+        end
+      end
+      min_idx
+    end
   end
 
   # BGイメージの作成
