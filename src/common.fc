@@ -4,6 +4,8 @@ include( "macro.rb" );
 
 const DEBUG = 0;
 var debug_mode:int;
+var debug_flag:int;
+const DEBUG_FLAG_TITLE_SKIP = 1<<0;
 
 const SAVE_DATA_VERSION = 11;
 

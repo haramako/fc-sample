@@ -4,7 +4,8 @@ use my;
 
 const IDX_VERSION = 0;
 const IDX_DEBUG_MODE = 1;
-const IDX_LAST_CHECKPOINT = 2;
+const IDX_DEBUG_FLAG = 2;
+const IDX_LAST_CHECKPOINT = 3;
 var exists:int;
 var data:int[512] options(segment:"SAVEDATA");
 
@@ -22,6 +23,7 @@ public function save():void
 {
 	data[IDX_VERSION] = SAVE_DATA_VERSION;
 	data[IDX_DEBUG_MODE] = debug_mode;
+	data[IDX_DEBUG_FLAG] = debug_flag;
 	data[IDX_LAST_CHECKPOINT] = my.last_checkpoint;
 	mem.copy( &data[16], my.items, my.ITEM_MAX);
 	mem.copy( &data[80], my.flags, my.FLAG_MAX);
@@ -32,6 +34,7 @@ public function load():void
 {
 	exists = data[IDX_VERSION];
 	debug_mode = data[IDX_DEBUG_MODE];
+	debug_flag = data[IDX_DEBUG_FLAG];
 	my.last_checkpoint = data[IDX_LAST_CHECKPOINT];
 	mem.copy( my.items, &data[16], my.ITEM_MAX);
 	mem.copy( my.flags, &data[48], my.FLAG_MAX);

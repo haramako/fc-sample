@@ -44,7 +44,7 @@ function main():void
 	
 	asm( "cli" );
 
-	if( !DEBUG ){
+	if( !(debug_flag & DEBUG_FLAG_TITLE_SKIP) ){
 		var old_pbank = mmc3.set_pbank(1, PBANK_TITLE);
 		title.start();
 		mmc3.set_pbank(1, old_pbank);
