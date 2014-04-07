@@ -35,7 +35,10 @@ public var p2:int[MAX] options(segment:"BSS_EX");
 public var p3:int[MAX] options(segment:"BSS_EX");
 public var p4:int[MAX] options(segment:"BSS_EX");
 public var p5:int[MAX] options(segment:"BSS_EX");
-public var _dummy:int[128] options(segment:"BSS_EX");
+public var p6:int[MAX] options(segment:"BSS_EX");
+public var p7:int[MAX] options(segment:"BSS_EX");
+public var p8:int[MAX] options(segment:"BSS_EX");
+public var _padding_for_align:int[80] options(segment:"BSS_EX");
 public var wait:int;
 public var now:int;
 

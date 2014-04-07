@@ -25,7 +25,7 @@ var in_dark:int;
 var area_type:int;
 
 var tile_type:int[64] options(segment:"BSS_EX");
-var _dummy:int[64] options(segment:"BSS_EX"); // 256byte alignのため
+var _padding_for_align:int[64] options(segment:"BSS_EX"); // 256byte alignのため
 
 const TYPE_WALL = 1 << 0;
 const TYPE_FLOOR = 1 << 1;
