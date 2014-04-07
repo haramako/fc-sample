@@ -16,7 +16,7 @@ include('../res/images/sprite.chr');
 include('../res/images/text.chr');
 include('../res/images/item.chr');
 
-var buf:int[256] options( address: 0x7000 );
+var buf:int[256] options(segment:"BSS_EX");
 
 function main():void
 {
@@ -40,8 +40,6 @@ function main():void
 	ppu.on_vsync = sound.main_nsd;
 	// sound.play_bgm(&buf[0x62]);
 
-	debug_mode = ( my.saved_version == SAVE_DATA_VERSION && my.saved_data[0] == 1);
-	
 	asm( "cli" );
 
 	if( !(debug_flag & DEBUG_FLAG_TITLE_SKIP) ){

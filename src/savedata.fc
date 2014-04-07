@@ -7,7 +7,7 @@ const IDX_DEBUG_MODE = 1;
 const IDX_DEBUG_FLAG = 2;
 const IDX_LAST_CHECKPOINT = 3;
 var exists:int;
-var data:int[512] options(segment:"SAVEDATA");
+var data:int[512] options(segment:"BSS_SAVEDATA");
 
 public function init():void
 {
