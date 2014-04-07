@@ -31,17 +31,17 @@ public function start():void
 public function do_title():int
 {
 	ppu.lock();
+	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
 	
 	mmc3.set_cbank( 0, CBANK_TEXT );
 	mmc3.set_cbank( 1, CBANK_TEXT+2 );
 	mmc3.set_cbank( 2, CBANK_SPRITE+0 );
 
 	ppu.fill_in_lock(0x2000, 256*4, 0);
-	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
 	
 	put_text_in_lock( ppu.pos(13, 8),  _T("CASTLE"));
-	put_text_in_lock( ppu.pos(10,26), _T("VERSION 0.0.1") );
-	if( debug_mode ) put_text_in_lock( ppu.pos(14,24), _T("[DEBUG]") );
+	put_text_in_lock( ppu.pos(10,26), VERSION_STR() );
+	if( debug_mode ) put_text_in_lock( ppu.pos(12,24), _T("［でばっぐもーど］") );
 	if( savedata.exists ){
 		put_text_in_lock( ppu.pos(13,14),_T("つづける") );
 	}else{
@@ -113,16 +113,17 @@ function text_print(p:int*, str:int*):int
 function do_credit():int
 {
 	ppu.lock();
-	ppu.fill_in_lock(0x2000, 256*4, 0);
 	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
+	ppu.fill_in_lock(0x2000, 256*4, 0);
 	put_text_in_lock( ppu.pos(4, 6), _T("スタッフ") );
 	put_text_in_lock( ppu.pos(6, 8), _T("プログラム・グラフィック　　　こんびなーとＨ") );
 	put_text_in_lock( ppu.pos(6,10), _T("ステージデザイン　　　　　　　　　がんちゃん") );
 
 	put_text_in_lock( ppu.pos(4,14), _T("ＴＨＡＮＫＳ") );
-	put_text_in_lock( ppu.pos(6,16), _T("ドットエディタ　　　ＥＤＧＥ２／ＹＹーＣＨＲ") );
+	put_text_in_lock( ppu.pos(6,16), _T("ドットエディタ　　　　　　　　　　ＥＤＧＥ２") );
 	put_text_in_lock( ppu.pos(6,18), _T("マップエディタ　　　　　　　　　　ＴＩＬＥＤ") );
 	put_text_in_lock( ppu.pos(6,20), _T("サウンドドライバ　　　　　　　　　　　ＮＳＤ") );
+	put_text_in_lock( ppu.pos(6,22), _T("フォント　　　　　　　　　　　　美咲フォント") );
 	ppu.unlock();
 
 	loop(){

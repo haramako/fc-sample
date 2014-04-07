@@ -27,14 +27,18 @@ public const TYPE_STATUE = 18;
 public const TYPE_STATUE_FIRE = 19;
 
 public const MAX = 16;
-public var type:int[MAX];
-public var px:int[MAX];
-public var py:int[MAX];
-public var p1:int[MAX];
-public var p2:int[MAX];
-public var p3:int[MAX];
-public var p4:int[MAX];
-public var p5:int[MAX];
+public var type:int[MAX] options(segment:"BSS_EX");
+public var px:int[MAX] options(segment:"BSS_EX");
+public var py:int[MAX] options(segment:"BSS_EX");
+public var p1:int[MAX] options(segment:"BSS_EX");
+public var p2:int[MAX] options(segment:"BSS_EX");
+public var p3:int[MAX] options(segment:"BSS_EX");
+public var p4:int[MAX] options(segment:"BSS_EX");
+public var p5:int[MAX] options(segment:"BSS_EX");
+public var p6:int[MAX] options(segment:"BSS_EX");
+public var p7:int[MAX] options(segment:"BSS_EX");
+public var p8:int[MAX] options(segment:"BSS_EX");
+public var _padding_for_align:int[80] options(segment:"BSS_EX");
 public var wait:int;
 public var now:int;
 

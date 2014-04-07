@@ -8,9 +8,9 @@ use * from en;
 function bird_new(i:int):void
 {
 	if( p2[i] == 0 ){ p2[i] = 16; }
-	p3[i] = 0;
 	p4[i] = px[i];
 	p5[i] = py[i];
+	p6[i] = 0;
 }
 
 function bird_process(i:int):void
@@ -20,7 +20,7 @@ function bird_process(i:int):void
 	var orig_y = p5[i];
 	var dir = p1[i];
 	var speed = p2[i];
-	var time = p3[i];
+	var time = p6[i];
 
 	if( time < 128 ){
 		var t = time * 2;
@@ -55,11 +55,16 @@ function bird_process(i:int):void
 		d = 64;
 	}
 			
-	gr_sprite2( x, y, 176+a*4, 1|d);
+	if( p3[i] == 1 && my.items[ITEM_ID_EYE] ){
+		if( anim % 2 ) gr_sprite2( x, y, 176+a*4, 1|d);
+		if( time > 128 ){ type[i] = 0; return; }
+	}else{
+		gr_sprite2( x, y, 176+a*4, 1|d);
+	}
 	
 	px[i] = x;
 	py[i] = y;
-	p3[i] = time;
+	p6[i] = time;
 
 	if( math.abs(x - my.x) < 8 && math.abs(y - my.y) < 8 && my.state != my.STATE_DYING && my.state != my.STATE_DIE && my.state != my.STATE_DAMAGE){
 		my.state = my.STATE_DAMAGE;

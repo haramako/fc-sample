@@ -29,19 +29,12 @@ var wait:int;
 var last_checkpoint:int;
 
 const ITEM_MAX = 32;
-var items:int[ITEM_MAX];
+var items:int[ITEM_MAX] options(segment:"BSS_EX");
 const FLAG_MAX = 32;
-var flags:int[FLAG_MAX];
+var flags:int[FLAG_MAX] options(segment:"BSS_EX");
 const MAP_FLAG_MAX = 64;
-var map_flag:int[MAP_FLAG_MAX];
-
-const SAVE_DATA_DEBUG_MODE = 0;
-const SAVE_DATA_LAST_CHECKPOINT = 2;
-var saved_version:int options(segment:"SAVEDATA");
-var saved_data:int[15] options(segment:"SAVEDATA");
-var saved_items:int[ITEM_MAX] options(segment:"SAVEDATA");
-var saved_flags:int[FLAG_MAX] options(segment:"SAVEDATA");
-var saved_map_flag:int[MAP_FLAG_MAX] options(segment:"SAVEDATA");
+var map_flag:int[MAP_FLAG_MAX] options(segment:"BSS_EX");
+var _padding_for_align:int[128] options(segment:"BSS_EX"); // 256byte alignのため
 
 public function init():void options(segment:"game")
 {

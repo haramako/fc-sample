@@ -92,7 +92,7 @@ function start(): void
 				var j:int;
 				for( j, 0, 10 ){ ppu.wait_vsync_with_flag(2); }
 			}
-			if( my.items[ITEM_ID_ORB6] ){
+			if( debug_on(DEBUG_FLAG_AUTO_SAVE) ){
 				move_to_last();
 			}else{
 				savedata.load();
@@ -138,11 +138,11 @@ function start(): void
 		}
 		
 		// メニュー
-		if( pad.pushed & pad.START ){
+		if( pad.pushed & pad.START && debug_mode ){
 			var old_bank = mmc3.set_pbank( 1, PBANK_DEBUG_MENU );
 			debug_menu.start();
 			mmc3.set_pbank( 1, old_bank );
-		}elsif( pad.pushed & pad.SELECT ){
+		}elsif( pad.pushed & pad.SELECT && my.state != my.STATE_DYING){
 			var old_bank = mmc3.set_pbank(1, PBANK_MENU);
 			menu.start();
 			mmc3.set_pbank( 1, old_bank );
