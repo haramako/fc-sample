@@ -77,7 +77,7 @@ class TiledConverter
      ['craw', 'かぎ爪', 'はしごに飛び乗れる'],
      ['wing', '天使の羽', 'すきなチェックポイントに飛べる'],
      ['eye', 'めだま', 'めだまのかたちをしたおっかないオブジェ'],
-     ['blank2', '????', '????'],
+     ['key', '水門のカギ', '水門をひらくカギ'],
      ['orb1', '悲しみの宝珠', '悲しみの思いが閉じ込められている'],
      ['orb2', '怒りの宝珠', '怒りの思いが閉じ込められている'],
      ['orb3', 'よろこびの宝珠', '喜びの思いが閉じ込められている'],
@@ -144,6 +144,32 @@ class TiledConverter
     tset.add_from_img( img )
     tset.reflow!
     IO.binwrite 'res/images/sprite.chr', tset.bin
+    nes_pal = pal_to_nes(img)
+    IO.binwrite 'res/images/sprite.nespal', nes_pal.pack('c*')
+  end
+
+  def pal_to_nes( img )
+    pal = []
+    img.palette.each do |c|
+      pal[c.index] = c if c.index
+    end
+    pal = pal[0...128]
+    
+    base_pal = JSON.parse( IO.read('res/images/nes_palette.json') )
+    pal.map do |p|
+      next 13 unless p
+      min_idx = -1
+      min = 999
+      base_pal.each.with_index do |bp,i|
+        d = (p.r - bp[0]).abs + (p.g - bp[1]).abs + (p.b - bp[2]).abs
+        if d < min
+          min = d
+          min_idx = i
+          break if d == 0
+        end
+      end
+      min_idx
+    end
   end
 
   # BGイメージの作成

@@ -14,6 +14,9 @@ const STATE_DAMAGE = 5;
 const STATE_DYING = 6;
 const STATE_DIE = 255;
 
+const SPR_JUMP_UP = 14*4;
+const SPR_JUMP_DOWN = 6*4;
+
 var x:int, y:int;
 var my_anim:int;
 var vy:sint;
@@ -379,16 +382,21 @@ public function process():void
 public function draw():void options(segment:"game")
 {
 	var a:int;
+	var dir_flag = 64*dir;
 	switch( state ){
 	case STATE_STAND, STATE_ON_ENEMY:
-		a = ((my_anim/16)%2)*4;
+		const ANIM = [1,2,3,3,2,1,0,0];
+		a = ANIM[my_anim/4%8]*4;
 		if( vx == 0 ){ a = 0; }
-		gr_sprite2( x, y, a, 64*dir );
+		gr_sprite2( x, y, a, dir_flag );
 	case STATE_JUMP, STATE_DAMAGE:
-		if( vy > 128 ){
-			gr_sprite2( x, y, 8, 64*dir );
+		a = anim/8%2*4;
+		if( vy < -8 ){
+			gr_sprite2( x, y, SPR_JUMP_UP, dir_flag );
+		}else if( vy < 8 ){
+			gr_sprite2( x, y, SPR_JUMP_UP+4, dir_flag );
 		}else{
-			gr_sprite2( x, y, 12, 64*dir );
+			gr_sprite2( x, y, SPR_JUMP_DOWN+a, dir_flag );
 		}
 	case STATE_LADDER:
 		a = (my_anim/16)%2;
