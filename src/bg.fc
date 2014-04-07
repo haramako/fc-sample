@@ -199,14 +199,26 @@ public function scroll(dir:int):void
 
 function before_scroll(new_area:int, old_area:int):void
 {
-	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 5*MAP_WIDTH+9 ){ light_down(); in_dark = 1;}
-	if( !my.items[fs.ITEM_ID_LAMP] && new_area == 3*MAP_WIDTH+5 ){ light_down(); in_dark = 1;}
+	if( !my.items[fs.ITEM_ID_LAMP] ){
+		if( new_area == 10+6*MAP_WIDTH
+			|| new_area ==  2+8*MAP_WIDTH
+			|| new_area ==  8+9*MAP_WIDTH ){
+			light_down(); in_dark = 1;
+		}
+	}
 }
 
 function after_scroll(new_area:int, old_area:int):void
 {
-	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 5*MAP_WIDTH+9 ){ light_up(); in_dark = 0;}
-	if( !my.items[fs.ITEM_ID_LAMP] && old_area == 3*MAP_WIDTH+5 ){ light_up(); in_dark = 0;}
+	if( !my.items[fs.ITEM_ID_LAMP] ){
+		if( old_area == 10+6*MAP_WIDTH
+			|| old_area ==  2+8*MAP_WIDTH
+			|| old_area ==  8+9*MAP_WIDTH
+			){
+			light_up();
+			in_dark = 0;
+		}
+	}
 }
 
 function pal_down(pal:int*, size:int, pow:int):void options(fastcall:true)
