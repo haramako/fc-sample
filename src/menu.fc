@@ -162,7 +162,7 @@ function text_print(p:int*, str:int*):int
 	while(1){
 		var c = str[i];
 		if( c == 0 ){ break; }
-		if( c == 2 || c == 3){
+		if( c == 3 || c == 4){
 			p[pi-1] = c;
 		}else{
 			p[pi+32] = c;

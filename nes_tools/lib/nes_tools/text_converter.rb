@@ -5,7 +5,7 @@ require 'nes_tools'
 module NesTools
   class TextConverter
 
-    PRESET_CHAR = ("　↓゛゜０１２３４５６７８９！？ー。、"+
+    PRESET_CHAR = ("¶　↓゛゜０１２３４５６７８９！？ー。、"+
                    "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめも"+
                    "やゆよらゃゅょりるれろわをんっ").each_char.to_a
 
@@ -14,7 +14,7 @@ module NesTools
       "\n" => '↓',
       '?' => '？',
       '!' => '！',
-      '-' => 'ー',
+      'ー' => '−',
       'が' => 'か゛',
       'ぎ' => 'き゛',
       'ぐ' => 'く゛',
@@ -86,7 +86,7 @@ module NesTools
     end
 
     def conv( str )
-      str = str.tr('A-Za-z0-9.','Ａ-Ｚａ-ｚ０-９．')
+      str = str.tr('A-Za-z0-9.\-[]','Ａ-Ｚａ-ｚ０-９．−［］')
       str = str.chars.map {|c| @convert_char[c] || c }.join
       str = str.chars.map do |c| 
         i = @using.find_index(c)
@@ -102,6 +102,7 @@ module NesTools
     def make_image( filename )
       GD2::Image.new(128,128) do |dest|
         @using.each.with_index do |c,i|
+          c = '　' if i == 0 # 文字コード０は常に空白
           cj = c.encode('ISO-2022-JP')
           cp = cj.codepoints.to_a[3..4].map{|x| x-32 }
           dest.copy_from( @font_image, (i%16)*8, (i/16)*8, (cp[1]-1)*8, (cp[0]-1)*8, 8, 8 )

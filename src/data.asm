@@ -39,10 +39,11 @@
 ;    +--------+------+------------------------------------------+
 
     .byte   $4e,$45,$53,$1a ; "NES"^Z
-    .byte   16       ; ines prg  - Specifies the number of 16k prg banks.
-    .byte   8       ; ines chr  - Specifies the number of 8k chr banks.
-    .byte   65   ; ines mir  - Specifies VRAM mirroring of the banks.
-    .byte   0   ; ines map  - Specifies the NES mapper used.
+    .byte   16      ; ines prg  - Specifies the number of 16k prg banks.
+    .byte   8		; ines chr  - Specifies the number of 8k chr banks.
+	;; MMC3(4), battery backuped RAM
+    .byte   %01000011 ; ines mir  - Specifies VRAM mirroring of the banks.
+    .byte   0   	; ines map  - Specifies the NES mapper used.
     .byte   0,0,0,0,0,0,0,0 ; 8 zeroes
 
 .segment "FC_ZEROPAGE": zeropage

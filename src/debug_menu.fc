@@ -5,6 +5,7 @@ use mem;
 use my;
 use game;
 use event;
+use savedata;
 
 var last_checkpoint:int;
 
@@ -46,7 +47,7 @@ function select():int
 	
 	var i:int;
 	for(i, 0, num){
-		ppu.put_in_lock( VRAM + 32*(i+5) + 4, items[i], mem.strlen(items[i]) );
+		ppu.put_in_lock( 0x400+ppu.pos(4,i+5), items[i], mem.strlen(items[i]) );
 	}
 	ppu.unlock();
 
@@ -70,16 +71,19 @@ function select():int
 function start():void
 {
 	var old0 = mmc3.set_cbank(0,fs.CBANK_TEXT+0);
-	var old1 = mmc3.set_cbank(1,fs.CBANK_TEXT+1);
+	var old1 = mmc3.set_cbank(1,fs.CBANK_TEXT+2);
 	
 	while(1){
 		begin( _T("メニュー") );
 		add( _T("チェックポイント") );
-		add( _T("終了") );
+		add( _T("たいとるすきっぷ　きりかえ") );
 		switch( select() ){
 		case 0:
 			if( do_flag() ){ break; }
-		case 1,-1:
+		case 1:
+			debug_flag = debug_flag ^ DEBUG_FLAG_TITLE_SKIP;
+			savedata.save();
+		case -1:
 			break;
 		}
 	}

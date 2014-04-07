@@ -34,7 +34,7 @@ event_irq_1:
 	
 	ldx #(_common_CBANK_TEXT+0)
 	mmc3_cbank 0
-	ldx #(_common_CBANK_TEXT+1)
+	ldx #(_common_CBANK_TEXT+2)
 	mmc3_cbank 1
 
 	lda #%10100001
