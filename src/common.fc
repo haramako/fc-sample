@@ -6,6 +6,12 @@ const DEBUG = 0;
 var debug_mode:int;
 var debug_flag:int;
 const DEBUG_FLAG_TITLE_SKIP = 1<<0;
+const DEBUG_FLAG_AUTO_SAVE = 1<<1;
+
+public function debug_on(mask:int):int options(fastcall:true)
+{
+	return debug_mode && debug_flag & mask;
+}
 
 const SAVE_DATA_VERSION = 11;
 
