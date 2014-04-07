@@ -14,8 +14,10 @@ const STATE_DAMAGE = 5;
 const STATE_DYING = 6;
 const STATE_DIE = 255;
 
-const SPR_JUMP_UP = 14*4;
+const SPR_JUMP_WALK = 0*4;
+const SPR_JUMP_UP = 4*4;
 const SPR_JUMP_DOWN = 6*4;
+const SPR_LADDER = 14*4;
 
 var x:int, y:int;
 var my_anim:int;
@@ -181,17 +183,16 @@ public function process():void
 	prev_in_water = in_water;
 	var limited_water = in_water && (items[ITEM_ID_WEIGHT]==0);
 	
-	my_anim += 1;
-
 	var hit:int;
 	switch( state ){
 	case STATE_STAND, STATE_ON_ENEMY:
 		// 地上
+		my_anim += 1;
 		
 		// 左右移動
 		if( pad.cur & pad.RIGHT ){ vx += 4; dir = 0; }
 		if( pad.cur & pad.LEFT ){ vx -= 4; dir = 1; }
-		if( !(pad.cur & (pad.RIGHT|pad.LEFT)) ){ vx = 0; }
+		if( !(pad.cur & (pad.RIGHT|pad.LEFT)) ){ vx = 0; my_anim = 0; }
 		if( vx < -16 ){ vx = -16; }
 		if( vx > 16 ){ vx = 16; }
 
@@ -247,6 +248,7 @@ public function process():void
 		}
 		
 	case STATE_DAMAGE: // 吹っ飛び中
+		my_anim += 1;
 		x += (vx+giff)/16;
 		vy += 2;
 		y += vy / 16;
@@ -269,6 +271,8 @@ public function process():void
 		}
 		
 	case STATE_JUMP: // ジャンプ中
+		my_anim += 1;
+		
 		// 空中にいる
 		var vvx = 1;
 		if( jump_pow ){ vvx = 4; }
@@ -343,6 +347,7 @@ public function process():void
 		x = (x/16)*16+8;
 		if( pad.cur & pad.UP ){
 			// 登る
+			my_anim += 1;
 			if( get_cell_type(x,y-4) != bg.TYPE_WALL ){
 				if( get_cell_type(x,y) & bg.TYPE_LADDER ){
 					y -= 1;
@@ -353,6 +358,7 @@ public function process():void
 			}
 		}elsif( pad.cur & pad.DOWN ){
 			// 降りる
+			my_anim += 1;
 			if( !(get_cell_type(x,y+7) & bg.TYPE_LADDER) ){
 				y -= 1;
 				state = STATE_STAND;
@@ -386,9 +392,8 @@ public function draw():void options(segment:"game")
 	switch( state ){
 	case STATE_STAND, STATE_ON_ENEMY:
 		const ANIM = [1,2,3,3,2,1,0,0];
-		a = ANIM[my_anim/4%8]*4;
-		if( vx == 0 ){ a = 0; }
-		gr_sprite2( x, y, a, dir_flag );
+		a = ANIM[my_anim/4%8];
+		gr_sprite2( x, y, a*4, dir_flag );
 	case STATE_JUMP, STATE_DAMAGE:
 		a = anim/8%2*4;
 		if( vy < -8 ){
@@ -399,8 +404,10 @@ public function draw():void options(segment:"game")
 			gr_sprite2( x, y, SPR_JUMP_DOWN+a, dir_flag );
 		}
 	case STATE_LADDER:
-		a = (my_anim/16)%2;
-		gr_sprite2( x, y, 16, 64*a );
+		a = (my_anim/4)%8;
+		dir_flag = [0,0,0,0,64,64,64,64][a];
+		a = [4,0,0,4,4,0,0,4][a];
+		gr_sprite2( x, y, SPR_LADDER+a, dir_flag );
 	case STATE_DYING:
 		if( anim % 2 ){
 			a = (wait/16)%2;
