@@ -152,9 +152,33 @@ function draw_screen():void
 	}
 }
 
+const WG_AREA_NUM = 8;
+const WG_AREA = [10+ 9*16, 0+0*16,
+				 11+ 9*16, 0+1*16,
+				 11+10*16, 0+2*16,
+				 11+11*16, 0+3*16,
+				 11+12*16, 1+0*16,
+				 11+13*16, 1+1*16,
+				 12+13*16, 1+2*16,
+				 13+13*16, 1+3*16
+				 ];
+
 function fetch_area(area:int):void
 {
 	cur_area = area;
+
+	// 水門によるエリア切り替え
+	if( my.items[ITEM_ID_KEY] ){
+		var i:int;
+		for( i, 0, WG_AREA_NUM ){
+			var idx = i * 2;
+			if( area == WG_AREA[idx] ){
+				area = WG_AREA[idx+1];
+				break;
+			}
+		}
+	}
+	
 	fs.copy( data_buf, fs.TILE_BASE+area );
 	var len = rle.unpack( data, data_buf );
 	if( len != 16*15 ){ asm( ".byte 2" ); } // length check
