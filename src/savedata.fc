@@ -26,8 +26,8 @@ public function save():void
 	data[IDX_DEBUG_FLAG] = debug_flag;
 	data[IDX_LAST_CHECKPOINT] = my.last_checkpoint;
 	mem.copy( &data[16], my.items, my.ITEM_MAX);
-	mem.copy( &data[80], my.flags, my.FLAG_MAX);
-	mem.copy( &data[112], my.map_flag, my.MAP_FLAG_MAX);
+	mem.copy( &data[48], my.flags, my.FLAG_MAX);
+	mem.copy( &data[80], my.map_flag, my.MAP_FLAG_MAX);
 }
 
 public function load():void
