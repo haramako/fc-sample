@@ -5,6 +5,7 @@ use rle;
 use game;
 use my;
 use mem;
+use en;
 
 var data:int[256] options(segment:"BSS_EX");
 var enemy:int[256] options(segment:"BSS_EX");
@@ -19,6 +20,7 @@ var blank_cell:int; // 空白のセル番号(空と黒を使い分けるため)
 var pallet:int[32];
 
 var cur_area:int;
+var area_slot:int[2];
 
 var tile_pal:int[64] options(segment:"BSS_EX");
 var in_dark:int;
@@ -183,10 +185,13 @@ function fetch_area(area:int):void
 	var len = rle.unpack( data, data_buf );
 	if( len != 16*15 ){ asm( ".byte 2" ); } // length check
 
-	len = fs.copy( enemy, fs.ENEMY_BASE+area );
-	enemy_num = len/6;
+	fs.copy( data_buf, fs.ENEMY_BASE+area );
+	area_slot[0] = data_buf[0];
+	area_slot[1] = data_buf[1];
+	enemy_num = data_buf[2];
+	mem.copy( enemy, &data_buf[3], enemy_num*6 );
 
-	// パレット、タイルデータの切り替え
+	// BGパレット、タイルデータの切り替え
 	area_type = AREA_TYPES[area];
 	if( area_type ){
 		fs.copy( &tile_pal[32], fs.TILE_PAL_BASE+area_type );
@@ -194,11 +199,25 @@ function fetch_area(area:int):void
 		mem.copy( &bg.pallet[4], &PAL_SET[(area_type-1)*16+4], 12 );
 		mmc3.set_cbank(1, CBANK_BG+(area_type-1)*2);
 	}
+
+	// スプライトパレット、バンクの切り替え
+	var i:int;
+	for(i,0,2){
+		var slot = area_slot[i];
+		var palset = en.PALSET_OF_TYPE[slot];
+		var palset_pos = palset * 4;
+		var pal_pos = 24+i*4;
+		mem.copy( &pallet[pal_pos], &SPRITE_PALETTE[palset_pos], 4 );
+		ppu.put( 0x3f00+pal_pos, &SPRITE_PALETTE[palset_pos], 4, 0 );
+		mmc3.set_cbank(4+i, CBANK_ENEMY + en.CBANK_OF_TYPE[slot]);
+	}
 	
 	blank_cell = 0;
 	if( area_type == 2 || area_type == 5 ){ blank_cell = 15; } // ブランクセルを空に
 	
 }
+
+const SPRITE_PALETTE:int[] = incbin("../res/images/sprite.nespal");
 
 public function scroll(dir:int):void
 {

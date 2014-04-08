@@ -59,9 +59,23 @@ class TiledConverter
   AREA_HEIGHT = 15
 
   ENEMY_TYPE = {
-    slime:1, wow:2, elevator:3, block:6, frog:7, cookie:8, chest:9, lamp:10, 
-    gas:11, ghost:12, switch:13, flaged_door:14, portal:15, checkpoint:16,
-    bird:17, statue:18, statue_fire:19,
+    slime:        {id: 1, slot:[1,0]},
+    wow:          {id: 2, slot:[0,0]},
+    elevator:     {id: 3, slot:[0,0]},
+    block:        {id: 6, slot:[0,0]},
+    frog:         {id: 7, slot:[0,1]},
+    cookie:       {id: 8, slot:[1,0]},
+    chest:        {id: 9, slot:[0,0]},
+    lamp:         {id:10, slot:[0,0]},
+    gas:          {id:11, slot:[1,0]},
+    ghost:        {id:12, slot:[1,0]},
+    switch:       {id:13, slot:[0,0]},
+    flaged_door:  {id:14, slot:[0,0]},
+    portal:       {id:15, slot:[0,0]},
+    checkpoint:   {id:16, slot:[0,0]},
+    bird:         {id:17, slot:[1,0]},
+    statue:       {id:18, slot:[1,0]},
+    statue_fire:  {id:19, slot:[0,0]},
   }
 
   ITEM_DATA = 
@@ -144,32 +158,8 @@ class TiledConverter
     tset.add_from_img( img )
     tset.reflow!
     IO.binwrite 'res/images/sprite.chr', tset.bin
-    nes_pal = pal_to_nes(img)
+    nes_pal = NesTools::Palette.nespal(img)[0...128]
     IO.binwrite 'res/images/sprite.nespal', nes_pal.pack('c*')
-  end
-
-  def pal_to_nes( img )
-    pal = []
-    img.palette.each do |c|
-      pal[c.index] = c if c.index
-    end
-    pal = pal[0...128]
-    
-    base_pal = JSON.parse( IO.read('res/images/nes_palette.json') )
-    pal.map do |p|
-      next 13 unless p
-      min_idx = -1
-      min = 999
-      base_pal.each.with_index do |bp,i|
-        d = (p.r - bp[0]).abs + (p.g - bp[1]).abs + (p.b - bp[2]).abs
-        if d < min
-          min = d
-          min_idx = i
-          break if d == 0
-        end
-      end
-      min_idx
-    end
   end
 
   # BGイメージの作成
@@ -183,29 +173,8 @@ class TiledConverter
       tset.reflow!
 
       # パレットセットを作成
-      pal = []
-      img.palette.each do |c|
-        pal[c.index] = c if c.index
-      end
-      pal = pal[0...128]
-
-      # タイルパレットを作成
-      base_pal = JSON.parse( IO.read('res/images/nes_palette.json') )
-      pal_set = pal.map do |p|
-        next 13 unless p
-        min_idx = -1
-        min = 999
-        base_pal.each.with_index do |bp,i|
-          d = (p.r - bp[0]).abs + (p.g - bp[1]).abs + (p.b - bp[2]).abs
-          if d < min
-            min = d
-            min_idx = i
-            break if d == 0
-          end
-        end
-        min_idx
-      end
-
+      pal_set = NesTools::Palette.nespal(img)[0...128]
+      
       tile_pals = []
       tset.tiles.each_slice(128).each do |tiles|
         tile_pals << tiles.each_slice(4).map{|t| t[0].palette % 4}
@@ -345,18 +314,27 @@ class TiledConverter
 
     @fs.tag :ENEMY_BASE
     enemy.each.with_index do |area,i|
+      area_slot = [0,0]
       area = area.map do |en| 
         if /^portal:(.+)/ === en[:type].downcase
           # ポータルの場合
-          type = (128 | ENEMY_TYPE[ $1.downcase.to_sym ])
+          type_data =  ENEMY_TYPE[$1.downcase.to_sym]
+          type = (128 | type_data[:id])
         else
-          type = ENEMY_TYPE[ en[:type].downcase.to_sym ]
           # それ以外
+          type_data = ENEMY_TYPE[en[:type].downcase.to_sym]
+          type = type_data[:id]
         end
-        raise unless type
+        type_data[:slot].each.with_index do |slot,j|
+          next if slot == 0
+          if area_slot[j] != 0 and area_slot[j] != type_data[:id]
+            raise "slot conflict in area (#{i%@world_width},#{i/@world_width}) with #{en[:type]}"
+          end
+          area_slot[j] = type_data[:id]
+        end
         [type, en[:x], en[:y], en[:p1] % 256, en[:p2] % 256, en[:p3] % 256]
       end
-      @fs.add area
+      @fs.add [area_slot, area.size, area]
     end
   end
 

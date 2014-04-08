@@ -18,6 +18,7 @@ const SAVE_DATA_VERSION = 11;
 const CBANK_BG_COMMON = 0;
 const CBANK_BG = 8;
 const CBANK_SPRITE = 22;
+const CBANK_ENEMY = 24;
 const CBANK_TEXT = 30;
 const CBANK_ITEM = 34;
 

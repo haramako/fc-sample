@@ -221,3 +221,51 @@ const NEW_FUNC: void(int)[] = [ none_process,
 								statue_new,
 								statue_fire_new
 								];
+
+const CBANK_OF_TYPE: int[] =
+	[ 0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0
+	  ];
+
+const PALSET_OF_TYPE: int[] =
+	[ 7,
+	  5,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  6,
+	  0,
+	  0,
+	  0,
+	  6,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0,
+	  0
+	  ];

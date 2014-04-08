@@ -10,7 +10,6 @@ use mem;
 use savedata;
 
 const PALLET:int[] = incbin("../res/images/character.chr.dat");
-const SPRITE_PAL:int[] = incbin("../res/images/sprite.nespal");
 
 function init_area_enemy():void
 {
@@ -56,7 +55,7 @@ function start(): void
 	
 	// パレットの初期化
 	mem.copy( bg.pallet, PAL_SET, 16 );
-	mem.copy( &bg.pallet[16], SPRITE_PAL, 16 );
+	mem.copy( &bg.pallet[16], bg.SPRITE_PALETTE, 16 );
 	ppu.put_in_lock( 0x3f00, bg.pallet, 32 );
 	
 	move_checkpoint(my.last_checkpoint);

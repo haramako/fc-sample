@@ -12,6 +12,7 @@ module NesTools
   autoload :Fs, 'nes_tools/fs'
   autoload :TextConverter, 'nes_tools/text_converter'
   autoload :Command, 'nes_tools/command'
+  autoload :Palette, 'nes_tools/palette'
 end
 
 begin

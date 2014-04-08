@@ -50,7 +50,7 @@ function slime_process(i:int):void
 	}
 
 	var flip:uint = (1-dir)/2;
-	gr_sprite2( x, y, 128+(anim/16)%2*4, 64*flip | back_flag | 1);
+	gr_sprite2( x, y, 128+(anim/16)%2*4, 64*flip | back_flag | 2);
 
 	px[i] = x;
 	py[i] = y;
@@ -103,7 +103,7 @@ function wow_process(i:int):void
 	}
 
 
-	gr_sprite2( x+math.rand()%4-2, y+math.rand()%4-2, 136+(anim/4)%2*4, anim%2 );
+	gr_sprite2( x+math.rand()%4-2, y+math.rand()%4-2, 136+(anim/4)%2*4, 1+anim%2 );
 
 	px[i] = x;
 	py[i] = y;
@@ -311,7 +311,7 @@ function frog_process(i:int):void
 	
 	var flip = 0;
 	if( dir == 3 ){ flip = 1; }
-	gr_sprite2( x, y, 160+state*4, 64*flip+2);
+	gr_sprite2( x, y, 160+state*4, 64*flip+3);
 	
 	px[i] = x;
 	py[i] = y;
