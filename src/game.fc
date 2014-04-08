@@ -61,6 +61,7 @@ function start(): void
 	
 	move_checkpoint(my.last_checkpoint);
 	my.set_map( bg.cur_area%16, bg.cur_area/16 );
+	my.save_in_this_area = 1;
 
 	ppu.unlock();
 	
@@ -116,6 +117,7 @@ function start(): void
 			}
 		}
 		if( scroll_dir != -1 ){
+			my.save_in_this_area = 0;
 			bg.scroll( scroll_dir );
 			set_last();
 			init_area_enemy();
@@ -174,6 +176,7 @@ function move_to_last():void
 
 function move_area(area:int):void
 {
+	my.save_in_this_area = 0;
 	bg.fetch_area(area);
 	init_area_enemy();
 	ppu.lock();

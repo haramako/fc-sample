@@ -32,6 +32,7 @@ var jump_pow:int;
 var prev_in_water:int;
 var wait:int;
 var last_checkpoint:int;
+var save_in_this_area:int; // このエリアに滞在中にセーブしたか
 
 const ITEM_MAX = 32;
 var items:int[ITEM_MAX] options(segment:"BSS_EX");

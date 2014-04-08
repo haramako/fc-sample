@@ -626,6 +626,8 @@ function portal_process(i:int):void
  * チェックポイント
  *********************************************/
 
+const SPR_SAVE = 18*4;
+
 function checkpoint_new(i:int):void
 {
 	p2[i] = 0;
@@ -641,6 +643,7 @@ function checkpoint_process(i:int):void
 	switch( state ){
 	case 0:
 		if( math.abs(x - my.x) < 12 && math.abs(y - my.y) < 12 ){
+			if( my.save_in_this_area ){ type[i] = 0; return; }
 			state = 1;
 			wait = 0;
 			my.last_checkpoint = p1[i];
@@ -649,9 +652,11 @@ function checkpoint_process(i:int):void
 	case 1:
 		wait += 1;
 		if( wait > 60 ){ state = 2; }
-		gr_sprite2(x, y-8, 168+anim/4%2*4, 0 );
-	case 2:
-		wait += 1;
+		if( anim % 2 ){
+			my.save_in_this_area = 1;
+			gr_sprite2(x-8, y-12-wait/4, SPR_SAVE+0, 2 );
+			gr_sprite2(x+8, y-12-wait/4, SPR_SAVE+4, 2 );
+		}
 	}
 	
 	p2[i] = state;
