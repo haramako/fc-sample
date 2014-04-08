@@ -63,7 +63,7 @@ function select():int
 		if( (pad.pushed & pad.A) ){ return cur; }
 		if( (pad.pushed & pad.B) ){ return -1; }
 
-		ppu.sprite( 3*8-2, 5*8+cur*8, 33, 0);
+		ppu.sprite( 3*8-2, 5*8+cur*8, SPR_ARROW, 1);
 		ppu.wait_vsync();
 	}
 }

@@ -50,8 +50,8 @@ public function start():void
 			var r = SCENE_PROCESS_FUNC[scene]();
 			if( r ){ break; }
 		}
-		ppu.sprite( 28 + scene * 40     , 11, 40, 0 );
-		ppu.sprite( 28 + scene * 40 + 32, 11, 42, 0 );
+		ppu.sprite( 28 + scene * 40     , 11, SPR_CURSOR  , 1 );
+		ppu.sprite( 28 + scene * 40 + 32, 11, SPR_CURSOR+2, 1 );
 		SCENE_DRAW_FUNC[scene]();
 		ppu.wait_vsync();
 	}
@@ -93,7 +93,7 @@ function item_process():int
 {
 	loop(){
 		pad.update();
-		gr_sprite2( (item_idx%6)*32+40, (item_idx/6)*32+40, 40, 0 );
+		gr_sprite2( (item_idx%6)*32+40, (item_idx/6)*32+40, SPR_CURSOR, 0 );
 		if( pad.pushed & pad.B ){ return 0; }
 		if( pad.pushed & pad.SELECT ){ return 1; }
 		if( pad.pushed & pad.UP ){ item_idx += 12; }
@@ -233,7 +233,7 @@ function map_process():int
 			return 1;
 		}
 			
-		ppu.sprite( ax*8 + 64, ay*8 + 64, 46, 1 );
+		ppu.sprite( ax*8 + 64, ay*8 + 64, SPR_MAP_FLAG+2, 1 );
 		map_draw();
 		ppu.wait_vsync();
 	}
@@ -244,7 +244,7 @@ function map_draw():void
 	if( !my.items[ITEM_ID_MAP] ){ return; }
 	var ax = bg.cur_area % 16;
 	var ay = bg.cur_area / 16;
-	ppu.sprite( ax*8 + 64, ay*8 + 64, 48, 1 );
+	ppu.sprite( ax*8 + 64, ay*8 + 64, SPR_MAP_FLAG+4, 0 );
 
 	var i:int;
 	for( i, 0, MAP_CHECKPOINT_NUM ){
@@ -253,7 +253,7 @@ function map_draw():void
 		ax = area % 16;
 		ay = area / 16;
 		if( my.get_map(ax,ay) ){
-			ppu.sprite( ax*8 + 64, ay*8 + 64, 44, 0 );
+			ppu.sprite( ax*8 + 64, ay*8 + 64, SPR_MAP_FLAG, 1 );
 		}
 	}
 

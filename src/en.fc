@@ -247,7 +247,7 @@ const CBANK_OF_TYPE: int[] =
 	  ];
 
 const PALSET_OF_TYPE: int[] =
-	[ 7,
+	[ 5,
 	  5,
 	  0,
 	  0,
@@ -259,7 +259,7 @@ const PALSET_OF_TYPE: int[] =
 	  0,
 	  0,
 	  6,
-	  0,
+	  7,
 	  0,
 	  0,
 	  0,

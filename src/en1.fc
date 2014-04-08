@@ -500,7 +500,7 @@ function ghost_process(i:int):void
 	}
 
 	if( anim % 2 ){
-		gr_sprite2( x, dy, 152+((anim/8)%2)*4, dir );
+		gr_sprite2( x, dy, 152+((anim/8)%2)*4, dir|2 );
 	}
 	
 	px[i] = x;
