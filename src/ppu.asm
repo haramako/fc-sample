@@ -151,35 +151,26 @@ ppu_put3_custom:
     bne @loop
     rts
 
-;;; ppu_put internal
-ppu_put_sub:
-        lda _ppu_put_to+1
-        sta _nes_PPU_ADDR
-        lda _ppu_put_to+0
-        sta _nes_PPU_ADDR
-        ldy #0
-@loop:
-        lda (_ppu_put_from),y
-        sta _nes_PPU_DATA
-        iny
-        cpy _ppu_put_size
-        bne @loop
-        sty $100
-        rts
-		
-;;; function ppu_put(addr:int16, from:int*, size:int ):void
+;;; function ppu_put_in_lock(addr:int16, from:int*, size:int ):void
 _ppu_put_in_lock:
-		lda S+0,x
-		sta _ppu_put_to+0
-		lda S+1,x
-		sta _ppu_put_to+1
-		lda S+2,x
-		sta _ppu_put_from+0
-		lda S+3,x
-		sta _ppu_put_from+1
-		lda S+4,x
-		sta _ppu_put_size
-		jmp ppu_put_sub
+	lda S+2,x
+	sta _ppu_put_from+0
+	lda S+3,x
+	sta _ppu_put_from+1
+	lda S+4,x
+	sta _ppu_put_size
+	
+    lda S+1,x
+    sta _nes_PPU_ADDR
+    lda S+0,x
+    sta _nes_PPU_ADDR
+    ldy #0
+:	lda (_ppu_put_from),y
+    sta _nes_PPU_DATA
+    iny
+    cpy _ppu_put_size
+    bne :-
+    rts
 
 ;;; function ppu_fill_in_lock(addr:int16, size:int16, n:int)
 ;;; use: reg[0]
