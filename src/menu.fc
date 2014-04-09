@@ -26,7 +26,7 @@ public function start():void
 	mmc3.MIRROR = 0; // vertical
 	ppu.ctrl1_bak = 0b10100001;
 	ppu.irq_setup = irq_setup;
-	
+
 	ppu.fill_in_lock( 0x2400, 4*32, 0 );
 	ppu.put_in_lock( 0x2400+32*2+4, _T("アイテム　　記憶　　　地図　"), 14 );
 
@@ -62,6 +62,7 @@ public function start():void
 	mmc3.set_cbank(0,old_cbank0);
 	mmc3.set_cbank(1,old_cbank1);
 	ppu.ctrl1_bak = old_ppu_ctrl1;
+	ppu.put_in_lock( 0x3f00, bg.pallet, 16 );
 	ppu.unlock();
 	ppu.wait_vsync();
 }
@@ -80,6 +81,7 @@ function item_init():void
 	item_idx = 0;
 	item_prev = -1;
 	
+	ppu.put_in_lock( 0x3f00, ITEM_PAL, 16 );
 	ppu.fill_in_lock( 0x2400+4*32, 0x400-4*32, 0 );
 
 	var i:int;
@@ -128,7 +130,7 @@ function item_process():int
 			item_prev = item_idx;
 		}
 		
-		if( pad.pushed & pad.A){
+		if( debug_mode && pad.pushed & pad.A){
 			my.items[item_idx] = 1-my.items[item_idx];
 			ppu.lock();
 			put_item(item_idx);
@@ -142,17 +144,23 @@ function item_process():int
 function put_item(i:int):void
 {
 	var y:int16 = i/6;
-	var x = i%6*4 + 4;
-	var addr:int16 = 0x2400+32*4 + (y<<7) + x;
-	var buf = ppu.alloc(4);
+	var x = i%6;
+	var addr:int16 = 0x2400+32*4+4 + (y<<7) + x*4;
+	var buf = ppu.alloc(5);
 	var c = i*4+32;
-	if( !my.items[i] ){ c = 8; }
+	var pal = ITEM_TILEPAL[8+i];
+	if( !my.items[i] ){
+		c = 8;
+		pal = 2;
+	}
 	buf[0] = c+0;
 	buf[1] = c+2;
 	buf[2] = c+1;
 	buf[3] = c+3;
+	buf[4] = pal;
 	ppu.put_in_lock( addr, buf, 2 );
 	ppu.put_in_lock( addr+32, buf+2, 2 );
+	ppu.put_in_lock( 0x27c0+9+y*8+x, buf+4, 1 );
 }
 
 function text_print(p:int*, str:int*):int
@@ -193,6 +201,7 @@ var map_y:int;
 
 function map_init():void
 {
+	ppu.put_in_lock( 0x3f00, bg.pallet, 16 );
 	ppu.fill_in_lock( 0x2400+4*32, 0x400-4*32, 0 );
 	
 	if( !my.items[ITEM_ID_MAP] ){ return; }

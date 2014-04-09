@@ -13,6 +13,9 @@ public function debug_on(mask:int):int options(fastcall:true)
 	return debug_mode && debug_flag & mask;
 }
 
+const ITEM_PAL = incbin("../res/images/item.nespal");
+const ITEM_TILEPAL = incbin("../res/images/item.tilepal");
+
 const SAVE_DATA_VERSION = 11;
 
 const SPR_ARROW = 20*4;

@@ -124,6 +124,7 @@ class TiledConverter
     else
       @text_conv = NesTools::TextConverter.new()
     end
+    @text_conv.conv("VERSION.") # 文字を追加
 
     conv_text
     conv_tile( data )
@@ -133,6 +134,7 @@ class TiledConverter
     make_font
     make_bg_image
     make_sprite_image
+    make_item_image
     
     conv_sound
 
@@ -161,6 +163,19 @@ class TiledConverter
     IO.binwrite 'res/images/sprite.chr', tset.bin
     nes_pal = NesTools::Palette.nespal(img)[0...128]
     IO.binwrite 'res/images/sprite.nespal', nes_pal.pack('c*')
+  end
+
+  def make_item_image
+    return unless @gd2_loaded
+    img = GD2::Image.import( 'res/images/item.png' )
+    tset = NesTools::TileSet.new
+    tset.add_from_img( img )
+    tset.reflow!
+    nes_pal = NesTools::Palette.nespal(img)[0...16]
+    tile_pal = tset.tiles.each_slice(4).map{|t| t[0].palette}[0...32]
+    IO.binwrite 'res/images/item.chr', tset.bin
+    IO.binwrite 'res/images/item.nespal', nes_pal.pack('c*')
+    IO.binwrite 'res/images/item.tilepal', tile_pal.pack('c*')
   end
 
   # BGイメージの作成
