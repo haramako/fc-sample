@@ -16,6 +16,7 @@ public function debug_on(mask:int):int options(fastcall:true)
 const SAVE_DATA_VERSION = 11;
 
 const SPR_ARROW = 20*4;
+const SPR_BUBBLE = 20*4+2;
 const SPR_SPLASH = 21*4;
 const SPR_CURSOR = 22*4;
 const SPR_MAP_FLAG = 28*4;

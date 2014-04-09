@@ -167,7 +167,7 @@ function bubble_process(i:int):void
 	x = x + math.rand()/128*2 - 1;
 	y = y - (giff/8);
 
-	ppu.sprite( x-4, y-8, 34, 0);
+	ppu.sprite( x-4, y-8, SPR_BUBBLE, 1);
 	
 	if( py[i] < 16 || (bg.cell_type(x,y-8) & bg.TYPE_WATER) == 0 ){
 		type[i] = 0;
@@ -187,7 +187,7 @@ function splash_process(i:int):void
 	var life = p1[i];
 
 	if( anim % 2 ){
-		gr_sprite2( x-4, y-8, 36, 0);
+		gr_sprite2( x-4, y-8, SPR_SPLASH, 1);
 	}
 	
 	if( life ){

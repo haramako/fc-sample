@@ -142,4 +142,111 @@ function statue_fire_process(i:int):void
 	if( check_outside(x,y) ){ type[i] = 0; }
 }
 
+/*********************************************
+ * 魚
+ *********************************************/
+
+function fish_new(i:int):void
+{
+	p3[i] = 0;
+	p4[i] = DIR_LEFT;
+	p5[i] = 0;
+	p6[i] = py[i];
+	p7[i] = 60;
+}
+
+function fish_process(i:int):void
+{
+	var x = px[i];
+	var y = py[i];
+	var stat = p3[i];
+	var dir = p4[i];
+	var count:sint8 = p5[i];
+	var wait = p7[i];
+	var pat = 0;
+	var disp:int;
+
+	const ANIM_SWIM = [2,3,4,4,3,2,1,0,0,1];
+	
+	if( x > 240 ){
+		dir = DIR_LEFT;
+	}else if(x < 16){
+		dir = DIR_RIGHT;
+	}
+	x += (giff+DIR_VX[dir]*8)/16;
+
+	switch(stat){
+	case 0:
+		if( anim % 16 == 0 ){
+			count += 1;
+			if( count >= 10 ) count = 0;
+		}
+		pat = count;
+
+		if( wait ) wait -= 1;
+
+		if( math.rand() < 2 ){
+			count = 0;
+			stat = 1;
+		}
+		disp = 0;
+		
+	case 1: // 気付いた！
+		count += 1;
+		if( count > 30 ){ stat = 2; count = 0; }
+		disp = 0;
+		pat = anim/4%10;
+	case 2: // 上へ
+		disp = 1;
+		pat = anim/8%4;
+		y -= 2;
+		if( y < 160 ){
+			stat = 3;
+			count = -32;
+		}
+	case 3: // 水から出た
+		disp = 1;
+		count += anim%2;
+		pat = anim/8%4;
+		y += (giff+count)/16;
+		if( y > 160 ){ stat = 4; count = 16; }
+	case 4: // 再び潜る
+		disp = 1;
+		pat = anim/8%4;
+		y += (giff+count)/16;
+		if( y >= p6[i] ){
+			y = p6[i];
+			wait = 60;
+			count = 0;
+			stat = 0;
+		}
+	}
+
+	var dir_flag = [0,0,0,64][dir];
+	switch(disp){
+	case 0,1:
+		var dir8 = DIR_VX[dir] * 8;
+		gr_sprite2(x+dir8, y, 128  , dir_flag|2);
+		gr_sprite2(x-dir8, y, 132+ANIM_SWIM[pat] * 4, dir_flag|2);
+	case 2:
+		dir_flag = [0,0,64,64][pat];
+		var pat2 = [0,4,4,0][pat];
+		var y8 = 8;
+		if( count > 0 ){
+			y8 = -8;
+			dir_flag = dir_flag | 128;
+		}
+		gr_sprite2(x, y-y8, 38*4+pat2, dir_flag|2);
+		gr_sprite2(x, y+y8, 46*4+pat2, dir_flag|2);
+	}
+
+	check_hit(i,8);
+
+	px[i] = x;
+	py[i] = y;
+	p3[i] = stat;
+	p4[i] = dir;
+	p5[i] = count;
+	p7[i] = wait;
+}
 

@@ -5,8 +5,7 @@ module NesTools
 
       def compress(data)
         w = BitWriter.new
-        w.write data.size%256, 8
-        w.write data.size/256, 8
+        w.write_vln16 data.size
         idx = 0
         while idx < data.size
           match = find_match(data,idx)
@@ -27,8 +26,7 @@ module NesTools
       def decompress(data)
         r = []
         b = BitReader.new(data)
-        len = b.read(8)
-        len = len + b.read(8)*256
+        len = b.read_vln16
         while r.size < len
           if b.read(1) == 0
             idx = b.read_vln

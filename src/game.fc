@@ -120,6 +120,7 @@ function start(): void
 			bg.scroll( scroll_dir );
 			set_last();
 			init_area_enemy();
+			bg.update_palette();
 			my.set_map( bg.cur_area%16, bg.cur_area/16 );
 		}
 
@@ -178,6 +179,7 @@ function move_area(area:int):void
 	my.save_in_this_area = 0;
 	bg.fetch_area(area);
 	init_area_enemy();
+	bg.update_palette();
 	ppu.lock();
 	ppu.put_in_lock( VRAM_PALETTE, bg.pallet, 16 );
 	bg.draw_screen();

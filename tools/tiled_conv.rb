@@ -61,12 +61,12 @@ class TiledConverter
   ENEMY_TYPE = {
     slime:        {id: 1, slot:[1,0]},
     wow:          {id: 2, slot:[0,0]},
-    elevator:     {id: 3, slot:[0,0]},
+    elevator:     {id: 3, slot:[0,1]},
     block:        {id: 6, slot:[0,0]},
     frog:         {id: 7, slot:[0,1]},
-    cookie:       {id: 8, slot:[1,0]},
+    cookie:       {id: 8, slot:[0,0]},
     chest:        {id: 9, slot:[0,0]},
-    lamp:         {id:10, slot:[0,0]},
+    lamp:         {id:10, slot:[0,1]},
     gas:          {id:11, slot:[1,0]},
     ghost:        {id:12, slot:[1,0]},
     switch:       {id:13, slot:[0,0]},
@@ -76,6 +76,7 @@ class TiledConverter
     bird:         {id:17, slot:[1,0]},
     statue:       {id:18, slot:[1,0]},
     statue_fire:  {id:19, slot:[0,0]},
+    fish:         {id:20, slot:[1,0]},
   }
 
   ITEM_DATA = 
@@ -268,7 +269,13 @@ class TiledConverter
             d[cy*16+cx] = cell
           end
         end
-        @fs.add NesTools::Compress::Rle.compress( d )
+        @fs.add NesTools::Compress::Lzw.compress( d )
+        #if ay == 0 and ax == 13
+          packed = NesTools::Compress::Lzw.compress( d )
+          #IO.binwrite('uc.bin', d.pack('c*'))
+          #IO.binwrite('c.bin', packed.pack('c*'))
+          raise if NesTools::Compress::Lzw.decompress(packed) != d
+        #end
         @area_types << area_type
       end
     end

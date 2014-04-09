@@ -1,7 +1,7 @@
 options(bank:-2);
 
 use * from common;
-use rle;
+use lzw;
 use game;
 use my;
 use mem;
@@ -28,6 +28,8 @@ var area_type:int;
 
 var tile_type:int[64] options(segment:"BSS_EX");
 var _padding_for_align:int[64] options(segment:"BSS_EX"); // 256byte alignのため
+
+const SPRITE_PALETTE:int[] = incbin("../res/images/sprite.nespal");
 
 const TYPE_WALL = 1 << 0;
 const TYPE_FLOOR = 1 << 1;
@@ -180,9 +182,10 @@ function fetch_area(area:int):void
 			}
 		}
 	}
+
 	
 	fs.copy( data_buf, fs.TILE_BASE+area );
-	var len = rle.unpack( data, data_buf );
+	var len = lzw.unpack( data, data_buf );
 	if( len != 16*15 ){ asm( ".byte 2" ); } // length check
 
 	fs.copy( data_buf, fs.ENEMY_BASE+area );
@@ -208,16 +211,12 @@ function fetch_area(area:int):void
 		var palset_pos = palset * 4;
 		var pal_pos = 24+i*4;
 		mem.copy( &pallet[pal_pos], &SPRITE_PALETTE[palset_pos], 4 );
-		ppu.put( 0x3f00+pal_pos, &SPRITE_PALETTE[palset_pos], 4, 0 );
-		mmc3.set_cbank(4+i, CBANK_ENEMY + en.CBANK_OF_TYPE[slot]);
 	}
 	
 	blank_cell = 0;
 	if( area_type == 2 || area_type == 5 ){ blank_cell = 15; } // ブランクセルを空に
 	
 }
-
-const SPRITE_PALETTE:int[] = incbin("../res/images/sprite.nespal");
 
 public function scroll(dir:int):void
 {
@@ -238,6 +237,13 @@ public function scroll(dir:int):void
 	}
 	
 	after_scroll(new_area, old_area);
+}
+
+public function update_palette():void
+{
+	ppu.put( 0x3f00+16, &pallet[16], 16, 0 );
+	mmc3.set_cbank(4+0, CBANK_ENEMY + en.CBANK_OF_TYPE[area_slot[0]]);
+	mmc3.set_cbank(4+1, CBANK_ENEMY + en.CBANK_OF_TYPE[area_slot[1]]);
 }
 
 function before_scroll(new_area:int, old_area:int):void
