@@ -9,7 +9,7 @@ use en;
 
 var data:int[256] options(segment:"BSS_EX");
 var enemy:int[256] options(segment:"BSS_EX");
-var data_buf:int[512] options(segment:"BSS_EX");
+var data_buf:int[2048] options(segment:"BSS_EX");
 var enemy_num:int;
 
 var buf_idx:int;

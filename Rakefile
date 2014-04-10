@@ -15,7 +15,7 @@ task :default => NES_FILE
 
 task NES_FILE => fc_files do
   Dir.chdir('src') do
-    sh "#{FCC} compile -d -t nes main.fc"
+    sh "#{FCC} compile -t nes main.fc"
     sh 'ca65 data.asm -o .fc-build/data.o'
   end
   sh "ld65 -o castle.nes -m castle.map -C ld65.cfg #{Dir.glob('src/.fc-build/*.o').join(' ')} nsd/lib/NSD.LIB "

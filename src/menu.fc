@@ -130,8 +130,8 @@ function item_process():int
 			item_prev = item_idx;
 		}
 		
-		if( debug_mode && pad.pushed & pad.A){
-			my.items[item_idx] = 1-my.items[item_idx];
+		if( debug_mode && (pad.pushed & pad.A)){
+			my.items[item_idx] = !my.items[item_idx];
 			ppu.lock();
 			put_item(item_idx);
 			ppu.unlock();
@@ -171,7 +171,7 @@ function text_print(p:int*, str:int*):int
 		var c = str[i];
 		if( c == 0 ){ break; }
 		if( c == 3 || c == 4){
-			p[pi-1] = c;
+			p[pi] = c;
 		}else{
 			p[pi+32] = c;
 			pi += 1;
