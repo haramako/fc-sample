@@ -206,13 +206,12 @@ function map_init():void
 	
 	if( !my.items[ITEM_ID_MAP] ){ return; }
 	
-	var x = 0;
-	var y = 0;
+	var x:int;
+	var y:int;
 	for( y, 0, 16 ){
-		var m:int;
 		for( x, 0, 16 ){
-			m = my.get_map(x,y);
-			if( m ){ m = 13; }
+			var m = my.get_map(x,y);
+			if( m ) m = 13;
 			ppu.gr_buf[x] = m;
 		}
 		ppu.put_in_lock( (0x2400+8*32+8)+(<int16>y)*32, ppu.gr_buf, 16 );
