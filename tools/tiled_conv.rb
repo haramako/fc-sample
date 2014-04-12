@@ -137,6 +137,8 @@ class TiledConverter
     make_item_image
     
     conv_sound
+    
+    conv_misc_text
 
     IO.binwrite "res/fs_data.bin", @fs.bin
     IO.write 'src/resource.fc', ERB.new(DATA.read,nil,'-').result(binding)
@@ -225,8 +227,8 @@ class TiledConverter
        [0, 5],
        [0, 6],
        [0, 7],
-       [0,30], # バッテン
        [0,31], # 見えない壁
+       [0,30], # バッテン
        [1,24], # 水面
        [0,25], # 水中
        [2,26], # 水(左落ち)
@@ -396,6 +398,32 @@ class TiledConverter
     end
   end
 
+  def conv_misc_text
+    if @gd2_loaded
+      conv = NesTools::TextConverter.new('res/images/misaki_gothic.png')
+    else
+      conv = NesTools::TextConverter.new()
+    end
+    
+    Dir.glob('res/text/*.txt') do |f|
+      text = File.open(f,'rb:UTF-8'){|f| f.read }
+      @fs.add [conv.conv(text),0], 'TEXT_'+File.basename(f,'.txt').upcase
+    end
+
+    Dir.glob('res/text/*.json') do |f|
+      json = JSON.parse( File.open(f,'rb:UTF-8'){|f| f.read } )
+      @fs.tag 'TEXT_'+File.basename(f,'.json').upcase
+      json.each do |txt|
+        @fs.add [conv.conv(txt),0]
+      end
+    end
+    
+    conv.make_image( 'res/text/misc_text.png' )
+    tile_set = NesTools::TileSet.new
+    tile_set.add_from_img( GD2::Image.import('res/text/misc_text.png'), pal: :monochrome )
+    tile_set.save 'res/text/misc_text.chr'
+  end
+  
 end
 
 if ARGV.empty?

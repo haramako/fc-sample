@@ -8,6 +8,9 @@ const SCENE_TITLE = 1;
 const SCENE_CREDIT = 2;
 const SCENE_SECRET_COMMAND = 3;
 const SCENE_CLEAR_SAVEDATA = 4;
+const SCENE_TEXT_VIWER = 5;
+
+var text_viwer_id:int16;
 
 public function start():void
 {
@@ -24,6 +27,7 @@ public function start():void
 		case SCENE_CREDIT: next_scene = do_credit();
 		case SCENE_SECRET_COMMAND: next_scene = do_secret_command();
 		case SCENE_CLEAR_SAVEDATA: next_scene = do_clear_savedata();
+		case SCENE_TEXT_VIWER: next_scene = do_text_viewer();
 		}
 	}
 }
@@ -92,6 +96,18 @@ function put_text_in_lock(addr:int16, s:int*):void
 	ppu.put_in_lock( addr, ppu.gr_buf, 64 );
 }
 
+function put_text_in_lock2(addr:int16, s:int*, col:int, row:int):int*
+{
+	while( row > 0 && *s != 0 ){
+		s += text_print2( ppu.gr_buf, s, col );
+		ppu.put_in_lock( addr   ,  ppu.gr_buf     , col );
+		ppu.put_in_lock( addr+32, &ppu.gr_buf[col], col );
+		addr += 64;
+		row -= 1;
+	}
+	return s;
+}
+
 function text_print(p:int*, str:int*):int
 {
 	var i = 0;
@@ -100,7 +116,7 @@ function text_print(p:int*, str:int*):int
 		var c = str[i];
 		if( c == 0 ){ break; }
 		if( c == 3 || c == 4){
-			p[pi-1] = c;
+			p[pi] = c;
 		}else{
 			p[pi+32] = c;
 			pi += 1;
@@ -110,25 +126,111 @@ function text_print(p:int*, str:int*):int
 	return 0;
 }
 
+function text_print2(p:int*, str:int*, size:int):int
+{
+	mem.zero(p, size*2);
+	var i = 0;
+	var pi = 0;
+	while(pi < size){
+		var c = str[i];
+		switch( c ){
+		case 0: return i;
+		case 2: return i+1;
+		case 3, 4: p[pi] = c;
+		default:
+			p[pi+size] = c;
+			pi += 1;
+		}
+		i += 1;
+	}
+	return i;
+}
+
+function do_text_viewer():int
+{
+	ppu.lock();
+	mmc3.set_cbank( 0, CBANK_MISC_TEXT );
+	mmc3.set_cbank( 1, CBANK_MISC_TEXT+2 );
+	mmc3.set_cbank( 2, CBANK_SPRITE+0 );
+	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
+
+	//fs.copy( bg.data_buf, fs.TEXT_MISAKI_FONT_LICENSE );
+	//fs.copy( bg.data_buf, fs.TEXT_NSD_LICENSE );
+	fs.copy( bg.data_buf, text_viwer_id );
+	var s = &bg.data_buf[0];
+	s = feed_page( s );
+	
+	ppu.unlock();
+	
+	loop(){
+		pad.update();
+		if( pad.pushed & pad.A ){
+			if( *s == 0 ) break;
+			ppu.lock();
+			s = feed_page(s);
+			ppu.unlock();
+		}else if( pad.pushed & pad.B){
+			break;
+		}
+		ppu.wait_vsync();
+	}
+	
+	return SCENE_CREDIT;
+}
+
+function feed_page(s:int*):int*
+{
+	ppu.fill_in_lock(0x2000, 256*4, 0);
+	return put_text_in_lock2( ppu.pos(3, 4), s, 26, 10 );
+}
+
 function do_credit():int
 {
 	ppu.lock();
+	mmc3.set_cbank( 0, CBANK_MISC_TEXT );
+	mmc3.set_cbank( 1, CBANK_MISC_TEXT+2 );
 	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
 	ppu.fill_in_lock(0x2000, 256*4, 0);
-	put_text_in_lock( ppu.pos(4, 6), _T("スタッフ") );
-	put_text_in_lock( ppu.pos(6, 8), _T("プログラム・グラフィック　　　こんびなーとＨ") );
-	put_text_in_lock( ppu.pos(6,10), _T("ステージデザイン　　　　　　　　　がんちゃん") );
+	
+	fs.copy( bg.data_buf, fs.TEXT_CREDIT );
+	put_text_in_lock2( ppu.pos(4, 2), bg.data_buf, 26, 13 );
 
-	put_text_in_lock( ppu.pos(4,14), _T("ＴＨＡＮＫＳ") );
-	put_text_in_lock( ppu.pos(6,16), _T("ドットエディタ　　　　　　　　　　ＥＤＧＥ２") );
-	put_text_in_lock( ppu.pos(6,18), _T("マップエディタ　　　　　　　　　　ＴＩＬＥＤ") );
-	put_text_in_lock( ppu.pos(6,20), _T("サウンドドライバ　　　　　　　　　　　ＮＳＤ") );
-	put_text_in_lock( ppu.pos(6,22), _T("フォント　　　　　　　　　　　　美咲フォント") );
 	ppu.unlock();
-
+	
+	var cur = 0;
+	var cur_prev = -1;
 	loop(){
 		pad.update();
-		if( pad.pushed & (pad.A|pad.B) ) break;
+		if( pad.pushed & pad.UP ) cur = (cur+2)%3;
+		if( pad.pushed & pad.DOWN ) cur = (cur+1)%3;
+		if( pad.pushed & pad.B ) break;
+		if( pad.pushed & pad.A ){
+			switch( cur ){
+			case 1:
+				text_viwer_id = fs.TEXT_NSD_LICENSE;
+				return SCENE_TEXT_VIWER;
+			case 2:
+				text_viwer_id = fs.TEXT_MISAKI_FONT_LICENSE;
+				return SCENE_TEXT_VIWER;
+			}
+		}
+		
+		var cur_y = [16+8, 6*16+8, 7*16+8][cur];
+
+		if( cur_prev != cur ){
+			var buf = ppu.alloc(64);
+			var buf2 = ppu.alloc(64);
+			fs.copy( buf, fs.TEXT_CREDIT_INFO+cur );
+			buf += text_print2(buf2, buf, 32);
+			var addr = ppu.pos(2,20);
+			ppu.put( addr, buf2, 64, 0 );
+			ppu.wait_vsync();
+			text_print2(buf2, buf, 32);
+			ppu.put( addr+64, buf2, 64, 0 );
+			cur_prev = cur;
+		}
+		
+		ppu.sprite( 8, cur_y, 4, 0 );
 		ppu.wait_vsync();
 	}
 	
