@@ -452,7 +452,7 @@ function put_in_lock(x:int, y:int, n:int):void
 const BLANK_CELL = [ 0,0,0,0,1,1,1,1,
 					 0,0,0,0,0,0,0,0,
 					 0,0,0,0,0,0,0,0,
-					 0,0,0,0,0,0,1,1];
+					 0,0,0,0,0,0,1,0];
 
 function draw_map_vertical(x:int):void
 {
