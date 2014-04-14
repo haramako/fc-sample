@@ -417,11 +417,13 @@ class TiledConverter
         @fs.add [conv.conv(txt),0]
       end
     end
-    
-    conv.make_image( 'res/text/misc_text.png' )
-    tile_set = NesTools::TileSet.new
-    tile_set.add_from_img( GD2::Image.import('res/text/misc_text.png'), pal: :monochrome )
-    tile_set.save 'res/text/misc_text.chr'
+
+    if @gd2_loaded
+      conv.make_image( 'res/text/misc_text.png' )
+      tile_set = NesTools::TileSet.new
+      tile_set.add_from_img( GD2::Image.import('res/text/misc_text.png'), pal: :monochrome )
+      tile_set.save 'res/text/misc_text.chr'
+    end
   end
   
 end
