@@ -85,10 +85,10 @@ function start(): void
 		if( my.state == my.STATE_DIE ){
 			var i:int;
 			for( i, 0, 4 ){
-				var buf = ppu.alloc(16);
-				mem.copy( buf, bg.pallet, 16 );
-				bg.pal_down(buf, 16, i);
-				ppu.put( VRAM_PALETTE, buf, 16, 0 );
+				var buf = ppu.alloc(32);
+				mem.copy( buf, bg.pallet, 32 );
+				bg.pal_down(buf, 32, i);
+				ppu.put( VRAM_PALETTE, buf, 32, 0 );
 				var j:int;
 				for( j, 0, 10 ){ ppu.wait_vsync_with_flag(2); }
 			}

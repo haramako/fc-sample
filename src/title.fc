@@ -36,10 +36,11 @@ public function do_title():int
 {
 	ppu.lock();
 	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
+	ppu.put_in_lock( 0x3f10, &bg.SPRITE_PALETTE[4], 4 );
 	
 	mmc3.set_cbank( 0, CBANK_TEXT );
 	mmc3.set_cbank( 1, CBANK_TEXT+2 );
-	mmc3.set_cbank( 2, CBANK_SPRITE+0 );
+	mmc3.set_cbank( 3, CBANK_SPRITE+1 );
 
 	ppu.fill_in_lock(0x2000, 256*4, 0);
 	
@@ -84,7 +85,7 @@ public function do_title():int
 			}
 		}
 
-		ppu.sprite( 10*8, cursor*16+(14*8), 4, 0 );
+		ppu.sprite( 11*8, cursor*16+(15*8), SPR_ARROW, 0 );
 		ppu.wait_vsync();
 	}
 }
@@ -151,7 +152,6 @@ function do_text_viewer():int
 	ppu.lock();
 	mmc3.set_cbank( 0, CBANK_MISC_TEXT );
 	mmc3.set_cbank( 1, CBANK_MISC_TEXT+2 );
-	mmc3.set_cbank( 2, CBANK_SPRITE+0 );
 	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
 
 	//fs.copy( bg.data_buf, fs.TEXT_MISAKI_FONT_LICENSE );
@@ -230,7 +230,7 @@ function do_credit():int
 			cur_prev = cur;
 		}
 		
-		ppu.sprite( 8, cur_y, 4, 0 );
+		ppu.sprite( 16, cur_y, SPR_ARROW, 0 );
 		ppu.wait_vsync();
 	}
 	

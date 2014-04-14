@@ -26,6 +26,7 @@ public const TYPE_BIRD = 17;
 public const TYPE_STATUE = 18;
 public const TYPE_STATUE_FIRE = 19;
 public const TYPE_FISH = 20;
+public const TYPE_WATERGATE = 21;
 
 public const MAX = 16;
 public var type:int[MAX] options(segment:"BSS_EX");
@@ -177,6 +178,7 @@ const EN_BANKS: int[] = [ PBANK_EN1,
 						  PBANK_EN2,
 						  PBANK_EN2,
 						  PBANK_EN2,
+						  PBANK_EN2,
 						  PBANK_EN2
 						  ];
 
@@ -200,7 +202,8 @@ const PROCESS: void(int)[] = [ none_process,
 							   bird_process,
 							   statue_process,
 							   statue_fire_process,
-							   fish_process
+							   fish_process,
+							   watergate_process
 							   ];
 
 const NEW_FUNC: void(int)[] = [ none_process,
@@ -223,7 +226,8 @@ const NEW_FUNC: void(int)[] = [ none_process,
 								bird_new,
 								statue_new,
 								statue_fire_new,
-								fish_new
+								fish_new,
+								watergate_new
 								];
 
 const CBANK_OF_TYPE: int[] =
@@ -237,6 +241,7 @@ const CBANK_OF_TYPE: int[] =
 	  0,
 	  0,
 	  0,
+	  1,
 	  0,
 	  0,
 	  0,
@@ -246,8 +251,8 @@ const CBANK_OF_TYPE: int[] =
 	  0,
 	  0,
 	  0,
-	  0,
-	  1
+	  1,
+	  0
 	  ];
 
 const PALSET_OF_TYPE: int[] =
@@ -261,7 +266,7 @@ const PALSET_OF_TYPE: int[] =
 	  6,
 	  0,
 	  0,
-	  0,
+	  9,
 	  6,
 	  7,
 	  0,
@@ -271,5 +276,6 @@ const PALSET_OF_TYPE: int[] =
 	  0,
 	  0,
 	  0,
-	  8
+	  8,
+	  0
 	  ];

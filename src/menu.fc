@@ -74,11 +74,14 @@ function irq_setup():void;
  *********************************************/
 
 var item_idx:int;
+var item_x:int;
+var item_y:int;
 var item_prev:int;
 	
 function item_init():void
 {
-	item_idx = 0;
+	item_x = 0;
+	item_y = 0;
 	item_prev = -1;
 	
 	ppu.put_in_lock( 0x3f00, ITEM_PAL, 16 );
@@ -95,37 +98,49 @@ function item_process():int
 {
 	loop(){
 		pad.update();
-		gr_sprite2( (item_idx%6)*32+40, (item_idx/6)*32+40, SPR_CURSOR, 0 );
 		if( pad.pushed & pad.B ){ return 0; }
 		if( pad.pushed & pad.SELECT ){ return 1; }
-		if( pad.pushed & pad.UP ){ item_idx += 12; }
-		if( pad.pushed & pad.DOWN ){ item_idx += 6; }
-		if( pad.pushed & pad.RIGHT ){ item_idx += 1; }
-		if( pad.pushed & pad.LEFT ){ item_idx -= 1; }
-		if( item_idx >= 18 ){ item_idx -= 18; }
+		if( pad.pushed & pad.UP ) item_y += 2;
+		if( pad.pushed & pad.DOWN ) item_y += 1;
+		if( pad.pushed & pad.RIGHT ) item_x += 1;
+		if( pad.pushed & pad.LEFT ) item_x += 5;
+		if( item_y >= 3 ) item_y -= 3;
+		if( item_x >= 6 ) item_x -= 6;
+		item_idx = item_y * 6 + item_x;
 
+		gr_sprite2( (item_idx%6)*32+40, (item_idx/6)*32+40, SPR_CURSOR, 0 );
+		
 		if( item_prev != item_idx ){
 			if( item_idx < 18 ){
-				ppu.wait_vsync();
-				var buf = ppu.alloc(64);
-				var buf2 = ppu.alloc(64);
-				mem.zero( buf2, 64 );
-				var size = fs.copy( buf, fs.ITEM_NAME_BASE+item_idx );
-				buf[size] = 0;
-				text_print( buf2, buf );
-				var addr = ppu.pos(4,20)+0x400;
-				ppu.put( addr, buf2, 64, 0 );
-				ppu.wait_vsync();
+				if( my.items[item_idx] ){
+					ppu.wait_vsync();
+					var buf = ppu.alloc(64);
+					var buf2 = ppu.alloc(64);
+					mem.zero( buf2, 64 );
+					var size = fs.copy( buf, fs.ITEM_NAME_BASE+item_idx );
+					buf[size] = 0;
+					text_print( buf2, buf );
+					var addr = ppu.pos(4,20)+0x400;
+					ppu.put( addr, buf2, 64, 0 );
+					ppu.wait_vsync();
 
-				buf = ppu.alloc(64);
-				buf2 = ppu.alloc(64);
-				mem.zero( buf2, 64 );
-				size = fs.copy( buf, fs.ITEM_DESC_BASE+item_idx );
-				buf[size] = 0;
-				text_print( buf2, buf );
-				addr = ppu.pos(8,22)+0x400;
-				ppu.put( addr, buf2, 64, 0 );
-				ppu.wait_vsync();
+					buf = ppu.alloc(64);
+					buf2 = ppu.alloc(64);
+					mem.zero( buf2, 64 );
+					size = fs.copy( buf, fs.ITEM_DESC_BASE+item_idx );
+					buf[size] = 0;
+					text_print( buf2, buf );
+					addr = ppu.pos(8,22)+0x400;
+					ppu.put( addr, buf2, 64, 0 );
+					ppu.wait_vsync();
+				}else{
+					var buf = ppu.alloc(64);
+					mem.zero(buf, 64);
+					var addr = ppu.pos(4,20)+0x400;
+					ppu.put( addr, buf, 64, 0 );
+					ppu.wait_vsync();
+					ppu.put( addr + 64, buf, 64, 0 );
+				}
 			}
 			item_prev = item_idx;
 		}
@@ -234,13 +249,28 @@ function map_process():int
 		if( pad.pushed & pad.LEFT ){ ax = (ax+15)%16; }
 		if( pad.pushed & pad.RIGHT ){ ax = (ax+1)%16; }
 
-		if( my.items[ITEM_ID_WING] && pad.pushed & pad.A ){
+		if( my.items[ITEM_ID_WING] && (pad.pushed & pad.A) && my.get_map(ax,ay) ){
+			// 羽で飛ぶa
+			var i:int;
+			for( i, 0, MAP_CHECKPOINT_NUM ){
+				var cp = MAP_CHECKPOINT[i];
+				var area = ay*16 + ax;
+				if( MAP_CHECKPOINT_DATA[cp] == area ){
+					game_event = event.ID_MOVE_CHECKPOINT;
+					game_event_p1 = i;
+					return 1;
+				}
+			}
+		}
+
+		// フリージャンプモードで飛ぶ
+		if( debug_on(DEBUG_FLAG_FREEJUMP) && (pad.pushed & pad.A) ){
 			var area = ay*16 + ax;
 			game_event = event.ID_MOVE_AREA;
 			game_event_p1 = area;
 			return 1;
 		}
-			
+
 		ppu.sprite( ax*8 + 64, ay*8 + 64, SPR_MAP_FLAG+2, 1 );
 		map_draw();
 		ppu.wait_vsync();
