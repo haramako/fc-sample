@@ -77,6 +77,7 @@ class TiledConverter
     statue:       {id:18, slot:[1,0]},
     statue_fire:  {id:19, slot:[0,0]},
     fish:         {id:20, slot:[1,0]},
+    watergate:    {id:21, slot:[1,0]},
   }
 
   ITEM_DATA = 

@@ -391,7 +391,7 @@ function lamp_new(i:int):void
 function lamp_process(i:int):void
 {
 	if( my.items[ITEM_ID_LAMP] ){
-		gr_sprite2(px[i], py[i]+4, 136+(anim/2)%2*4, 1);
+		gr_sprite2(px[i], py[i]+4, 60*4+(anim/4)%4*4, 3);
 	}else{
 		type[i] = 0;
 	}

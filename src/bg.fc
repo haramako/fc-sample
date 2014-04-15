@@ -172,7 +172,7 @@ function fetch_area(area:int):void
 	cur_area = area;
 
 	// 水門によるエリア切り替え
-	if( my.items[ITEM_ID_KEY] ){
+	if( my.flags[31] ){
 		var i:int;
 		for( i, 0, WG_AREA_NUM ){
 			var idx = i * 2;

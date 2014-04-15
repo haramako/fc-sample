@@ -80,6 +80,7 @@ function start():void
 		add( _T("おーとせーぶ") );
 		add( _T("ふらぐりせっと") );
 		add( _T("でばっぐもーどOFF") );
+		add( _T("ふりーじゃんぷ") );
 		switch( select() ){
 		case 0:
 			if( do_flag() ){ break; }
@@ -95,6 +96,8 @@ function start():void
 			debug_mode = 0;
 			savedata.save();
 			break;
+		case 5:
+			do_debug_flag_change(DEBUG_FLAG_FREEJUMP, _T("ふりーじゃんぷ") );
 		case -1:
 			break;
 		}
