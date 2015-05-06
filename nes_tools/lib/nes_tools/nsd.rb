@@ -41,15 +41,16 @@ EOT
 
       sh NSC, '-a', path
 
-      sh CA65, asm_path
       asm = IO.read(asm_path)
       asm.gsub!( /.segment	"RODATA"\n/ ){ |m| m+"\t.word _nsd_BGM0\n" }
       IO.write asm_path, asm
+      
+      sh CA65, asm_path
 
       output ||= path.sub_ext('.bin')
       sh LD65, '-o', output, '-C', cfg.path, obj_path
 
-      FileUtils.rm_f [path.sub_ext('.o'), asm_path]
+      FileUtils.rm_f [path.sub_ext('.o')], asm_path]
     end
 
     private
@@ -58,8 +59,12 @@ EOT
       puts command.join(" ") if @show_command
       Open3.popen2e( *command ) do |i, oe, th|
         v = th.value
-        raise "`#{command}` returns #{v}" if v != 0
-        oe.read
+        output = oe.read
+        if v != 0
+          puts output
+          raise "`#{command}` returns #{v}"
+        end
+        output
       end
     end
 
