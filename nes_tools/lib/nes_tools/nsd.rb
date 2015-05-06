@@ -50,7 +50,7 @@ EOT
       output ||= path.sub_ext('.bin')
       sh LD65, '-o', output, '-C', cfg.path, obj_path
 
-      FileUtils.rm_f [path.sub_ext('.o')], asm_path]
+      FileUtils.rm_f [path.sub_ext('.o'), asm_path]
     end
 
     private
