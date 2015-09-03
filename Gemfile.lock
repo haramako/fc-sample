@@ -4,6 +4,12 @@ GIT
   specs:
     fc (0.0.1)
 
+GIT
+  remote: git://github.com/haramako/r6502.git
+  revision: c63d05c61e1f64f22d220e1200e5615a8f1807e2
+  specs:
+    r6502 (0.0.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -20,4 +26,5 @@ PLATFORMS
 DEPENDENCIES
   fc!
   gd2-ffij
+  r6502!
   rake

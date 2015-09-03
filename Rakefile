@@ -8,7 +8,7 @@ VERSION = IO.read('VERSION')
 PROJECT_NAME = 'castle'
 NES_FILE = PROJECT_NAME+'.nes'
 images = Dir.glob('res/images/*.png')
-sounds = Dir.glob('res/sound/*.bin')
+sounds = Dir.glob('res/sound/*.mml').map{|f| f.gsub(/\.mml/){'.bin'} }
 fc_files = Dir.glob('src/*.fc') + ['src/fs_config.fc']
 
 task :default => NES_FILE
@@ -26,7 +26,7 @@ file 'src/fs_config.fc' => [MAP_JSON] + images + sounds do
 end
 
 rule '.bin' => '.mml' do |target|
-  sh "nes_tools nsd #{target.source}"
+  sh "ruby nes_tools/bin/nes_tools nsd #{target.source}"
 end
 
 task :clean do

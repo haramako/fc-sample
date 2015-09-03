@@ -393,7 +393,7 @@ class TiledConverter
 
   def conv_sound
     @fs.tag :SOUND_BASE
-    ['4'].each do |f|
+    ['castle1'].each do |f|
       bin = IO.binread( 'res/sound/'+f+'.bin' ).unpack('c*')
       @fs.add bin
     end
