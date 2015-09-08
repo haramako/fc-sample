@@ -136,6 +136,7 @@ class TiledConverter
     make_bg_image
     make_sprite_image
     make_item_image
+    make_title_image
     
     conv_sound
     
@@ -181,6 +182,30 @@ class TiledConverter
     IO.binwrite 'res/images/item.tilepal', tile_pal.pack('c*')
   end
 
+  def make_title_image
+    return unless @gd2_loaded
+    img = GD2::Image.import( 'res/images/title.png' )
+    tset = NesTools::TileSet.new
+    tset.add_from_img( img )
+    IO.binwrite 'res/images/title.chr', tset.bin
+    nes_pal = NesTools::Palette.nespal(img)[0...16]
+    pal = tset.tiles.map(&:palette)
+    tile_pal = []
+    4.times do |y|
+      8.times do |x|
+        tile_pal << ( (pal[(y*4+0)*32+(x*4+0)] << 0) +
+                      (pal[(y*4+0)*32+(x*4+2)] << 2) +
+                      (pal[(y*4+2)*32+(x*4+0)] << 4) +
+                      (pal[(y*4+2)*32+(x*4+2)] << 6) )
+      end
+    end
+    # p pal.each_slice(32).to_a
+    # pp tile_pal.each_slice(8).to_a
+    IO.binwrite 'res/images/title.nespal', nes_pal.pack('c*')
+    IO.binwrite 'res/images/title.tilepal', tile_pal.pack('c*')
+    @fs.add tile_pal, 'TITLE_PALLET'
+  end
+  
   # BGイメージの作成
   def make_bg_image
     if @gd2_loaded

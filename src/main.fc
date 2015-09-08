@@ -16,6 +16,7 @@ include('../res/images/sprite.chr');
 include('../res/images/text.chr');
 include('../res/images/item.chr');
 include('../res/text/misc_text.chr');
+include('../res/images/title.chr');
 
 var buf:int[4096] options(segment:"BSS_EX");
 

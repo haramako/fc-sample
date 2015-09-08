@@ -10,7 +10,7 @@ module NesTools
         img.palette.each do |c|
           pal[c.index] = c if c.index
         end
-        
+
         base_pal = DEFAULT_PALLET_COLOR
         pal.map do |p|
           next 13 unless p

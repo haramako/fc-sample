@@ -1,7 +1,11 @@
+options( bank: -1 );
+
 use * from common;
 use mem;
 use my;
 use savedata;
+
+include("title.asm");
 
 const SCENE_FINISH = 0;
 const SCENE_TITLE = 1;
@@ -30,30 +34,51 @@ public function start():void
 		case SCENE_TEXT_VIWER: next_scene = do_text_viewer();
 		}
 	}
+	
+	ppu.irq_setup = ppu.null_func;
+	ppu.wait_vsync();
 }
+
+const TITLE_PALETTE:int[] = incbin("../res/images/title.nespal");
+const TITLE_TILEPAL:int[] = incbin("../res/images/title.tilepal");
 
 public function do_title():int
 {
 	ppu.lock();
-	ppu.put_in_lock( 0x3f00, PAL_SET, 16 );
-	ppu.put_in_lock( 0x3f10, &bg.SPRITE_PALETTE[4], 4 );
+	ppu.irq_setup = irq_setup;
 	
-	mmc3.set_cbank( 0, CBANK_TEXT );
-	mmc3.set_cbank( 1, CBANK_TEXT+2 );
+	ppu.put_in_lock( 0x3f00, &TITLE_PALETTE[0], 16 );
+	ppu.put_in_lock( 0x3f10, &TITLE_PALETTE[0], 16 );
+	
+	mmc3.set_cbank( 0, CBANK_TITLE+0 );
+	mmc3.set_cbank( 1, CBANK_TITLE+2 );
 	mmc3.set_cbank( 3, CBANK_SPRITE+1 );
 
 	ppu.fill_in_lock(0x2000, 256*4, 0);
+
+	nes.PPU_ADDR = 0x20;
+	nes.PPU_ADDR = 0x00;
+	var i:uint8;
+	for(i,0,2){
+		var j: int8 = 0;
+		while(1){
+			nes.PPU_DATA = j;
+			j+=1;
+			if( j == 0 ) break;
+		}
+	}
+	ppu.put_in_lock(0x23C0, &TITLE_TILEPAL[0], 64);
 	
-	put_text_in_lock( ppu.pos(13, 8),  _T("CASTLE"));
+	// put_text_in_lock( ppu.pos(13, 8),  _T("CASTLE"));
 	put_text_in_lock( ppu.pos(10,26), VERSION_STR() );
 	if( debug_mode ) put_text_in_lock( ppu.pos(12,24), _T("［でばっぐもーど］") );
 	if( savedata.exists ){
-		put_text_in_lock( ppu.pos(13,14),_T("つづける") );
+		put_text_in_lock( ppu.pos(13,16),_T("つづける") );
 	}else{
-		put_text_in_lock( ppu.pos(13,14),_T("はじめる") );
+		put_text_in_lock( ppu.pos(13,16),_T("はじめる") );
 	}
-	put_text_in_lock( ppu.pos(13,16), _T("データの初期化") );
-	put_text_in_lock( ppu.pos(13,18), _T("クレジット") );
+	put_text_in_lock( ppu.pos(13,18), _T("データの初期化") );
+	put_text_in_lock( ppu.pos(13,20), _T("クレジット") );
 
 	ppu.unlock();
 
@@ -85,9 +110,10 @@ public function do_title():int
 			}
 		}
 
-		ppu.sprite( 11*8, cursor*16+(15*8), SPR_ARROW, 0 );
+		ppu.sprite( 11*8, cursor*16+(17*8), SPR_ARROW, 0 );
 		ppu.wait_vsync();
 	}
+
 }
 
 function put_text_in_lock(addr:int16, s:int*):void
@@ -267,3 +293,5 @@ function do_clear_savedata():int
 	
 	return SCENE_TITLE;
 }
+
+function irq_setup():void;

@@ -32,6 +32,7 @@ const CBANK_ENEMY = 24;
 const CBANK_TEXT = 30;
 const CBANK_ITEM = 34;
 const CBANK_MISC_TEXT = 38;
+const CBANK_TITLE = 42;
 
 const PBANK_MENU = 2;
 const PBANK_EVENT = 2;
