@@ -56,10 +56,10 @@ function bird_process(i:int):void
 	}
 			
 	if( p3[i] == 1 && my.items[ITEM_ID_EYE] ){
-		if( anim % 2 ) gr_sprite2( x, y, 176+a*4, 1|d);
+		if( anim % 2 ) gr_sprite2( x, y, 176+a*4, 2|d);
 		if( time > 128 ){ type[i] = 0; return; }
 	}else{
-		gr_sprite2( x, y, 176+a*4, 1|d);
+		gr_sprite2( x, y, 176+a*4, 2|d);
 	}
 	
 	px[i] = x;

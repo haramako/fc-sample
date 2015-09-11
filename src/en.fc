@@ -273,8 +273,8 @@ const PALSET_OF_TYPE: int[] =
 	  0,
 	  0,
 	  0,
-	  0,
-	  0,
+	  5,
+	  5,
 	  0,
 	  8,
 	  0

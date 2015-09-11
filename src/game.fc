@@ -9,6 +9,8 @@ use event;
 use mem;
 use savedata;
 
+var game_mode:int;
+
 const PALLET:int[] = incbin("../res/images/character.chr.dat");
 
 function init_area_enemy():void
@@ -57,8 +59,12 @@ function start(): void
 	mem.copy( bg.pallet, PAL_SET, 16 );
 	mem.copy( &bg.pallet[16], bg.SPRITE_PALETTE, 16 );
 	ppu.put_in_lock( 0x3f00, bg.pallet, 32 );
-	
-	move_checkpoint(1);
+
+	if( game_mode == 0 ){
+		move_checkpoint(1);
+	}else{
+		move_checkpoint(2);
+	}
 	// move_checkpoint(my.last_checkpoint);
 	my.set_map( bg.cur_area%16, bg.cur_area/16 );
 	my.save_in_this_area = 1;

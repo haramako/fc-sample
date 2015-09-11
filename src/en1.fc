@@ -103,7 +103,7 @@ function wow_process(i:int):void
 	}
 
 
-	gr_sprite2( x+math.rand()%4-2, y+math.rand()%4-2, 136+(anim/4)%2*4, 1+anim%2 );
+	gr_sprite2( x/*+math.rand()%4-2*/, y/*+math.rand()%4-2*/, 136+(anim/8)%2*4, 1/*+anim%2*/ );
 
 	px[i] = x;
 	py[i] = y;
