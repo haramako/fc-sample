@@ -644,7 +644,7 @@ function checkpoint_process(i:int):void
 	case 0:
 		if( math.abs(x - my.x) < 12 && math.abs(y - my.y) < 12 ){
 			if( my.save_in_this_area ){ type[i] = 0; return; }
-			if( p1[i] == 2 ){
+			if( p1[i] == 3 ){
 				// クリア！
 				my.stage_clear = 1;
 				return;
