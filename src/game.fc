@@ -70,6 +70,7 @@ function start(): void
 	// move_checkpoint(my.last_checkpoint);
 	my.set_map( bg.cur_area%16, bg.cur_area/16 );
 	my.save_in_this_area = 1;
+	my.stage_clear = 0;
 
 	fs.copy( sound_buf, fs.SOUND_BASE+1 );
 	sound.play_bgm(&sound_buf[sound_buf[0]]);
@@ -104,12 +105,21 @@ function start(): void
 				var j:int;
 				for( j, 0, 10 ){ ppu.wait_vsync_with_flag(2); }
 			}
+			move_to_last();
+			/*
 			if( debug_on(DEBUG_FLAG_AUTO_SAVE) ){
 				move_to_last();
 			}else{
 				savedata.load();
 				move_checkpoint(my.last_checkpoint);
 			}
+			*/
+		}
+
+		if( my.stage_clear ){
+			bg.light_down();
+			ppu.wait_vsync();
+			break;
 		}
 
 		// スクロール

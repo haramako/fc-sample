@@ -17,6 +17,8 @@ public function init():void
 public function clear():void
 {
 	mem.zero(data, 512);
+	data[IDX_DEBUG_MODE] = debug_mode;
+	data[IDX_DEBUG_FLAG] = debug_flag;
 }
 
 public function save():void

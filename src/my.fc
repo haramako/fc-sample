@@ -33,6 +33,7 @@ var prev_in_water:int;
 var wait:int;
 var last_checkpoint:int;
 var save_in_this_area:int; // このエリアに滞在中にセーブしたか
+var stage_clear:int; // クリアしたか
 
 const ITEM_MAX = 32;
 var items:int[ITEM_MAX] options(segment:"BSS_EX");
@@ -159,6 +160,7 @@ function check_block():int
 	return r;
 }
 
+var pad_backup:int;
 public function process():void
 {
 	// 水の中の処理
@@ -179,8 +181,12 @@ public function process():void
 			en.px[bi] = x;
 			en.py[bi] = y;
 		}
-		if( anim % 2 ){	return; }
+		if( anim % 2 ){
+			pad.cur = pad_backup;
+			return;
+		}
 	}
+	pad_backup = pad.cur;
 	prev_in_water = in_water;
 	var limited_water = in_water && (items[ITEM_ID_WEIGHT]==0);
 	

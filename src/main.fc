@@ -43,11 +43,23 @@ function main():void
 
 	asm( "cli" );
 
-	if( !debug_on(DEBUG_FLAG_TITLE_SKIP) ){
-		var old_pbank = mmc3.set_pbank(1, PBANK_TITLE);
-		title.start();
-		mmc3.set_pbank(1, old_pbank);
-	}
+	while(1){
+
+		if( !debug_on(DEBUG_FLAG_TITLE_SKIP) ){
+			var old_pbank = mmc3.set_pbank(1, PBANK_TITLE);
+			title.start(title.SCENE_TITLE);
+			//title.start(title.SCENE_ENDING);
+			mmc3.set_pbank(1, old_pbank);
+		}
 	
-	game.start();
+		game.start();
+
+		if(1){
+			ppu.wait_vsync();
+			ppu.lock();
+			var old_pbank = mmc3.set_pbank(1, PBANK_TITLE);
+			title.start(title.SCENE_ENDING);
+			mmc3.set_pbank(1, old_pbank);
+		}
+	}
 }

@@ -5,6 +5,7 @@ use mem;
 use my;
 use savedata;
 use game;
+use sound;
 
 include("title.asm");
 
@@ -15,17 +16,18 @@ const SCENE_CREDIT = 2;
 const SCENE_SECRET_COMMAND = 3;
 const SCENE_CLEAR_SAVEDATA = 4;
 const SCENE_TEXT_VIWER = 5;
+const SCENE_ENDING = 7;
 
 var text_viwer_id:int16;
 
-public function start():void
+public function start(init_scene:int):void
 {
 	ppu.ctrl1_bak = 0b10100000;
 	ppu.ctrl2_bak = 0b00011110;
 	ppu.scroll1 = 0;
 	ppu.scroll2 = 0;
 	
-	var next_scene = 1;
+	var next_scene = init_scene;
 	loop(){
 		switch(next_scene){
 		case SCENE_FINISH: break;
@@ -35,8 +37,12 @@ public function start():void
 		case SCENE_SECRET_COMMAND: next_scene = do_secret_command();
 		case SCENE_CLEAR_SAVEDATA: next_scene = do_clear_savedata();
 		case SCENE_TEXT_VIWER: next_scene = do_text_viewer();
+		case SCENE_ENDING: next_scene = do_ending();
 		}
 	}
+	
+	savedata.clear();
+	savedata.load();
 	
 	if( next_scene == SCENE_FINISH ){
 		game.game_mode = 0;
@@ -58,7 +64,7 @@ const TITLE_TILEPAL:int[] = incbin("../res/images/title.tilepal");
 
 public function do_title():int
 {
-	debug_mode = 1;
+	// debug_mode = 1;
 	
 	ppu.lock();
 	ppu.irq_setup = irq_setup;
@@ -139,6 +145,67 @@ public function do_title():int
 	ppu.irq_setup = ppu.null_func;
 	ppu.wait_vsync();
 	return next;
+}
+
+public function do_ending():int
+{
+	// debug_mode = 1;
+	
+	ppu.lock();
+	
+	fs.copy( sound_buf, fs.SOUND_BASE+0 );
+	sound.play_bgm(&sound_buf[sound_buf[0]]);
+	
+	ppu.irq_setup = irq_setup;
+
+	ppu.fill_in_lock( 0x3f00, 32, 0x0D );
+	
+	mmc3.set_cbank( 0, CBANK_TITLE+0 );
+	mmc3.set_cbank( 1, CBANK_TITLE+2 );
+	mmc3.set_cbank( 3, CBANK_SPRITE+1 );
+
+	ppu.fill_in_lock(0x2000, 256*4, 0);
+
+	nes.PPU_ADDR = 0x20;
+	nes.PPU_ADDR = 0x00;
+	var i:uint8;
+	for(i,0,2){
+		var j: int8 = 0;
+		while(1){
+			nes.PPU_DATA = j;
+			j+=1;
+			if( j == 0 ) break;
+		}
+	}
+	ppu.put_in_lock(0x23C0, &TITLE_TILEPAL[0], 64);
+	
+	
+	put_text_in_lock( ppu.pos(2,16), _T("ＴＧＳ　ＳＰＥＣＩＡＬ　ＳＴＡＧＥ　ＣＬＥＡＲＥＤ！！") );	
+	put_text_in_lock( ppu.pos(2,18), _T("ＴＨＡＮＫ　ＹＯＵ　ＦＯＲ　ＹＯＵＲ　ＰＬＡＹＩＮＧ！") );
+
+	put_text_in_lock( ppu.pos(2,20), _T("ＳＥＥ　ＹＯＵ　．．．") );
+	put_text_in_lock( ppu.pos(2,22), _T("　　　ＯＮ　ＰＲＯＤＵＣＴＩＯＮ　ＶＥＲＳＩＯＮ　：）") );
+	
+	put_text_in_lock( ppu.pos(6,26), _T("(C) 2015 Toydea Inc.") );
+	
+	ppu.unlock();
+
+	for( i, 0, 60 ){
+		ppu.wait_vsync();
+	}
+	
+	for( i, 0, 4 ){
+		var buf = ppu.alloc(32);
+		mem.copy( buf, &TITLE_PALETTE[0], 16 );
+		bg.pal_down(buf, 32, 3-i);
+		ppu.put( VRAM_PALETTE, buf, 16, 0 );
+		var j:int;
+		for( j, 0, 30 ){ ppu.wait_vsync(); }
+	}
+
+	while(1){}
+	
+	return 0;
 }
 
 function put_text_in_lock(addr:int16, s:int*):void
@@ -308,6 +375,8 @@ function do_clear_savedata():int
 	loop(){
 		pad.update();
 		if( pad.cur == (pad.SELECT|pad.START) ){
+			debug_mode = 0;
+			debug_flag = 0;
 			savedata.clear();
 			savedata.load();
 			break;
