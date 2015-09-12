@@ -8,6 +8,7 @@ use debug_menu;
 use event;
 use mem;
 use savedata;
+use sound;
 
 var game_mode:int;
 
@@ -65,10 +66,14 @@ function start(): void
 	}else{
 		move_checkpoint(2);
 	}
+	savedata.save();
 	// move_checkpoint(my.last_checkpoint);
 	my.set_map( bg.cur_area%16, bg.cur_area/16 );
 	my.save_in_this_area = 1;
 
+	fs.copy( sound_buf, fs.SOUND_BASE+1 );
+	sound.play_bgm(&sound_buf[sound_buf[0]]);
+	
 	ppu.unlock();
 	
 	anim = 0;

@@ -18,8 +18,6 @@ include('../res/images/item.chr');
 include('../res/text/misc_text.chr');
 include('../res/images/title.chr');
 
-var buf:int[4096] options(segment:"BSS_EX");
-
 function main():void
 {
 	ppu.lock();
@@ -37,11 +35,11 @@ function main():void
 	savedata.load();
 
 	// play music
-	fs.copy( buf, fs.SOUND_BASE+0 );
+	fs.copy( sound_buf, fs.SOUND_BASE+0 );
 	sound.init();
 	ppu.on_vsync = sound.main_nsd;
-	var offset = buf[0];
-	sound.play_bgm(&buf[offset]);
+	var offset = sound_buf[0];
+	sound.play_bgm(&sound_buf[offset]);
 
 	asm( "cli" );
 

@@ -193,10 +193,13 @@ class TiledConverter
     tile_pal = []
     4.times do |y|
       8.times do |x|
-        tile_pal << ( (pal[(y*4+0)*32+(x*4+0)] << 0) +
-                      (pal[(y*4+0)*32+(x*4+2)] << 2) +
-                      (pal[(y*4+2)*32+(x*4+0)] << 4) +
-                      (pal[(y*4+2)*32+(x*4+2)] << 6) )
+        get_pal = proc do |dx,dy|
+          idx = (y*4+dy*2)*32+(x*4+dx*2)
+          [pal[idx+0], pal[idx+1], pal[idx+32], pal[idx+33]]
+            .group_by{|x| x}
+            .max_by{|k,v| if k == 0 then 0 else v.size end}[0]
+        end
+        tile_pal << (get_pal.call(0,0) << 0) + (get_pal.call(1,0) << 2) + (get_pal.call(0,1) << 4) + (get_pal.call(1,1) << 6)
       end
     end
     # p pal.each_slice(32).to_a
@@ -418,7 +421,7 @@ class TiledConverter
 
   def conv_sound
     @fs.tag :SOUND_BASE
-    ['castle1'].each do |f|
+    ['title','normal'].each do |f|
       bin = IO.binread( 'res/sound/'+f+'.bin' ).unpack('c*')
       @fs.add bin
     end
